@@ -19,7 +19,7 @@ final class ErrorStore
         $frames = array_slice($error->getTrace(), 0, 5);
         $sites = [];
         foreach ($frames as $frame) {
-            $sites[] = ($frame['class'] ?? '') . ($frame['function'] ?? '') . ($frame['file'] ?? '');
+            $sites[] = ($frame['class'] ?? '') . $frame['function'] . ($frame['file'] ?? '');
         }
         return hash('sha256', $error::class . "\n" . $error->getFile() . "\n" . implode("\n", $sites));
     }
@@ -91,6 +91,7 @@ final class ErrorStore
         }
     }
 
+    /** @return resource */
     public function acquireWorkerLock()
     {
         $this->ensureDirectory();
@@ -101,6 +102,7 @@ final class ErrorStore
         return $handle;
     }
 
+    /** @param array<string, mixed> $pending */
     public function incrementAttempt(string $pendingPath, array $pending): void
     {
         $pending['attempts'] = (int) ($pending['attempts'] ?? 0) + 1;
