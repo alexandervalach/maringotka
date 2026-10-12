@@ -28,6 +28,15 @@ services:
       DB_NAME: ${POSTGRES_DB:-maringotka}
       DB_USER: ${POSTGRES_USER:-maringotka}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      APP_RELEASE: ${APP_RELEASE:-dev}
+      ALERT_TO: ${ALERT_TO:-}
+      ALERT_FROM: ${ALERT_FROM:-}
+      ALERT_SMTP_HOST: ${ALERT_SMTP_HOST:-}
+      ALERT_SMTP_PORT: ${ALERT_SMTP_PORT:-587}
+      ALERT_SMTP_ENCRYPTION: ${ALERT_SMTP_ENCRYPTION:-tls}
+      ALERT_SMTP_USER: ${ALERT_SMTP_USER:-}
+      ALERT_SMTP_PASSWORD: ${ALERT_SMTP_PASSWORD:-}
+
     depends_on:
       db:
         condition: service_healthy
