@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-header('Content-Type: text/plain; charset=utf-8');
-header('Cache-Control: no-store');
-echo "Maringotka development environment OK\n";
+$configurator = require dirname(__DIR__) . '/app/bootstrap.php';
+$container = $configurator->createContainer();
+$container->getByType(Nette\Application\Application::class)->run();

@@ -1,0 +1,8 @@
+application:
+    mapping:
+        *: App\Presenters\*Presenter
+
+services:
+    router: App\Router\RouterFactory::createRouter
+    - App\Presenters\HomepagePresenter
+    - App\Infrastructure\Database\ConnectionFactory

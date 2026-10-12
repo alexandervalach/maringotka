@@ -1,0 +1,8 @@
+parameters:
+    level: 6
+    paths:
+        - app
+        - bin/check-app.php
+        - tests
+    excludePaths:
+        - var
