@@ -1,15 +1,12 @@
 {block content}
-
 <main id="main">
     <section class="hero" aria-labelledby="hero-title">
         <div class="hero-content container">
-            <p class="eyebrow">{$copy['tagline']}</p>
-            <h1 id="hero-title">{$copy['headline']}</h1>
-            <p class="hero-lead">{$copy['intro']}</p>
-            <a href="#rezervacia" class="button">{$copy['booking']} <span aria-hidden="true">→</span></a>
-            {*
-            <p class="hero-note">{$copy['placeholder']}</p>
-            *}
+            <p class="eyebrow">{_'messages.hero.tagline'}</p>
+            <h1 id="hero-title">{_'messages.hero.headline'}</h1>
+            <p class="hero-lead">{_'messages.hero.intro'}</p>
+            <a href="#rezervacia" class="button">{_'messages.navigation.booking'} <span aria-hidden="true">→</span></a>
+            <p class="hero-note">{_'messages.hero.placeholder'}</p>
         </div>
         <div class="hero-art" aria-hidden="true">
             <div class="art-sun"></div><div class="art-ridge ridge-back"></div><div class="art-ridge ridge-front"></div>
@@ -17,18 +14,18 @@
     </section>
     <section class="intro-strip">
         <div class="container">
-            <span>Vysoké Tatry</span>
-            <span>2 osoby</span>
-            <span>Sauna &amp; kúpacia kaďa</span>
+            <span>{_'messages.hero.location'}</span>
+            <span>{_'messages.hero.capacity'}</span>
+            <span>{_'messages.hero.wellness'}</span>
         </div>
     </section>
     <div class="container sections">
-        <section class="content-section" id="galeria"><span class="section-count">01</span><div><h2>{$copy['gallery']}</h2><p>{$copy['galleryText']}</p><div class="gallery-placeholders"><div></div><div></div><div></div></div></div></section>
-        <section class="content-section" id="okolie"><span class="section-count">02</span><div><h2>{$copy['surroundings']}</h2><p>{$copy['surroundingsText']}</p></div></section>
-        <section class="content-section" id="cennik"><span class="section-count">03</span><div><h2>{$copy['pricing']}</h2><p>{$copy['pricingText']}</p></div></section>
-        <section class="content-section" id="poukaz"><span class="section-count">04</span><div><h2>{$copy['voucher']}</h2><p>{$copy['voucherText']}</p></div></section>
-        <section class="content-section" id="kontakt"><span class="section-count">05</span><div><h2>{$copy['contact']}</h2><p>{$copy['contactText']}</p></div></section>
-        <section class="content-section booking-section" id="rezervacia"><span class="section-count">06</span><div><h2>{$copy['booking']}</h2><p>{$copy['bookingText']}</p></div></section>
+        <section class="content-section" id="galeria"><span class="section-count">01</span><div><h2>{_'messages.navigation.gallery'}</h2><p>{_'messages.sections.gallery.text'}</p><div class="gallery-placeholders"><div></div><div></div><div></div></div></div></section>
+        <section class="content-section" id="okolie"><span class="section-count">02</span><div><h2>{_'messages.navigation.surroundings'}</h2><p>{_'messages.sections.surroundings.text'}</p></div></section>
+        <section class="content-section" id="cennik"><span class="section-count">03</span><div><h2>{_'messages.navigation.pricing'}</h2><p>{_'messages.sections.pricing.text'}</p></div></section>
+        <section class="content-section" id="poukaz"><span class="section-count">04</span><div><h2>{_'messages.navigation.voucher'}</h2><p>{_'messages.sections.voucher.text'}</p></div></section>
+        <section class="content-section" id="kontakt"><span class="section-count">05</span><div><h2>{_'messages.navigation.contact'}</h2><p>{_'messages.sections.contact.text'}</p></div></section>
+        <section class="content-section booking-section" id="rezervacia"><span class="section-count">06</span><div><h2>{_'messages.navigation.booking'}</h2><p>{_'messages.sections.booking.text'}</p></div></section>
     </div>
 </main>
 

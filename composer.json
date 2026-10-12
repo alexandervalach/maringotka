@@ -7,6 +7,7 @@
     "php": "^8.5",
     "ext-intl": "*",
     "ext-pdo_pgsql": "*",
+    "contributte/translation": "^2.0.9",
     "latte/latte": "^3.0",
     "nette/application": "^3.2",
     "nette/bootstrap": "^3.2",

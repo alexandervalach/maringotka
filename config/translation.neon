@@ -1,0 +1,12 @@
+extensions:
+    translation: Contributte\Translation\DI\TranslationExtension
+
+translation:
+    locales:
+        whitelist: [sk, en]
+        default: sk
+        fallback: [sk]
+    dirs:
+        - %appDir%/../lang
+    localeResolvers:
+        - Contributte\Translation\LocalesResolvers\Router

@@ -3,51 +3,51 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="{$copy['intro']}">
+    <meta name="description" content="{_'messages.hero.intro'}">
     <meta name="theme-color" content="#405e48">
     <title>{$title}</title>
     <link rel="icon" type="image/jpeg" href="/assets/images/logo.jpeg">
     <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
-<a class="skip-link" href="#main">Skip to content</a>
+<a class="skip-link" href="#main">{_'messages.navigation.skip'}</a>
 <header class="site-header" id="top">
-    <a class="brand" href="{$locale === 'en' ? '/en' : '/'}" aria-label="Maringotka na Závadke">
+    <a class="brand" href="#top" aria-label="Maringotka na Závadke">
         <img src="/assets/images/logo.jpeg" width="58" height="58" alt="Maringotka na Závadke">
         <span>Maringotka <small>na Závadke</small></span>
     </a>
-    <nav class="desktop-nav" aria-label="Main navigation">
-        <a href="#top">{$copy['home']}</a>
-        <a href="#galeria">{$copy['gallery']}</a>
-        <a href="#okolie">{$copy['surroundings']}</a>
-        <a href="#cennik">{$copy['pricing']}</a>
-        <a href="#poukaz">{$copy['voucher']}</a>
-        <a href="#kontakt">{$copy['contact']}</a>
+    <nav class="desktop-nav" aria-label="{_'messages.navigation.main'}">
+        <a href="#top">{_'messages.navigation.home'}</a>
+        <a href="#galeria">{_'messages.navigation.gallery'}</a>
+        <a href="#okolie">{_'messages.navigation.surroundings'}</a>
+        <a href="#cennik">{_'messages.navigation.pricing'}</a>
+        <a href="#poukaz">{_'messages.navigation.voucher'}</a>
+        <a href="#kontakt">{_'messages.navigation.contact'}</a>
     </nav>
     <div class="header-actions">
-        <div class="language-switch" aria-label="Language">
+        <div class="language-switch" aria-label="{_'messages.navigation.languages'}">
             <a href="/" n:class="$locale === 'sk' ? active" n:attr="aria-current: $locale === 'sk' ? 'page'">SK</a>
             <span aria-hidden="true">/</span>
             <a href="/en" n:class="$locale === 'en' ? active" n:attr="aria-current: $locale === 'en' ? 'page'">EN</a>
         </div>
-        <a class="button button-small desktop-book" href="#rezervacia">{$copy['booking']}</a>
+        <a class="button button-small desktop-book" href="#rezervacia">{_'messages.navigation.booking'}</a>
     </div>
     <details class="mobile-nav">
-        <summary>{$copy['menu']}</summary>
-        <nav aria-label="Mobile navigation">
-            <a href="#top">{$copy['home']}</a>
-            <a href="#galeria">{$copy['gallery']}</a>
-            <a href="#okolie">{$copy['surroundings']}</a>
-            <a href="#cennik">{$copy['pricing']}</a>
-            <a href="#poukaz">{$copy['voucher']}</a>
-            <a href="#kontakt">{$copy['contact']}</a>
-            <a href="#rezervacia">{$copy['booking']}</a>
+        <summary>{_'messages.navigation.openMenu'}</summary>
+        <nav aria-label="{_'messages.navigation.mobile'}">
+            <a href="#top">{_'messages.navigation.home'}</a>
+            <a href="#galeria">{_'messages.navigation.gallery'}</a>
+            <a href="#okolie">{_'messages.navigation.surroundings'}</a>
+            <a href="#cennik">{_'messages.navigation.pricing'}</a>
+            <a href="#poukaz">{_'messages.navigation.voucher'}</a>
+            <a href="#kontakt">{_'messages.navigation.contact'}</a>
+            <a href="#rezervacia">{_'messages.navigation.booking'}</a>
         </nav>
     </details>
 </header>
 {include content}
 <footer class="site-footer">
-    <p>© {date('Y')} Maringotka na Závadke · {$copy['footer']}</p>
+    <p>© {date('Y')} Maringotka na Závadke · {_'messages.footer.description'}</p>
     <a href="#top">↑</a>
 </footer>
 </body>
