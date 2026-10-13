@@ -5,50 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{_'messages.hero.intro'}">
     <meta name="theme-color" content="#405e48">
-    <title>{$title}</title>
+    <title>{$title} | Maringotka na Závadke</title>
     <link rel="icon" type="image/jpeg" href="/assets/images/logo.jpeg">
     <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
 <a class="skip-link" href="#main">{_'messages.navigation.skip'}</a>
 <header class="site-header" id="top">
-    <a class="brand" href="#top" aria-label="Maringotka na Závadke">
+    <a class="brand" href="{$paths['default']}" aria-label="Maringotka na Závadke">
         <img src="/assets/images/logo.jpeg" width="58" height="58" alt="Maringotka na Závadke">
         <span>Maringotka <small>na Závadke</small></span>
     </a>
     <nav class="desktop-nav" aria-label="{_'messages.navigation.main'}">
-        <a href="#top">{_'messages.navigation.home'}</a>
-        <a href="#galeria">{_'messages.navigation.gallery'}</a>
-        <a href="#okolie">{_'messages.navigation.surroundings'}</a>
-        <a href="#cennik">{_'messages.navigation.pricing'}</a>
-        <a href="#poukaz">{_'messages.navigation.voucher'}</a>
-        <a href="#kontakt">{_'messages.navigation.contact'}</a>
+        <a href="{$paths['default']}">{_'messages.navigation.home'}</a>
+        <a href="{$paths['gallery']}">{_'messages.navigation.gallery'}</a>
+        <a href="{$paths['surroundings']}">{_'messages.navigation.surroundings'}</a>
+        <a href="{$paths['pricing']}">{_'messages.navigation.pricing'}</a>
+        <a href="{$paths['voucher']}">{_'messages.navigation.voucher'}</a>
+        <a href="{$paths['contact']}">{_'messages.navigation.contact'}</a>
     </nav>
     <div class="header-actions">
         <div class="language-switch" aria-label="{_'messages.navigation.languages'}">
-            <a href="/" n:class="$locale === 'sk' ? active" n:attr="aria-current: $locale === 'sk' ? 'page'">SK</a>
+            <a href="{$languageUrls['sk']}" n:class="$locale === 'sk' ? active" n:attr="aria-current: $locale === 'sk' ? 'page'">SK</a>
             <span aria-hidden="true">/</span>
-            <a href="/en" n:class="$locale === 'en' ? active" n:attr="aria-current: $locale === 'en' ? 'page'">EN</a>
+            <a href="{$languageUrls['en']}" n:class="$locale === 'en' ? active" n:attr="aria-current: $locale === 'en' ? 'page'">EN</a>
         </div>
-        <a class="button button-small desktop-book" href="#rezervacia">{_'messages.navigation.booking'}</a>
+        <a class="button button-small desktop-book" href="{$paths['booking']}">{_'messages.navigation.booking'}</a>
     </div>
     <details class="mobile-nav">
         <summary>{_'messages.navigation.openMenu'}</summary>
         <nav aria-label="{_'messages.navigation.mobile'}">
-            <a href="#top">{_'messages.navigation.home'}</a>
-            <a href="#galeria">{_'messages.navigation.gallery'}</a>
-            <a href="#okolie">{_'messages.navigation.surroundings'}</a>
-            <a href="#cennik">{_'messages.navigation.pricing'}</a>
-            <a href="#poukaz">{_'messages.navigation.voucher'}</a>
-            <a href="#kontakt">{_'messages.navigation.contact'}</a>
-            <a href="#rezervacia">{_'messages.navigation.booking'}</a>
+            <a href="{$paths['default']}">{_'messages.navigation.home'}</a>
+            <a href="{$paths['gallery']}">{_'messages.navigation.gallery'}</a>
+            <a href="{$paths['surroundings']}">{_'messages.navigation.surroundings'}</a>
+            <a href="{$paths['pricing']}">{_'messages.navigation.pricing'}</a>
+            <a href="{$paths['voucher']}">{_'messages.navigation.voucher'}</a>
+            <a href="{$paths['contact']}">{_'messages.navigation.contact'}</a>
+            <a href="{$paths['booking']}">{_'messages.navigation.booking'}</a>
         </nav>
     </details>
 </header>
 {include content}
 <footer class="site-footer">
     <p>© {date('Y')} Maringotka na Závadke · {_'messages.footer.description'}</p>
-    <a href="#top">↑</a>
+    <a href="#top" aria-label="{_'messages.common.backToTop'}">↑</a>
 </footer>
 </body>
 </html>

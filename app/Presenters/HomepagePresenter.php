@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
+use App\Router\PublicRoutes;
 use Contributte\Translation\Translator;
 use Nette\Application\UI\Presenter;
 
@@ -14,13 +15,20 @@ final class HomepagePresenter extends Presenter
         parent::__construct();
     }
 
-    public function renderDefault(string $locale = 'sk'): void
+    protected function beforeRender(): void
     {
-        // URL routing is the authority for the language of this page.
-        $locale = $locale === 'en' ? 'en' : 'sk';
+        parent::beforeRender();
+        $locale = $this->getParameter('locale') === 'en' ? 'en' : 'sk';
         $this->translator->setLocale($locale);
         $this->template->setTranslator($this->translator, $locale);
         $this->template->add('locale', $locale);
-        $this->template->add('title', 'Maringotka na Závadke');
+        $this->template->add('paths', PublicRoutes::forLocale($locale));
+        $action = $this->getAction();
+        $this->template->add('languageUrls', [
+            'sk' => '/' . PublicRoutes::PATHS[$action]['sk'],
+            'en' => '/' . PublicRoutes::PATHS[$action]['en'],
+        ]);
+        $titleKey = $action === 'default' ? 'hero.headline' : 'navigation.' . $action;
+        $this->template->add('title', $this->translator->translate('messages.' . $titleKey));
     }
 }

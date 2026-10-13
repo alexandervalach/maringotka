@@ -1,0 +1,14 @@
+{block content}
+<main id="main" class="inner-page container">
+    <a class="back-link" href="{$paths['default']}">← {_'messages.navigation.home'}</a>
+    <p class="eyebrow inner-eyebrow">Maringotka na Závadke</p>
+    <h1>{_'messages.navigation.gallery'}</h1>
+    <p class="page-lead">{_'messages.sections.gallery.text'}</p>
+    <div class="gallery-grid" aria-label="{_'messages.gallery.placeholder'}">
+        {for $i = 1; $i <= 9; $i++}
+            <div class="gallery-tile" aria-hidden="true"><span>{$i}</span></div>
+        {/for}
+    </div>
+    <p class="subtle-note">{_'messages.gallery.placeholder'}</p>
+</main>
+{/block}
