@@ -9,3 +9,10 @@ COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 COPY docker/php/dev.ini /usr/local/etc/php/conf.d/99-development.ini
 
 WORKDIR /var/www/html
+
+COPY docker/php/entrypoint.sh /usr/local/bin/maringotka-entrypoint
+
+RUN chmod 755 /usr/local/bin/maringotka-entrypoint
+
+ENTRYPOINT ["maringotka-entrypoint"]
+CMD ["php-fpm"]

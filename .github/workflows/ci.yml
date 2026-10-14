@@ -55,24 +55,15 @@ jobs:
       - name: Smoke test Nette and PostgreSQL
         run: docker compose exec -T php php bin/check-app.php
 
-      - name: Prepare writable Nette directories
-        run: |
-          docker compose exec -T php sh -c '
-            mkdir -p var/log var/temp var/monitoring
-            chown -R www-data:www-data var/log var/temp var/monitoring
-            chmod -R u+rwX var/log var/temp var/monitoring
-          '
-
-      - name: Verify PHP-FPM write permissions
+      - name: Verify PHP runtime permissions
         run: |
           docker compose exec -T -u www-data php sh -c '
-            for dir in var/log var/temp var/monitoring; do
-              if [ -d "$dir" ] && [ -w "$dir" ]; then
-                echo "OK: $dir is writable"
-              else
-                echo "ERROR: $dir is missing or not writable"
+            for dir in var/temp var/log var/monitoring; do
+              test -d "$dir" && test -w "$dir" || {
+                echo "ERROR: $dir is not writable"
                 exit 1
-              fi
+              }
+              echo "OK: $dir"
             done
           '
 

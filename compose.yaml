@@ -21,8 +21,9 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
+      - php_runtime:/var/www/html/var
     environment:
-      APP_ENV: development
+      APP_ENV: ${APP_ENV:-production}
       DB_HOST: db
       DB_PORT: "5432"
       DB_NAME: ${POSTGRES_DB:-maringotka}
@@ -66,3 +67,4 @@ networks:
 
 volumes:
   pgdata:
+  php_runtime:
