@@ -43,17 +43,13 @@ jobs:
         run: docker compose up --build -d --wait
 
       - name: Install locked Composer dependencies
-        run: |
-          docker compose exec -T php composer install \
-            --no-interaction \
-            --prefer-dist \
-            --no-progress
+        run: docker compose exec -T -u www-data php composer check
 
       - name: Run static analysis and tests
         run: docker compose exec -T php composer check
 
       - name: Smoke test Nette and PostgreSQL
-        run: docker compose exec -T php php bin/check-app.php
+        run: docker compose exec -T -u www-data php php bin/check-app.php
 
       - name: Verify PHP runtime permissions
         run: |
