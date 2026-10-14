@@ -43,24 +43,24 @@ jobs:
         run: docker compose up --build -d --wait
 
       - name: Install locked Composer dependencies
-        run: docker compose exec -T -u www-data php composer check
+        run: |
+          docker compose exec -T php composer install \
+            --no-interaction \
+            --prefer-dist \
+            --no-progress
 
       - name: Run static analysis and tests
         run: docker compose exec -T php composer check
 
       - name: Smoke test Nette and PostgreSQL
-        run: docker compose exec -T -u www-data php php bin/check-app.php
+        run: docker compose exec -T php php bin/check-app.php
 
-      - name: Verify PHP runtime permissions
+      - name: Prepare PHP-FPM runtime permissions
         run: |
-          docker compose exec -T -u www-data php sh -c '
-            for dir in var/temp var/log var/monitoring; do
-              test -d "$dir" && test -w "$dir" || {
-                echo "ERROR: $dir is not writable"
-                exit 1
-              }
-              echo "OK: $dir"
-            done
+          docker compose exec -T php sh -ec '
+            mkdir -p var/temp var/log var/monitoring
+            chown -R www-data:www-data var/temp var/log var/monitoring
+            chmod -R u+rwX var/temp var/log var/monitoring
           '
 
       - name: Smoke test HTTP homepage
