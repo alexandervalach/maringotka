@@ -12,3 +12,4 @@
 !/var/log/.gitkeep
 /www/assets/generated/
 /composer.phar
+*.DS_Store
