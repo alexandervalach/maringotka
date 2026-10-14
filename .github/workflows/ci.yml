@@ -55,6 +55,19 @@ jobs:
       - name: Smoke test Nette and PostgreSQL
         run: docker compose exec -T php php bin/check-app.php
 
+      - name: Verify PHP-FPM write permissions
+        run: |
+          docker compose exec -T -u www-data php sh -c '
+            for dir in var/log var/temp var/monitoring; do
+              if [ -d "$dir" ] && [ -w "$dir" ]; then
+                echo "OK: $dir is writable"
+              else
+                echo "ERROR: $dir is missing or not writable"
+                exit 1
+              fi
+            done
+          '
+
       - name: Smoke test HTTP homepage
         run: |
           curl --fail --silent --show-error \
@@ -91,7 +104,7 @@ jobs:
               -E "Exception|Error|Fatal|Warning" {} \; \
               2>/dev/null || true
           '
-          
+
       - name: Inspect Tracy configuration
         if: failure()
         run: |
