@@ -45,8 +45,30 @@ jobs:
         run: docker compose exec -T php php bin/check-app.php
 
       - name: Smoke test HTTP homepage
-        run: curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-connrefused http://127.0.0.1:8080/ > /dev/null
+        run: |
+          curl --fail --silent --show-error \
+            --retry 5 \
+            --retry-delay 2 \
+            --retry-connrefused \
+            http://127.0.0.1:8080/ > /dev/null
 
+      - name: Show application logs on failure
+        if: failure()
+        run: |
+          echo "=== Docker containers ==="
+          docker compose ps
+
+          echo "=== PHP logs ==="
+          docker compose logs --tail=100 php
+
+          echo "=== Nginx logs ==="
+          docker compose logs --tail=100 nginx
+
+          echo "=== Tracy logs ==="
+          docker compose exec -T php sh -c '
+            find var -type f \( -name "*.log" -o -name "*.html" \) \
+            -print 2>/dev/null | head -30
+          '
       - name: Collect container logs on failure
         if: failure()
         run: docker compose logs --no-color --tail=120
