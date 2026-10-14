@@ -1,0 +1,161 @@
+{
+  "hero": {
+    "src": "Titulna fotka.jpg",
+    "original": [
+      2048,
+      1365
+    ],
+    "outputs": {
+      "480": {
+        "file": "hero-480.webp",
+        "bytes": 27834
+      },
+      "960": {
+        "file": "hero-960.webp",
+        "bytes": 99926
+      },
+      "1600": {
+        "file": "hero-1600.webp",
+        "bytes": 252392
+      },
+      "2048": {
+        "file": "hero-2048.webp",
+        "bytes": 432414
+      }
+    },
+    "fallback": "hero-1600.jpg"
+  },
+  "interior": {
+    "src": "Interier 3.jpg",
+    "original": [
+      2048,
+      1365
+    ],
+    "outputs": {
+      "480": {
+        "file": "interior-480.webp",
+        "bytes": 24116
+      },
+      "960": {
+        "file": "interior-960.webp",
+        "bytes": 65890
+      },
+      "1600": {
+        "file": "interior-1600.webp",
+        "bytes": 141470
+      },
+      "2048": {
+        "file": "interior-2048.webp",
+        "bytes": 233602
+      }
+    },
+    "fallback": "interior-1600.jpg"
+  },
+  "exterior-wide": {
+    "src": "Maringotka na Zavadke.jpg",
+    "original": [
+      2048,
+      1151
+    ],
+    "outputs": {
+      "480": {
+        "file": "exterior-wide-480.webp",
+        "bytes": 29912
+      },
+      "960": {
+        "file": "exterior-wide-960.webp",
+        "bytes": 111130
+      },
+      "1600": {
+        "file": "exterior-wide-1600.webp",
+        "bytes": 281614
+      },
+      "2048": {
+        "file": "exterior-wide-2048.webp",
+        "bytes": 469198
+      }
+    },
+    "fallback": "exterior-wide-1600.jpg"
+  },
+  "exterior-portrait": {
+    "src": "Maringotka na Zavadke 3.jpg",
+    "original": [
+      1535,
+      2048
+    ],
+    "outputs": {
+      "480": {
+        "file": "exterior-portrait-480.webp",
+        "bytes": 48556
+      },
+      "960": {
+        "file": "exterior-portrait-960.webp",
+        "bytes": 185882
+      }
+    },
+    "fallback": "exterior-portrait-1535.jpg"
+  },
+  "lights": {
+    "src": "mozno pouzit ako background 1.jpg",
+    "original": [
+      2048,
+      1365
+    ],
+    "outputs": {
+      "480": {
+        "file": "lights-480.webp",
+        "bytes": 7250
+      },
+      "960": {
+        "file": "lights-960.webp",
+        "bytes": 16564
+      },
+      "1600": {
+        "file": "lights-1600.webp",
+        "bytes": 31418
+      },
+      "2048": {
+        "file": "lights-2048.webp",
+        "bytes": 47652
+      }
+    },
+    "fallback": "lights-1600.jpg"
+  },
+  "wellness": {
+    "src": "Sauna a Kupacia kada.jpg",
+    "original": [
+      2048,
+      1536
+    ],
+    "outputs": {
+      "480": {
+        "file": "wellness-480.webp",
+        "bytes": 37562
+      },
+      "960": {
+        "file": "wellness-960.webp",
+        "bytes": 137814
+      },
+      "1600": {
+        "file": "wellness-1600.webp",
+        "bytes": 361248
+      },
+      "2048": {
+        "file": "wellness-2048.webp",
+        "bytes": 592216
+      }
+    },
+    "fallback": "wellness-1600.jpg"
+  },
+  "logo": {
+    "original": [
+      2048,
+      2048
+    ],
+    "outputs": {
+      "64": 7482,
+      "128": 19089,
+      "256": 43689
+    }
+  }
+}

@@ -175,22 +175,32 @@ a:focus-visible, summary:focus-visible, button:focus-visible { outline: 3px soli
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
 
-html {
-    min-height: 100%;
-}
 
-body {
-    min-height: 100vh;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
+/* Commit 05-content: responsive media and CMS-ready gallery */
+.hero-photo { position:absolute; inset:0; z-index:0; overflow:hidden; }
+.hero-photo picture, .hero-photo img { display:block; width:100%; height:100%; }
+.hero-photo img { object-fit:cover; object-position:center 54%; }
+.hero::after { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(90deg,rgba(17,35,26,.89) 0%,rgba(17,35,26,.68) 39%,rgba(17,35,26,.10) 100%); }
+.hero-content { z-index:2; }
+.gallery-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--s4); }
+.gallery-photo { margin:0; border-radius:var(--radius); overflow:hidden; background:var(--sand); }
+.gallery-photo picture, .gallery-photo img { display:block; width:100%; height:100%; }
+.gallery-photo img { aspect-ratio:4/3; object-fit:cover; transition:transform .3s ease; }
+.gallery-photo:hover img { transform:scale(1.025); }
+.gallery-photo:nth-child(4) img { object-position:center 35%; }
+.price-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--s4); }
+.price-cards .info-card h2 { margin-top:0; }
+.price-value { margin:var(--s3) 0; font-size:clamp(2rem,4vw,3.1rem); line-height:1.12; font-weight:800; color:var(--deep); letter-spacing:-.045em; }
+.contact-list p { margin-block:var(--s3); overflow-wrap:anywhere; }
+/* Sticky footer for short public pages; content flows normally on long pages */
+body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; }
+.site-footer { margin-top:auto; flex-shrink:0; }
+@media (max-width:800px) {
+ .gallery-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .hero::after { background:linear-gradient(90deg,rgba(17,35,26,.86),rgba(17,35,26,.35)); }
 }
-
-.site-footer {
-    margin-top: auto;
-    flex-shrink: 0;
-}
-
-.site-main {
-    flex: 1 0 auto;
+@media (max-width:540px) {
+ .gallery-grid,.price-cards { grid-template-columns:1fr; }
+ .hero-photo img { object-position:60% center; }
+ .hero::after { background:linear-gradient(0deg,rgba(17,35,26,.88),rgba(17,35,26,.4)); }
 }
