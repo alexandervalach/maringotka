@@ -1,3 +1,4 @@
+
 name: CI
 
 on:
@@ -16,18 +17,23 @@ jobs:
     name: Docker, PHPStan, Tester, smoke
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     env:
       POSTGRES_DB: maringotka_ci
       POSTGRES_USER: maringotka_ci
       POSTGRES_PASSWORD: ci-only-temporary-password
       HTTP_PORT: '8080'
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Require committed Composer lockfile
         run: |
-          test -f composer.lock || { echo 'composer.lock is missing. Commit the locally generated lockfile.' >&2; exit 1; }
+          test -f composer.lock || {
+            echo 'composer.lock is missing.' >&2
+            exit 1
+          }
 
       - name: Validate Docker Compose configuration
         run: docker compose config --quiet
@@ -36,7 +42,11 @@ jobs:
         run: docker compose up --build -d --wait
 
       - name: Install locked Composer dependencies
-        run: docker compose exec -T php composer install --no-interaction --prefer-dist --no-progress
+        run: |
+          docker compose exec -T php composer install \
+            --no-interaction \
+            --prefer-dist \
+            --no-progress
 
       - name: Run static analysis and tests
         run: docker compose exec -T php composer check
@@ -64,14 +74,22 @@ jobs:
           echo "=== Nginx logs ==="
           docker compose logs --no-color --tail=100 web
 
-          echo "=== Tracy logs ==="
+          echo "=== Tracy log locations ==="
           docker compose exec -T php sh -c '
-            find var -type f -name "*.log" \
-              -exec tail -n 50 {} \; 2>/dev/null
+            find /var/www/html/var \
+              -type f \
+              \( -name "*.log" -o -name "exception*.html" \) \
+              -print 2>/dev/null || true
           '
-      - name: Collect container logs on failure
-        if: failure()
-        run: docker compose logs --no-color --tail=120
+
+          echo "=== Tracy error messages ==="
+          docker compose exec -T php sh -c '
+            find /var/www/html/var \
+              -type f -name "*.log" \
+              -exec grep -h -m 5 \
+              -E "Exception|Error|Fatal|Warning" {} \; \
+              2>/dev/null || true
+          '
 
       - name: Stop stack
         if: always()
