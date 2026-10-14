@@ -55,6 +55,14 @@ jobs:
       - name: Smoke test Nette and PostgreSQL
         run: docker compose exec -T php php bin/check-app.php
 
+      - name: Prepare writable Nette directories
+        run: |
+          docker compose exec -T php sh -c '
+            mkdir -p var/log var/temp var/monitoring
+            chown -R www-data:www-data var/log var/temp var/monitoring
+            chmod -R u+rwX var/log var/temp var/monitoring
+          '
+
       - name: Verify PHP-FPM write permissions
         run: |
           docker compose exec -T -u www-data php sh -c '
