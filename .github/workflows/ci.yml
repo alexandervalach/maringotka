@@ -19,6 +19,7 @@ jobs:
     timeout-minutes: 20
 
     env:
+      APP_ENV: testing
       POSTGRES_DB: maringotka_ci
       POSTGRES_USER: maringotka_ci
       POSTGRES_PASSWORD: ci-only-temporary-password
@@ -89,6 +90,28 @@ jobs:
               -exec grep -h -m 5 \
               -E "Exception|Error|Fatal|Warning" {} \; \
               2>/dev/null || true
+          '
+          
+      - name: Inspect Tracy configuration
+        if: failure()
+        run: |
+          docker compose exec -T php sh -c '
+            echo "=== Tracy directory ==="
+            ls -ld /var/www/html/var/log 2>&1 || true
+
+            echo "=== PHP-FPM processes ==="
+            ps 2>&1 || true
+
+            echo "=== Log files ==="
+            find /var/www/html/var/log -maxdepth 1 \
+              -type f -print 2>/dev/null || true
+
+            echo "=== Writable check ==="
+            if [ -w /var/www/html/var/log ]; then
+              echo "Writable by current CLI user"
+            else
+              echo "Not writable by current CLI user"
+            fi
           '
 
       - name: Stop stack
