@@ -157,5 +157,208 @@
       "128": 19089,
       "256": 43689
     }
-  }
+  },
+  "interior-1": {
+    "src": "Interier 1.jpg",
+    "original": [
+      2048,
+      1365
+    ],
+    "outputs": {
+      "480": {
+        "file": "interior-1-480.webp",
+        "bytes": 16274,
+        "width": 480,
+        "height": 320
+      },
+      "960": {
+        "file": "interior-1-960.webp",
+        "bytes": 41644,
+        "width": 960,
+        "height": 640
+      },
+      "1600": {
+        "file": "interior-1-1600.webp",
+        "bytes": 84814,
+        "width": 1600,
+        "height": 1066
+      }
+    },
+    "fallback": "interior-1-1600.jpg"
+  },
+  "interior-2": {
+    "src": "Interier 2.jpg",
+    "original": [
+      2048,
+      1365
+    ],
+    "outputs": {
+      "480": {
+        "file": "interior-2-480.webp",
+        "bytes": 18328,
+        "width": 480,
+        "height": 320
+      },
+      "960": {
+        "file": "interior-2-960.webp",
+        "bytes": 49864,
+        "width": 960,
+        "height": 640
+      },
+      "1600": {
+        "file": "interior-2-1600.webp",
+        "bytes": 105008,
+        "width": 1600,
+        "height": 1066
+      }
+    },
+    "fallback": "interior-2-1600.jpg"
+  },
+  "interior-4": {
+    "src": "Interier 4.jpg",
+    "original": [
+      2048,
+      1365
+    ],
+    "outputs": {
+      "480": {
+        "file": "interior-4-480.webp",
+        "bytes": 6976,
+        "width": 480,
+        "height": 320
+      },
+      "960": {
+        "file": "interior-4-960.webp",
+        "bytes": 18494,
+        "width": 960,
+        "height": 640
+      },
+      "1600": {
+        "file": "interior-4-1600.webp",
+        "bytes": 45210,
+        "width": 1600,
+        "height": 1066
+      }
+    },
+    "fallback": "interior-4-1600.jpg"
+  },
+  "exterior-2": {
+    "src": "Maringotka na Zavadke 2.jpg",
+    "original": [
+      2048,
+      1365
+    ],
+    "outputs": {
+      "480": {
+        "file": "exterior-2-480.webp",
+        "bytes": 25204,
+        "width": 480,
+        "height": 320
+      },
+      "960": {
+        "file": "exterior-2-960.webp",
+        "bytes": 81780,
+        "width": 960,
+        "height": 640
+      },
+      "1600": {
+        "file": "exterior-2-1600.webp",
+        "bytes": 195366,
+        "width": 1600,
+        "height": 1066
+      }
+    },
+    "fallback": "exterior-2-1600.jpg"
+  },
+  "exterior-4": {
+    "src": "Maringotka na Zavadke 4.jpg",
+    "original": [
+      2048,
+      1536
+    ],
+    "outputs": {
+      "480": {
+        "file": "exterior-4-480.webp",
+        "bytes": 38730,
+        "width": 480,
+        "height": 360
+      },
+      "960": {
+        "file": "exterior-4-960.webp",
+        "bytes": 140888,
+        "width": 960,
+        "height": 720
+      },
+      "1600": {
+        "file": "exterior-4-1600.webp",
+        "bytes": 322056,
+        "width": 1600,
+        "height": 1200
+      }
+    },
+    "fallback": "exterior-4-1600.jpg"
+  },
+  "exterior-front": {
+    "src": "Maringotka.jpg",
+    "original": [
+      2048,
+      1365
+    ],
+    "outputs": {
+      "480": {
+        "file": "exterior-front-480.webp",
+        "bytes": 20154,
+        "width": 480,
+        "height": 320
+      },
+      "960": {
+        "file": "exterior-front-960.webp",
+        "bytes": 70646,
+        "width": 960,
+        "height": 640
+      },
+      "1600": {
+        "file": "exterior-front-1600.webp",
+        "bytes": 173432,
+        "width": 1600,
+        "height": 1066
+      }
+    },
+    "fallback": "exterior-front-1600.jpg"
+  },
+  "view-tatras": {
+    "src": "Vyhlad na Tatry.jpg",
+    "original": [
+      1535,
+      2048
+    ],
+    "outputs": {
+      "480": {
+        "file": "view-tatras-480.webp",
+        "bytes": 30450,
+        "width": 480,
+        "height": 640
+      },
+      "960": {
+        "file": "view-tatras-960.webp",
+        "bytes": 93500,
+        "width": 960,
+        "height": 1281
+      }
+    },
+    "fallback": "view-tatras-1535.jpg"
+  },
+  "gallery_order": [
+    "interior-1",
+    "interior-2",
+    "interior",
+    "interior-4",
+    "exterior-wide",
+    "exterior-2",
+    "exterior-portrait",
+    "exterior-4",
+    "exterior-front",
+    "wellness",
+    "view-tatras"
+  ]
 }
