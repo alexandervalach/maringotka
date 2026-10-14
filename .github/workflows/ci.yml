@@ -59,15 +59,15 @@ jobs:
           docker compose ps
 
           echo "=== PHP logs ==="
-          docker compose logs --tail=100 php
+          docker compose logs --no-color --tail=100 php
 
           echo "=== Nginx logs ==="
-          docker compose logs --tail=100 nginx
+          docker compose logs --no-color --tail=100 web
 
           echo "=== Tracy logs ==="
           docker compose exec -T php sh -c '
-            find var -type f \( -name "*.log" -o -name "*.html" \) \
-            -print 2>/dev/null | head -30
+            find var -type f -name "*.log" \
+              -exec tail -n 50 {} \; 2>/dev/null
           '
       - name: Collect container logs on failure
         if: failure()
