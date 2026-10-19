@@ -1,0 +1,50 @@
+{layout none}
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Úprava hlavnej stránky – Maringotka na Závadke</title>
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <style>
+    .cms-editor { max-width: 54rem; }
+    .cms-editor h1 { font-size: var(--text-h2); }
+    .cms-editor-form label { display: block; margin: var(--s4) 0 var(--s2); font-weight: 700; }
+    .cms-editor-form input[type="text"], .cms-editor-form textarea { display: block; width: 100%; padding: var(--s3); border: 1px solid var(--line); border-radius: .625rem; background: #fff; color: var(--ink); font: inherit; }
+    .cms-editor-form textarea { min-height: 11rem; resize: vertical; }
+    .cms-editor-form input:focus-visible, .cms-editor-form textarea:focus-visible { outline: 3px solid var(--sand); outline-offset: 2px; border-color: var(--forest); }
+    .cms-editor-form .button { margin-top: var(--s5); cursor: pointer; }
+    .cms-editor-errors { color: #a12828; }
+  </style>
+</head>
+<body>
+<main id="main" class="container inner-page cms-editor">
+  <nav aria-label="Administrácia">
+    <a class="back-link" href="/admin">← Administrácia</a>
+    <a class="back-link" href="/admin/home/sk">Slovenčina</a>
+    <a class="back-link" href="/admin/home/en">English</a>
+    <a class="back-link" href="/">Verejný web</a>
+  </nav>
+  <section class="info-card">
+    <h1>Hlavná stránka – {$editingLocale|upper}</h1>
+    <p class="page-lead">Upravený nadpis a úvodný text sa po uložení zobrazia na verejnom webe.</p>
+    {foreach $flashes as $flash}
+      <p role="status" class="subtle-note">{$flash->message}</p>
+    {/foreach}
+    <div class="cms-editor-form">
+    {form homepageForm}
+      <ul class="cms-editor-errors" n:if="$form->hasErrors()">
+        <li n:foreach="$form->getErrors() as $error">{$error}</li>
+      </ul>
+      {label title /}
+      {input title}
+      {label summary /}
+      {input summary}
+      {input save}
+    {/form}
+    </div>
+  </section>
+</main>
+</body>
+</html>

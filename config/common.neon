@@ -7,3 +7,5 @@ services:
     - App\Presenters\HomepagePresenter
     - App\Infrastructure\Database\ConnectionFactory
     - App\Presenters\AdminPresenter
+    - App\Model\HomepageRepository
+    - App\Forms\HomepageFormFactory

@@ -2,30 +2,31 @@
 <!doctype html>
 <html lang="sk">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex,nofollow">
-    <title>Administrácia – Maringotka na Závadke</title>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        body { min-height: 100vh; margin: 0; padding: 3rem 1.5rem; background: #f5f2ec; color: #1f3126; font: 16px/1.55 system-ui, sans-serif; }
-        main { max-width: 56rem; margin: 0 auto; }
-        .panel { background: #fff; border-radius: 1rem; padding: 2rem; box-shadow: 0 12px 35px rgba(31, 49, 38, .08); }
-        h1 { margin: 0 0 .5rem; font-size: 1.75rem; }
-        p { color: #627067; margin: 0 0 1.5rem; }
-        button { border: 0; border-radius: .5rem; padding: .8rem 1.2rem; background: #405e48; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
-        button:focus-visible { outline: 3px solid #a6bfa7; outline-offset: 3px; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Administrácia – Maringotka na Závadke</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; padding: 3rem 1.5rem; background: #f5f2ec; color: #1f3126; font: 16px/1.55 system-ui, sans-serif; }
+    main { max-width: 56rem; margin: 0 auto; }
+    .panel { background: #fff; border-radius: 1rem; padding: 2rem; box-shadow: 0 12px 35px rgba(31, 49, 38, .08); }
+    h1 { margin: 0 0 .5rem; font-size: 1.75rem; }
+    p { color: #627067; margin: 0 0 1.5rem; }
+    button { border: 0; border-radius: .5rem; padding: .8rem 1.2rem; background: #405e48; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
+    button:focus-visible { outline: 3px solid #a6bfa7; outline-offset: 3px; }
+  </style>
 </head>
 <body>
 <main>
-    <section class="panel">
-        <h1>Administrácia</h1>
-        <p>Vitaj v administrácii portálu Maringotka na Závadke.</p>
-        {form logoutForm}
-            {input submit}
-        {/form}
-    </section>
+  <section class="panel">
+    <h1>Administrácia</h1>
+    <p>Správa obsahu hlavnej stránky:</p>
+    <p><a href="/admin/home/sk">Upraviť hlavnú stránku – SK</a> · <a href="/admin/home/en">EN</a></p>
+    {form logoutForm}
+      {input submit}
+    {/form}
+  </section>
 </main>
 </body>
 </html>

@@ -1,28 +1,28 @@
 {block content}
 <main id="main">
-    <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-content container">
-            <p class="eyebrow">{_'messages.hero.tagline'}</p>
-            <h1 id="hero-title">{_'messages.hero.headline'}</h1>
-            <p class="hero-lead">{_'messages.hero.intro'}</p>
-            <a href="{$paths['booking']}" class="button">{_'messages.navigation.booking'} <span aria-hidden="true">→</span></a>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-content container">
+      <p class="eyebrow">{_'messages.hero.tagline'}</p>
+      <h1 id="hero-title">{if $homeTitle !== null}{$homeTitle}{else}{_'messages.hero.headline'}{/if}</h1>
+      <p class="hero-lead">{if $homeSummary !== null}{$homeSummary}{else}{_'messages.hero.intro'}{/if}</p>
+      <a href="{$paths['booking']}" class="button">{_'messages.navigation.booking'} <span aria-hidden="true">→</span></a>
 
-        </div>
-        <div class="hero-photo" aria-hidden="true">
-          <picture><source type="image/webp" srcset="/assets/images/media/hero-480.webp 480w, /assets/images/media/hero-960.webp 960w, /assets/images/media/hero-1600.webp 1600w, /assets/images/media/hero-2048.webp 2048w" sizes="100vw"><img src="/assets/images/media/hero-1600.jpg" width="2048" height="1365" alt="" loading="eager" decoding="async" fetchpriority="high"></picture>
-        </div>
-    </section>
-    <section class="intro-strip"><div class="container">
-        <span>{_'messages.hero.location'}</span>
-        <span>{_'messages.hero.capacity'}</span>
-        <span>{_'messages.hero.wellness'}</span>
-    </div></section>
-    <section class="container page-preview" aria-label="{_'messages.common.explore'}">
-        <a href="{$paths['gallery']}">{_'messages.navigation.gallery'} →</a>
-        <a href="{$paths['surroundings']}">{_'messages.navigation.surroundings'} →</a>
-        <a href="{$paths['pricing']}">{_'messages.navigation.pricing'} →</a>
-        <a href="{$paths['voucher']}">{_'messages.navigation.voucher'} →</a>
-        <a href="{$paths['contact']}">{_'messages.navigation.contact'} →</a>
-    </section>
+    </div>
+    <div class="hero-photo" aria-hidden="true">
+      <picture><source type="image/webp" srcset="/assets/images/media/hero-480.webp 480w, /assets/images/media/hero-960.webp 960w, /assets/images/media/hero-1600.webp 1600w, /assets/images/media/hero-2048.webp 2048w" sizes="100vw"><img src="/assets/images/media/hero-1600.jpg" width="2048" height="1365" alt="" loading="eager" decoding="async" fetchpriority="high"></picture>
+    </div>
+  </section>
+  <section class="intro-strip"><div class="container">
+    <span>{_'messages.hero.location'}</span>
+    <span>{_'messages.hero.capacity'}</span>
+    <span>{_'messages.hero.wellness'}</span>
+  </div></section>
+  <section class="container page-preview" aria-label="{_'messages.common.explore'}">
+    <a href="{$paths['gallery']}">{_'messages.navigation.gallery'} →</a>
+    <a href="{$paths['surroundings']}">{_'messages.navigation.surroundings'} →</a>
+    <a href="{$paths['pricing']}">{_'messages.navigation.pricing'} →</a>
+    <a href="{$paths['voucher']}">{_'messages.navigation.voucher'} →</a>
+    <a href="{$paths['contact']}">{_'messages.navigation.contact'} →</a>
+  </section>
 </main>
 {/block}
