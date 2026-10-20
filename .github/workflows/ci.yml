@@ -55,6 +55,9 @@ jobs:
       - name: Smoke test Nette and PostgreSQL
         run: docker compose exec -T php php bin/check-app.php
 
+      - name: Apply database migrations
+        run: docker compose exec -T php php bin/migrate.php
+
       - name: Prepare PHP-FPM runtime permissions
         run: |
           docker compose exec -T php sh -ec '
