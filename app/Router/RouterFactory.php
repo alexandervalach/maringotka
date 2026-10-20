@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Router;
 
+use App\Localization\SupportedLocales;
 use Nette\Application\Routers\RouteList;
 
 final class RouterFactory
@@ -14,9 +15,9 @@ final class RouterFactory
     $router->addRoute('admin/login', ['presenter' => 'Admin', 'action' => 'login']);
     $router->addRoute('admin/home/<locale>', ['presenter' => 'Homepage', 'action' => 'edit']);
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);
-    foreach (PublicRoutes::PATHS as $action => $paths) {
-      foreach (['en', 'sk'] as $locale) {
-        $router->addRoute($paths[$locale], [
+    foreach (PublicRoutes::PATHS as $action => $_) {
+      foreach (SupportedLocales::CODES as $locale) {
+        $router->addRoute(PublicRoutes::pathFor($action, $locale), [
           'presenter' => 'Homepage',
           'action' => $action,
           'locale' => $locale,

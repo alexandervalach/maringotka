@@ -26,9 +26,10 @@
     </nav>
     <div class="header-actions">
         <div class="language-switch" aria-label="{_'messages.navigation.languages'}">
-            <a href="{$languageUrls['sk']}" n:class="$locale === 'sk' ? active" n:attr="aria-current: $locale === 'sk' ? 'page'">SK</a>
-            <span aria-hidden="true">/</span>
-            <a href="{$languageUrls['en']}" n:class="$locale === 'en' ? active" n:attr="aria-current: $locale === 'en' ? 'page'">EN</a>
+            {foreach $languageUrls as $language => $url}
+              {if !$iterator->first}<span aria-hidden="true">/</span>{/if}
+              <a href="{$url}" n:class="$locale === $language ? active" n:attr="aria-current: $locale === $language ? 'page'">{strtoupper($language)}</a>
+            {/foreach}
         </div>
         <a class="button button-small desktop-book" href="{$paths['booking']}">{_'messages.navigation.booking'}</a>
     </div>

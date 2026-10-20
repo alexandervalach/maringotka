@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Forms\HomepageFormFactory;
+use App\Localization\SupportedLocales;
 use App\Model\HomepageRepository;
 use App\Router\PublicRoutes;
 use Contributte\Translation\Translator;
@@ -15,10 +16,10 @@ use Nette\Application\UI\Form;
  */
 final class HomepagePresenter extends BasePresenter
 {
-  private string $editingLocale = 'sk';
+  private string $editingLocale = SupportedLocales::DEFAULT;
 
   /**
-   * @param Translator $translator Existing SK/EN translation service.
+   * @param Translator $translator Existing translation service.
    * @param HomepageRepository $home Homepage content repository.
    * @param HomepageFormFactory $forms Homepage-specific form factory.
    */
@@ -39,12 +40,12 @@ final class HomepagePresenter extends BasePresenter
   }
 
   /**
-   * @param string $locale Language being edited (sk or en).
+   * @param string $locale Language being edited.
    * @return void
    */
   public function actionEdit(string $locale): void
   {
-    if ($locale !== 'sk' && $locale !== 'en') {
+    if (!SupportedLocales::isSupported($locale)) {
       $this->error('Unknown language.', 404);
     }
     $this->editingLocale = $locale;
@@ -67,6 +68,7 @@ final class HomepagePresenter extends BasePresenter
   public function renderEdit(string $locale): void
   {
     $this->template->add('editingLocale', $locale);
+    $this->template->add('editingLanguages', SupportedLocales::CODES);
   }
 
   /** 
@@ -96,16 +98,16 @@ final class HomepagePresenter extends BasePresenter
       return;
     }
 
-    $locale = $this->getParameter('locale') === 'en' ? 'en' : 'sk';
+    $locale = $this->getParameter('locale');
+    if (!is_string($locale) || !SupportedLocales::isSupported($locale)) {
+      $this->error('Unknown language.', 404);
+    }
     $this->translator->setLocale($locale);
     $this->template->setTranslator($this->translator, $locale);
     $this->template->add('locale', $locale);
     $this->template->add('paths', PublicRoutes::forLocale($locale));
     $action = $this->getAction();
-    $this->template->add('languageUrls', [
-      'sk' => '/' . PublicRoutes::PATHS[$action]['sk'],
-      'en' => '/' . PublicRoutes::PATHS[$action]['en'],
-    ]);
+    $this->template->add('languageUrls', PublicRoutes::languageUrlsFor($action));
     $titleKey = $action === 'default' ? 'hero.headline' : 'navigation.' . $action;
     $published = $action === 'default' ? $this->home->findPublished($locale) : null;
     $this->template->add('homeTitle', $published['title'] ?? null);

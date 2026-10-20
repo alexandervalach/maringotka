@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Model;
 
 use App\Infrastructure\Database\ConnectionFactory;
+use App\Localization\SupportedLocales;
 use InvalidArgumentException;
 use Nette\Database\Table\ActiveRow;
 use Throwable;
@@ -23,12 +24,12 @@ final class HomepageRepository extends Repository
   }
 
   /**
-   * @param string $locale Language code (sk or en).
+   * @param string $locale Supported language code.
    * @return array{title: string, summary: string}|null Published translation, if available.
    */
   public function findPublished(string $locale): ?array
   {
-    self::assertLocale($locale);
+    SupportedLocales::assertSupported($locale);
     $page = $this->page();
     if ($page === null || !self::published($page)) {
       return null;
@@ -46,12 +47,12 @@ final class HomepageRepository extends Repository
   }
 
   /**
-   * @param string $locale Language code (sk or en).
+   * @param string $locale Supported language code.
    * @return array{title: ?string, summary: ?string} Saved editor state.
    */
   public function findForEditing(string $locale): array
   {
-    self::assertLocale($locale);
+    SupportedLocales::assertSupported($locale);
     $page = $this->page();
     if ($page === null) {
       return ['title' => null, 'summary' => null];
@@ -67,7 +68,7 @@ final class HomepageRepository extends Repository
   /**
    * Save the selected translation and make the homepage publicly visible atomically.
    *
-   * @param string $locale Language code (sk or en).
+   * @param string $locale Supported language code.
    * @param string $title Nonempty homepage heading (max. 200 characters).
    * @param string $summary Homepage introductory text.
    * @return void
@@ -75,7 +76,7 @@ final class HomepageRepository extends Repository
    */
   public function save(string $locale, string $title, string $summary): void
   {
-    self::assertLocale($locale);
+    SupportedLocales::assertSupported($locale);
     $title = trim($title);
     $titleLength = preg_match_all('/./us', $title);
     if ($title === '' || $titleLength === false || $titleLength > 200) {
@@ -142,15 +143,5 @@ final class HomepageRepository extends Repository
   private static function published(ActiveRow $page): bool
   {
     return in_array($page['is_published'], [true, 1, '1', 't', 'true'], true);
-  }
-
-  /** 
-   * @param string $locale Language code to validate. 
-   */
-  private static function assertLocale(string $locale): void
-  {
-    if ($locale !== 'sk' && $locale !== 'en') {
-      throw new InvalidArgumentException('Unsupported homepage locale.');
-    }
   }
 }
