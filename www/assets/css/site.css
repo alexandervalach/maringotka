@@ -204,3 +204,10 @@ body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column;
  .hero-photo img { object-position:60% center; }
  .hero::after { background:linear-gradient(0deg,rgba(17,35,26,.88),rgba(17,35,26,.4)); }
 }
+
+.cms-editor { max-width: 54rem; }
+.cms-form label { display: block; margin: var(--s4) 0 var(--s2); font-weight: 700; }
+.cms-form input[type="text"], .cms-form input[type="email"], .cms-form input[type="url"] { display: block; width: 100%; max-width: 100%; padding: var(--s3); border: 1px solid var(--line); border-radius: .625rem; background: #fff; color: var(--ink); font: inherit; }
+.cms-form input:focus-visible { outline: 3px solid var(--sand); outline-offset: 2px; border-color: var(--forest); }
+.cms-form .button { margin-top: var(--s5); cursor: pointer; }
+.cms-form-errors { color: #a12828; }

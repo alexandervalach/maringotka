@@ -1,0 +1,29 @@
+{block content}
+<main id="main" class="inner-page container">
+  <a class="back-link" href="{$paths['default']}">← {_'messages.navigation.home'}</a>
+  <p class="eyebrow inner-eyebrow">Maringotka na Závadke</p>
+  <h1>{_'messages.navigation.contact'}</h1>
+  <p class="page-lead">{_'messages.sections.contact.text'}</p>
+  <div class="info-card contact-list">
+    <h2>{_'messages.contact.details'}</h2>
+    {if $contact['phone'] !== ''}
+      <p><a href="tel:{$telephoneNumber}">{$contact['phone']}</a></p>
+    {/if}
+    {if $contact['email'] !== ''}
+      <p><a href="mailto:{$contact['email']}">{$contact['email']}</a></p>
+    {/if}
+    {if $contact['instagram_url'] !== ''}
+      <p><a href="{$contact['instagram_url']}" target="_blank" rel="noopener noreferrer">Instagram ↗</a></p>
+    {/if}
+    {if $contact['booking_url'] !== ''}
+      <p><a href="{$contact['booking_url']}" target="_blank" rel="noopener noreferrer">Booking.com ↗</a></p>
+    {/if}
+    {if $contact['maps_url'] !== ''}
+      <p><a href="{$contact['maps_url']}" target="_blank" rel="noopener noreferrer">{_'messages.contact.map'} ↗</a></p>
+    {/if}
+    {if $contact['youtube_url'] !== ''}
+      <p><a href="{$contact['youtube_url']}" target="_blank" rel="noopener noreferrer">YouTube ↗</a></p>
+    {/if}
+  </div>
+</main>
+{/block}

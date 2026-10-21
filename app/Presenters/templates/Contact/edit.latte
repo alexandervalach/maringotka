@@ -1,0 +1,47 @@
+{layout none}
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Úprava kontaktu – Maringotka na Závadke</title>
+  <link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+<main id="main" class="container inner-page cms-editor">
+  <nav aria-label="Administrácia">
+    <a class="back-link" href="/admin">← Administrácia</a>
+    <a class="back-link" href="/kontakt">Slovenská stránka</a>
+    <a class="back-link" href="/en/contact">English page</a>
+  </nav>
+  <section class="info-card">
+    <h1>Kontaktné údaje</h1>
+    <p class="page-lead">Tieto údaje sú spoločné pre slovenskú aj anglickú stránku.</p>
+    {foreach $flashes as $flash}
+      <p role="status" class="subtle-note">{$flash->message}</p>
+    {/foreach}
+    <div class="cms-form">
+      {form contactForm}
+        <ul class="cms-form-errors" n:if="$form->hasErrors()">
+          <li n:foreach="$form->getErrors() as $error">{$error}</li>
+        </ul>
+        {label phone /}
+        {input phone}
+        {label email /}
+        {input email}
+        {label instagram_url /}
+        {input instagram_url}
+        {label booking_url /}
+        {input booking_url}
+        {label maps_url /}
+        {input maps_url}
+        {label youtube_url /}
+        {input youtube_url}
+        {input save}
+      {/form}
+    </div>
+  </section>
+</main>
+</body>
+</html>

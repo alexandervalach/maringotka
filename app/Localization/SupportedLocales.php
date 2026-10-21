@@ -7,7 +7,7 @@ namespace App\Localization;
 use InvalidArgumentException;
 
 /** 
- * Supported public and CMS content locales.
+ * Supported public and CMS content locales. 
  */
 final class SupportedLocales
 {

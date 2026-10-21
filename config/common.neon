@@ -1,11 +1,14 @@
 application:
-    mapping:
-        *: App\Presenters\*Presenter
+  mapping:
+    *: App\Presenters\*Presenter
 
 services:
-    router: App\Router\RouterFactory::createRouter
-    - App\Presenters\HomepagePresenter
-    - App\Infrastructure\Database\ConnectionFactory
-    - App\Presenters\AdminPresenter
-    - App\Model\HomepageRepository
-    - App\Forms\HomepageFormFactory
+  router: App\Router\RouterFactory::createRouter
+  - App\Presenters\HomepagePresenter
+  - App\Infrastructure\Database\ConnectionFactory
+  - App\Presenters\AdminPresenter
+  - App\Model\HomepageRepository
+  - App\Forms\HomepageFormFactory
+  - App\Presenters\ContactPresenter
+  - App\Model\ContactRepository
+  - App\Forms\ContactFormFactory

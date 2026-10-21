@@ -23,8 +23,15 @@ foreach (PublicRoutes::PATHS as $action => $paths) {
             sprintf('Routing failed for URL /%s (%s)', $path, $locale)
         );
 
-        Assert::same('Homepage', $match['presenter']);
-        Assert::same($action, $match['action'] ?? 'default');
+        $expectedPresenter = $action === 'contact' ? 'Contact' : 'Homepage';
+        Assert::same($expectedPresenter, $match['presenter']);
+
+        $expectedAction = $action === 'contact' ? 'default' : $action;
+        Assert::same($expectedAction, $match['action']);
+
+        $expectedAction = $action === 'contact' ? 'default' : $action;
+        Assert::same($expectedAction, $match['action'] ?? 'default');
+
         Assert::same($locale, $match['locale']);
         Assert::same('/' . $path, PublicRoutes::forLocale($locale)[$action]);
         $filename = dirname(__DIR__, 2) . '/app/Presenters/templates/Homepage/' . $action . '.latte';
