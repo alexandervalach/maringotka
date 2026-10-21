@@ -15,12 +15,17 @@ final class RouterFactory
     $router->addRoute('admin/login', ['presenter' => 'Admin', 'action' => 'login']);
     $router->addRoute('admin/home/<locale>', ['presenter' => 'Homepage', 'action' => 'edit']);
     $router->addRoute('admin/contact', ['presenter' => 'Contact', 'action' => 'edit']);
+    $router->addRoute('admin/pricing', ['presenter' => 'Pricing', 'action' => 'edit']);
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);
     foreach (PublicRoutes::PATHS as $action => $_) {
       foreach (SupportedLocales::CODES as $locale) {
         $router->addRoute(PublicRoutes::pathFor($action, $locale), [
-          'presenter' => $action === 'contact' ? 'Contact' : 'Homepage',
-          'action' => $action === 'contact' ? 'default' : $action,
+          'presenter' => match ($action) {
+            'contact' => 'Contact',
+            'pricing' => 'Pricing',
+            default => 'Homepage',
+          },
+          'action' => in_array($action, ['contact', 'pricing'], true) ? 'default' : $action,
           'locale' => $locale,
         ]);
       }

@@ -12,3 +12,6 @@ services:
   - App\Presenters\ContactPresenter
   - App\Model\ContactRepository
   - App\Forms\ContactFormFactory
+  - App\Presenters\PricingPresenter
+  - App\Model\PricingRepository
+  - App\Forms\PricingFormFactory
