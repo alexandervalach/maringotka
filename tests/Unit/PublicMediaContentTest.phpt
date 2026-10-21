@@ -14,14 +14,20 @@ foreach (['pricing.firstNight', 'pricing.additionalNight', 'pricing.wellness', '
     Assert::true(isset($sk[$key]), "Missing Slovak translation: $key");
     Assert::true(isset($en[$key]), "Missing English translation: $key");
 }
-$pricing = file_get_contents($root . '/app/Presenters/templates/Homepage/pricing.latte');
-Assert::contains('120 €', $pricing);
-Assert::contains('110 €', $pricing);
-Assert::contains('20 €', $pricing);
-Assert::contains('40 €', $pricing);
-$gallery = file_get_contents($root . '/app/Presenters/templates/Homepage/gallery.latte');
+
+$pricing = file_get_contents($root . '/app/Presenters/templates/Pricing/default.latte');
+Assert::type('string', $pricing);
+
+foreach (['first_night', 'additional_night', 'wellness', 'breakfast', 'romance'] as $key) {
+  Assert::contains('$prices[\'' . $key . '\']', $pricing);
+}
+
+$gallery = file_get_contents($root . '/app/Presenters/templates/Gallery/default.latte');
+Assert::type('string', $gallery);
 Assert::contains('loading="lazy"', $gallery);
 Assert::contains('srcset=', $gallery);
+Assert::contains('$photos', $gallery);
+
 $homepage = file_get_contents($root . '/app/Presenters/templates/Homepage/default.latte');
 Assert::contains('fetchpriority="high"', $homepage);
 foreach (['hero', 'interior', 'exterior-wide', 'exterior-portrait', 'lights', 'wellness'] as $slug) {

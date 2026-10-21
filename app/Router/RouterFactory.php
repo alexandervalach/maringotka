@@ -16,6 +16,8 @@ final class RouterFactory
     $router->addRoute('admin/home/<locale>', ['presenter' => 'Homepage', 'action' => 'edit']);
     $router->addRoute('admin/contact', ['presenter' => 'Contact', 'action' => 'edit']);
     $router->addRoute('admin/pricing', ['presenter' => 'Pricing', 'action' => 'edit']);
+    $router->addRoute('admin/gallery/<id \d+>', ['presenter' => 'Gallery', 'action' => 'edit']);
+    $router->addRoute('admin/gallery', ['presenter' => 'Gallery', 'action' => 'manage']);
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);
     foreach (PublicRoutes::PATHS as $action => $_) {
       foreach (SupportedLocales::CODES as $locale) {
@@ -23,9 +25,10 @@ final class RouterFactory
           'presenter' => match ($action) {
             'contact' => 'Contact',
             'pricing' => 'Pricing',
+            'gallery' => 'Gallery',
             default => 'Homepage',
           },
-          'action' => in_array($action, ['contact', 'pricing'], true) ? 'default' : $action,
+          'action' => in_array($action, ['contact', 'pricing', 'gallery'], true) ? 'default' : $action,
           'locale' => $locale,
         ]);
       }

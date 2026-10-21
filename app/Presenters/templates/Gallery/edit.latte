@@ -1,0 +1,37 @@
+{layout none}
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Úprava fotografie – Maringotka na Závadke</title>
+  <link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+<main id="main" class="container inner-page cms-editor">
+  <a class="back-link" href="/admin/gallery">← Galéria</a>
+  <section class="info-card">
+    <h1>Úprava fotografie</h1>
+    <img src="/assets/images/media/{$photo['fallback']}" alt="" style="max-width:20rem;width:100%;height:auto">
+    {foreach $flashes as $flash}<p role="status">{$flash->message}</p>{/foreach}
+    <div class="cms-form">
+      {form galleryForm}
+        <ul n:if="$form->hasErrors()">
+          <li n:foreach="$form->getErrors() as $error">{$error}</li>
+        </ul>
+        {label position /}
+        {input position}
+        {label is_visible /}
+        {input is_visible}
+        {label alt_sk /}
+        {input alt_sk}
+        {label alt_en /}
+        {input alt_en}
+        {input save}
+      {/form}
+    </div>
+  </section>
+</main>
+</body>
+</html>
