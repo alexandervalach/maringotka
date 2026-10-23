@@ -14,15 +14,30 @@
   <section class="info-card">
     <h1>Galéria</h1>
     <p class="page-lead">Uprav poradie, viditeľnosť a alternatívne texty existujúcich fotografií.</p>
-    <div class="gallery-grid">
+    
+    {foreach $flashes as $flash}<p role="status">{$flash->message}</p>{/foreach}
+    <p>Presúvaj fotografie myšou alebo použi tlačidlá hore/dole. Po presune klikni na „Uložiť poradie“.</p>
+    <div class="cms-form">
+      {form galleryOrderForm}
+        <p n:foreach="$form->getErrors() as $error" role="alert">{$error}</p>
+        {input ordered_ids}
+        {input save}
+      {/form}
+    </div>
+    <div class="gallery-grid" id="gallery-order-list">
       {foreach $photos as $photo}
-        <div class="gallery-photo">
+        <div class="gallery-photo" data-gallery-id="{$photo['id']}" draggable="{$photo['id'] > 0 ? 'true' : 'false'}">
           <img src="/assets/images/media/{$photo['fallback']}" alt="" loading="lazy" style="width:100%;height:auto">
           <p>Poradie: {$photo['position']} · {$photo['is_visible'] ? 'Viditeľná' : 'Skrytá'}</p>
-          {if $photo['id'] > 0}<a class="button" href="/admin/gallery/{$photo['id']}">Upraviť</a>{/if}
+          {if $photo['id'] > 0}
+            <button type="button" class="button gallery-move-up" aria-label="Posunúť fotografiu hore">↑</button>
+            <button type="button" class="button gallery-move-down" aria-label="Posunúť fotografiu dole">↓</button>
+            <a class="button" href="/admin/gallery/{$photo['id']}">Upraviť</a>
+          {/if}
         </div>
       {/foreach}
     </div>
+    <script src="/assets/js/gallery-order.js" defer></script>
   </section>
 </main>
 </body>

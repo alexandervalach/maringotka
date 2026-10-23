@@ -18,3 +18,4 @@ services:
   - App\Presenters\GalleryPresenter
   - App\Model\GalleryRepository
   - App\Forms\GalleryFormFactory
+  - App\Forms\GalleryOrderFormFactory

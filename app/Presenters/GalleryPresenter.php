@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Forms\GalleryFormFactory;
+use App\Forms\GalleryOrderFormFactory;
 use App\Localization\SupportedLocales;
 use App\Model\GalleryRepository;
 use App\Router\PublicRoutes;
@@ -22,11 +23,13 @@ final class GalleryPresenter extends BasePresenter
    * @param Translator $translator Existing UI translator.
    * @param GalleryRepository $gallery Existing gallery photos and metadata.
    * @param GalleryFormFactory $forms Gallery item editor.
+   * @param GalleryOrderFormFactory $orderForms Gallery order form.
    */
   public function __construct(
     private readonly Translator $translator,
     private readonly GalleryRepository $gallery,
     private readonly GalleryFormFactory $forms,
+    private readonly GalleryOrderFormFactory $orderForms,
   ) {
     parent::__construct();
   }
@@ -39,9 +42,7 @@ final class GalleryPresenter extends BasePresenter
     }
   }
 
-  /** 
-   * @param string $locale Public language. 
-   */
+  /** @param string $locale Public language. */
   public function actionDefault(string $locale): void
   {
     if (!SupportedLocales::isSupported($locale)) {
@@ -54,7 +55,13 @@ final class GalleryPresenter extends BasePresenter
    */
   public function renderManage(): void
   {
-    $this->template->add('photos', $this->gallery->all());
+    $photos = $this->gallery->all();
+    $this->template->add('photos', $photos);
+    if ($this->getHttpRequest()->isMethod('GET')) {
+      /** @var Form $form */
+      $form = $this->getComponent('galleryOrderForm');
+      $form->setDefaults(['ordered_ids' => implode(',', array_column($photos, 'id'))]);
+    }
   }
 
   /** 
@@ -102,9 +109,7 @@ final class GalleryPresenter extends BasePresenter
     $this->template->add('title', $this->translator->translate('messages.navigation.gallery'));
   }
 
-  /** 
-   * Public gallery, ordered and filtered by PostgreSQL metadata. 
-   */
+  /** Public gallery, ordered and filtered by PostgreSQL metadata. */
   public function renderDefault(): void
   {
     $locale = $this->getParameter('locale');
@@ -114,9 +119,36 @@ final class GalleryPresenter extends BasePresenter
     $this->template->add('photos', $this->gallery->visible($locale));
   }
 
-  /** 
-   * @return Form Per-photo editor. 
+  /**
+   * Create the order form and validate all submitted gallery IDs server-side.
+   *
+   * @return Form CSRF-protected gallery ordering form.
    */
+  protected function createComponentGalleryOrderForm(): Form
+  {
+    $form = $this->orderForms->create();
+    $form->onSuccess[] = function (Form $form): void {
+      $values = $form->getValues('array');
+      $raw = (string) $values['ordered_ids'];
+      if (preg_match('/^[1-9][0-9]*(,[1-9][0-9]*)*$/D', $raw) !== 1) {
+        $form->addError('Neplatné poradie fotografií.');
+        return;
+      }
+      $parts = explode(',', $raw);
+      $ids = array_map(static fn (string $id): int => (int) $id, $parts);
+      try {
+        $this->gallery->reorder($ids);
+      } catch (\InvalidArgumentException $exception) {
+        $form->addError('Galéria sa zmenila. Obnov stránku a skús to znova.');
+        return;
+      }
+      $this->flashMessage('Poradie fotografií bolo uložené.', 'success');
+      $this->redirect('manage');
+    };
+    return $form;
+  }
+
+  /** @return Form Per-photo editor. */
   protected function createComponentGalleryForm(): Form
   {
     $form = $this->forms->create();

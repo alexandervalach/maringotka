@@ -126,6 +126,47 @@ final class GalleryRepository extends Repository
   }
 
   /**
+   * Store a complete permutation of the existing gallery item IDs.
+   *
+   * @param list<int> $ids Ordered gallery item identifiers.
+   * @throws InvalidArgumentException When IDs are duplicated, missing or invalid.
+   */
+  public function reorder(array $ids): void
+  {
+    if ($ids === [] || count($ids) > 500 || count($ids) !== count(array_unique($ids))) {
+      throw new InvalidArgumentException('Invalid gallery order.');
+    }
+
+    foreach ($ids as $id) {
+      if ($id < 1) {
+        throw new InvalidArgumentException('Invalid gallery item ID.');
+      }
+    }
+
+    $this->database->beginTransaction();
+
+    try {
+      $rows = $this->database->query('SELECT id FROM cms_gallery_items ORDER BY id FOR UPDATE')->fetchAll();
+      $existing = array_map(static fn ($row): int => (int) $row->id, $rows);
+      $sorted = $ids;
+      sort($sorted, SORT_NUMERIC);
+
+      if ($sorted !== $existing) {
+        throw new InvalidArgumentException('Gallery changed; reload before saving the order.');
+      }
+
+      foreach ($ids as $position => $id) {
+        $this->database->query('UPDATE cms_gallery_items SET position = ? WHERE id = ?', $position + 1, $id);
+      }
+
+      $this->database->commit();
+    } catch (Throwable $exception) {
+      $this->database->rollBack();
+      throw $exception;
+    }
+  }
+
+  /**
    * @param int $id Existing gallery record.
    * @param int $position Positive display order.
    * @param bool $visible Whether to show the photo.
@@ -158,9 +199,7 @@ final class GalleryRepository extends Repository
     }
   }
 
-  /** 
-   * @param mixed $value PostgreSQL boolean representation. 
-   */
+  /** @param mixed $value PostgreSQL boolean representation. */
   private static function boolValue(mixed $value): bool
   {
     return in_array($value, [true, 1, '1', 't', 'true'], true);
