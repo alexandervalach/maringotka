@@ -1,6 +1,7 @@
 FROM php:8.5-fpm-alpine
 
-RUN apk add --no-cache libpq icu-libs \
+RUN apk upgrade --no-cache \
+    && apk add --no-cache libpq icu-libs \
     && apk add --no-cache --virtual .build-deps postgresql-dev icu-dev \
     && docker-php-ext-install -j$(nproc) pdo_pgsql pgsql intl \
     && apk del .build-deps
