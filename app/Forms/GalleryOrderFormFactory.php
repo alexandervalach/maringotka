@@ -20,7 +20,8 @@ final class GalleryOrderFormFactory extends FormFactory
   {
     $form = parent::create();
     $form->addHidden('ordered_ids')->setRequired();
-    $form->addSubmit('save', 'Uložiť poradie')->setHtmlAttribute('class', 'button');
+    $form->setHtmlAttribute('class', 'gallery-order-form');
+    $form->addSubmit('save', 'Uložiť zmeny')->setHtmlAttribute('class', 'button');
     return $form;
   }
 }
