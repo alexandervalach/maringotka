@@ -21,9 +21,10 @@ foreach (PublicRoutes::PATHS as $action => $paths) {
       'contact' => 'Contact',
       'pricing' => 'Pricing',
       'gallery' => 'Gallery',
+      'booking' => 'Booking',
       default => 'Homepage',
     };
-    $expectedAction = in_array($action, ['contact', 'pricing', 'gallery'], true) ? 'default' : $action;
+    $expectedAction = in_array($action, ['contact', 'pricing', 'gallery', 'booking'], true) ? 'default' : $action;
     Assert::same($expectedPresenter, $match['presenter']);
     Assert::same($expectedAction, $match['action'] ?? 'default');
     Assert::same($locale, $match['locale']);

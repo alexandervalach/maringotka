@@ -21,3 +21,6 @@ services:
   - App\Forms\GalleryOrderFormFactory
   - App\Forms\GalleryUploadFormFactory
   - App\Infrastructure\Media\GalleryImageProcessor
+  - App\Presenters\BookingPresenter
+  - App\Model\BookingRepository
+  - App\Forms\BookingFormFactory

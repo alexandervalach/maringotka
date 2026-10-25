@@ -1,0 +1,72 @@
+{block content}
+<main id="main" class="inner-page container">
+  <a class="back-link" href="{$paths['default']}">← {_'messages.navigation.home'}</a>
+  <p class="eyebrow inner-eyebrow">Maringotka na Závadke</p>
+  {if $locale === 'en'}
+    <h1>Reservation request</h1>
+    <p class="page-lead">Select arrival and departure dates. A request is not a confirmed booking.</p>
+    <p>Minimum stay: {$minimumNights} {if $minimumNights === 1}night{else}nights{/if}.</p>
+  {else}
+    <h1>Žiadosť o rezerváciu</h1>
+    <p class="page-lead">Vyberte termín pobytu. Žiadosť nie je automatickým potvrdením rezervácie.</p>
+    <p>Minimálny pobyt: {$minimumNights} {if $minimumNights === 1}noc{else}nocí{/if}.</p>
+  {/if}
+  {if $requestSubmitted}
+    <div class="booking-feedback" role="status" aria-live="polite">
+      <div class="booking-feedback-message booking-feedback-success">
+        {if $locale === 'en'}
+          <p><strong>Request received.</strong> Your reservation request is awaiting approval; it is not confirmed yet.</p>
+        {else}
+          <p><strong>Žiadosť bola prijatá.</strong> Termín čaká na schválenie. Rezervácia zatiaľ nie je potvrdená.</p>
+        {/if}
+      </div>
+    </div>
+  {else}
+  {if $flashes}
+    <div class="booking-feedback" role="status" aria-live="polite">
+      {foreach $flashes as $flash}
+        <div class="booking-feedback-message booking-feedback-{$flash->type}">
+          <p>{$flash->message}</p>
+        </div>
+      {/foreach}
+    </div>
+  {/if}
+  <div class="cms-form booking-form">
+    {form bookingForm}
+      <div n:if="$form->hasErrors()" class="booking-feedback" role="alert">
+        <div n:foreach="$form->getErrors() as $error" class="booking-feedback-message booking-feedback-error">
+          <p>{$error}</p>
+        </div>
+      </div>
+      <div class="booking-field">
+        {label arrival_date /}
+        {input arrival_date}
+      </div>
+      <div class="booking-field">
+        {label departure_date /}
+        {input departure_date}
+      </div>
+      <div class="booking-field">
+        {label guest_name /}
+        {input guest_name}
+      </div>
+      <div class="booking-field">
+        {label guest_email /}
+        {input guest_email}
+      </div>
+      <div class="booking-field">
+        {label guest_phone /}
+        {input guest_phone}
+      </div>
+      <div class="booking-field">
+        {label guest_note /}
+        {input guest_note}
+      </div>
+      <div class="booking-submit">
+        {input send}
+      </div>
+    {/form}
+  </div>
+  {/if}
+</main>
+{/block}

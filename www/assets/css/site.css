@@ -304,3 +304,104 @@ body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column;
 .gallery-upload-form .button {
   margin-top: 1rem;
 }
+
+/* Reservation form: scoped to prevent changes in CMS and other forms. */
+.booking-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.booking-form .booking-field {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  min-width: 0;
+}
+
+.booking-form .booking-field label {
+  display: block;
+  margin: 0;
+  font-weight: 700;
+}
+
+.booking-form .booking-field input[type="date"],
+.booking-form .booking-field input[type="text"],
+.booking-form .booking-field input[type="email"],
+.booking-form .booking-field input[type="tel"],
+.booking-form .booking-field textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 3.25rem;
+  margin: 0;
+  padding: .8rem 1rem;
+  border: 1px solid var(--line, #dedbd3);
+  border-radius: .625rem;
+  background: #fff;
+  color: var(--deep, #26382b);
+  font: inherit;
+  line-height: 1.4;
+}
+
+.booking-form .booking-field textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.booking-form .booking-field input:focus-visible,
+.booking-form .booking-field textarea:focus-visible {
+  outline: 2px solid var(--brown, #86603e);
+  outline-offset: 2px;
+}
+
+.booking-form .booking-submit {
+  display: block;
+  margin-top: .5rem;
+}
+
+.booking-form .booking-submit .button {
+  width: auto;
+  max-width: 100%;
+}
+
+/* Booking submission feedback; limited to the booking page. */
+.booking-feedback {
+  margin: 1.5rem 0;
+  display: grid;
+  gap: .75rem;
+}
+
+.booking-feedback-message {
+  border: 1px solid var(--line, #dedbd3);
+  border-left: 4px solid #586b54;
+  background: #fff;
+  border-radius: .625rem;
+  padding: 1rem 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.booking-feedback-message p {
+  margin: 0;
+}
+
+.booking-feedback-info {
+  border-left-color: var(--brown, #86603e);
+}
+
+.booking-form .booking-form-error {
+  margin: 0;
+  color: #a02c2c;
+  font-weight: 600;
+}
+
+.booking-feedback-error,
+.booking-feedback-message.booking-feedback-error {
+  border-left-color: #a33c36;
+}
+
+.booking-feedback-success,
+.booking-feedback-message.booking-feedback-success {
+  border-left-color: #586b54;
+}
