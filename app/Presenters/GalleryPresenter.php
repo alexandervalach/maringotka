@@ -6,6 +6,8 @@ namespace App\Presenters;
 
 use App\Forms\GalleryFormFactory;
 use App\Forms\GalleryOrderFormFactory;
+use App\Forms\GalleryUploadFormFactory;
+use App\Infrastructure\Media\GalleryImageProcessor;
 use App\Localization\SupportedLocales;
 use App\Model\GalleryRepository;
 use App\Router\PublicRoutes;
@@ -30,6 +32,8 @@ final class GalleryPresenter extends BasePresenter
     private readonly GalleryRepository $gallery,
     private readonly GalleryFormFactory $forms,
     private readonly GalleryOrderFormFactory $orderForms,
+    private readonly GalleryUploadFormFactory $uploadForms,
+    private readonly GalleryImageProcessor $imageProcessor,
   ) {
     parent::__construct();
   }
@@ -42,7 +46,9 @@ final class GalleryPresenter extends BasePresenter
     }
   }
 
-  /** @param string $locale Public language. */
+  /** 
+   * @param string $locale Public language. 
+   */
   public function actionDefault(string $locale): void
   {
     if (!SupportedLocales::isSupported($locale)) {
@@ -148,7 +154,9 @@ final class GalleryPresenter extends BasePresenter
     return $form;
   }
 
-  /** @return Form Per-photo editor. */
+  /** 
+   * @return Form Per-photo editor. 
+   */
   protected function createComponentGalleryForm(): Form
   {
     $form = $this->forms->create();
@@ -166,4 +174,39 @@ final class GalleryPresenter extends BasePresenter
     };
     return $form;
   }
+  /**
+   * Creates a protected JPEG upload form for the existing gallery manager.
+   *
+   * @return Form Upload form.
+   */
+  protected function createComponentGalleryUploadForm(): Form
+  {
+    $form = $this->uploadForms->create();
+    $form->onSuccess[] = function (Form $form): void {
+      $values = $form->getValues('array');
+      $upload = $values['photo'];
+      if (!$upload instanceof \Nette\Http\FileUpload) {
+        $form->addError('Neplatná fotografia.');
+        return;
+      }
+      try {
+        $image = $this->imageProcessor->process($upload);
+        try {
+          $this->gallery->addUploaded($image);
+        } catch (\Throwable $exception) {
+          foreach ($image['files'] as $file) {
+            @unlink($file);
+          }
+          throw $exception;
+        }
+      } catch (\RuntimeException $exception) {
+        $form->addError($exception->getMessage());
+        return;
+      }
+      $this->flashMessage('Fotografia bola nahraná.', 'success');
+      $this->redirect('manage');
+    };
+    return $form;
+  }
+
 }

@@ -26,7 +26,7 @@ final class GalleryRepository extends Repository
   /**
    * Read existing gallery items. Before the explicit import, keep all 11 images visible.
    *
-   * @return list<array{id: int, key: string, fallback: string, srcset: string, width: int, height: int, position: int, is_visible: bool, alt_sk: string, alt_en: string}>
+   * @return list<array{id: int, key: string, fallback: string, srcset: string, thumbnail: string, width: int, height: int, position: int, is_visible: bool, alt_sk: string, alt_en: string}>
    */
   public function all(): array
   {
@@ -42,7 +42,32 @@ final class GalleryRepository extends Repository
         continue;
       }
       $key = (string) $media['storage_key'];
-      if (!isset($byFallback[$key])) {
+      if (isset($byFallback[$key])) {
+        $display = $byFallback[$key];
+        $display['thumbnail'] = $display['fallback'];
+      } elseif (preg_match('~^assets/images/media/(upload-[a-f0-9]{32})\.jpg$~D', $key, $matches) === 1) {
+        $prefix = $matches[1];
+        $srcsets = [];
+        $thumbnail = '';
+        foreach ([320, 480, 960, 1600, (int) $media['width']] as $width) {
+          $filename = $prefix . '-' . $width . '.webp';
+          if (is_file(dirname(__DIR__, 2) . '/www/assets/images/media/' . $filename)) {
+            if ($thumbnail === '') {
+              $thumbnail = $filename;
+            }
+            $srcsets[$width] = '/assets/images/media/' . $filename . ' ' . $width . 'w';
+          }
+        }
+        ksort($srcsets, SORT_NUMERIC);
+        $display = [
+          'key' => $prefix,
+          'fallback' => $prefix . '.jpg',
+          'thumbnail' => $thumbnail !== '' ? $thumbnail : $prefix . '.jpg',
+          'srcset' => implode(', ', $srcsets),
+          'width' => (int) $media['width'],
+          'height' => (int) $media['height'],
+        ];
+      } else {
         continue;
       }
       $alts = ['sk' => '', 'en' => ''];
@@ -53,7 +78,7 @@ final class GalleryRepository extends Repository
         }
       }
       $result[] = [
-        ...$byFallback[$key],
+        ...$display,
         'id' => (int) $row['id'],
         'position' => (int) $row['position'],
         'is_visible' => self::boolValue($row['is_visible']),
@@ -65,7 +90,7 @@ final class GalleryRepository extends Repository
       return $result;
     }
     foreach ($catalog as $index => $item) {
-      $result[] = [...$item, 'id' => 0, 'position' => $index + 1,
+      $result[] = [...$item, 'thumbnail' => $item['fallback'], 'id' => 0, 'position' => $index + 1,
         'is_visible' => true, 'alt_sk' => '', 'alt_en' => ''];
     }
     return $result;
@@ -73,7 +98,7 @@ final class GalleryRepository extends Repository
 
   /**
    * @param string $locale Supported language.
-   * @return list<array{id: int, key: string, fallback: string, srcset: string, width: int, height: int, position: int, is_visible: bool, alt_sk: string, alt_en: string}>
+   * @return list<array{id: int, key: string, fallback: string, srcset: string, thumbnail: string, width: int, height: int, position: int, is_visible: bool, alt_sk: string, alt_en: string}>
    */
   public function visible(string $locale): array
   {
@@ -136,7 +161,6 @@ final class GalleryRepository extends Repository
     if ($ids === [] || count($ids) > 500 || count($ids) !== count(array_unique($ids))) {
       throw new InvalidArgumentException('Invalid gallery order.');
     }
-
     foreach ($ids as $id) {
       if ($id < 1) {
         throw new InvalidArgumentException('Invalid gallery item ID.');
@@ -144,13 +168,12 @@ final class GalleryRepository extends Repository
     }
 
     $this->database->beginTransaction();
-
     try {
+      // Lock the complete item set, so concurrent reorder requests cannot interleave.
       $rows = $this->database->query('SELECT id FROM cms_gallery_items ORDER BY id FOR UPDATE')->fetchAll();
       $existing = array_map(static fn ($row): int => (int) $row->id, $rows);
       $sorted = $ids;
       sort($sorted, SORT_NUMERIC);
-
       if ($sorted !== $existing) {
         throw new InvalidArgumentException('Gallery changed; reload before saving the order.');
       }
@@ -158,7 +181,6 @@ final class GalleryRepository extends Repository
       foreach ($ids as $position => $id) {
         $this->database->query('UPDATE cms_gallery_items SET position = ? WHERE id = ?', $position + 1, $id);
       }
-
       $this->database->commit();
     } catch (Throwable $exception) {
       $this->database->rollBack();
@@ -199,7 +221,44 @@ final class GalleryRepository extends Repository
     }
   }
 
-  /** @param mixed $value PostgreSQL boolean representation. */
+  /**
+   * Registers an optimized uploaded JPEG/PNG as a visible gallery photograph.
+   *
+   * @param array{storage_key: string, fallback: string, srcset: string, thumbnail: string, width: int, height: int, byte_size: int, sha256: string, files: list<string>} $image Metadata returned by the processor.
+   * @return void
+   */
+  public function addUploaded(array $image): void
+  {
+    $this->database->beginTransaction();
+    try {
+      $this->database->query('LOCK TABLE cms_gallery_items IN SHARE ROW EXCLUSIVE MODE');
+      $this->database->query(
+        'INSERT INTO cms_media (storage_key, mime_type, byte_size, width, height, sha256) VALUES (?, ?, ?, ?, ?, ?)',
+        $image['storage_key'], 'image/jpeg', $image['byte_size'], $image['width'], $image['height'], $image['sha256'],
+      );
+      $media = $this->database->table('cms_media')->where('storage_key', $image['storage_key'])->fetch();
+      if ($media === null) {
+        throw new RuntimeException('New gallery media row not found.');
+      }
+      $positionRow = $this->database->query('SELECT COALESCE(MAX(position), 0) + 1 AS next_position FROM cms_gallery_items')->fetch();
+      if ($positionRow === null) {
+        throw new RuntimeException('Cannot determine gallery order.');
+      }
+      $this->getTable()->insert([
+        'media_id' => (int) $media['id'],
+        'position' => (int) $positionRow->next_position,
+        'is_visible' => true,
+      ]);
+      $this->database->commit();
+    } catch (Throwable $exception) {
+      $this->database->rollBack();
+      throw $exception;
+    }
+  }
+
+  /** 
+   * @param mixed $value PostgreSQL boolean representation. 
+   */
   private static function boolValue(mixed $value): bool
   {
     return in_array($value, [true, 1, '1', 't', 'true'], true);

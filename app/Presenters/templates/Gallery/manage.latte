@@ -17,6 +17,17 @@
 
     {foreach $flashes as $flash}<p role="status">{$flash->message}</p>{/foreach}
     <p>Presúvaj fotografie myšou alebo použi tlačidlá hore/dole. Po presune klikni na „Uložiť zmeny“.</p>
+    
+    <h2>Pridať fotografiu</h2>
+    <div class="cms-form gallery-upload-form">
+      {form galleryUploadForm}
+        <p n:foreach="$form->getErrors() as $error" role="alert">{$error}</p>
+        {label photo /}
+        {input photo}
+        {input save}
+      {/form}
+    </div>
+
     <div class="cms-form">
       {form galleryOrderForm}
         <p n:foreach="$form->getErrors() as $error" role="alert">{$error}</p>
@@ -27,7 +38,7 @@
     <div class="gallery-grid" id="gallery-order-list">
       {foreach $photos as $photo}
         <div class="gallery-photo" data-gallery-id="{$photo['id']}" draggable="{$photo['id'] > 0 ? 'true' : 'false'}">
-          <img src="/assets/images/media/{$photo['fallback']}" alt="" loading="lazy" style="width:100%;height:auto">
+          <img src="/assets/images/media/{$photo['thumbnail']}" alt="" loading="lazy" style="width:100%;height:auto">
           <p>Poradie: {$photo['position']} · {$photo['is_visible'] ? 'Viditeľná' : 'Skrytá'}</p>
  
           {if $photo['id'] > 0}
