@@ -13,4 +13,5 @@
 /www/assets/generated/
 /composer.phar
 *.DS_Store
+www/assets/images/media/upload*
 
