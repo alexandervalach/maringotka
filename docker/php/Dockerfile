@@ -1,9 +1,14 @@
 FROM php:8.5-fpm-alpine
 
 RUN apk upgrade --no-cache \
-    && apk add --no-cache libpq icu-libs \
-    && apk add --no-cache --virtual .build-deps postgresql-dev icu-dev \
-    && docker-php-ext-install -j$(nproc) pdo_pgsql pgsql intl \
+    && apk add --no-cache \
+      libpq icu-libs libjpeg-turbo libpng libwebp \
+    && apk add --no-cache --virtual .build-deps \
+      postgresql-dev icu-dev \
+      libjpeg-turbo-dev libpng-dev libwebp-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-install -j$(nproc) \
+      pdo_pgsql pgsql intl gd \
     && apk del .build-deps
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
