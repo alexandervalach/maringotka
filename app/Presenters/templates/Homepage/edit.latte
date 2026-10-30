@@ -1,13 +1,9 @@
-{layout none}
-<!doctype html>
-<html lang="sk">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <title>Úprava hlavnej stránky – Maringotka na Závadke</title>
-  <link rel="stylesheet" href="/assets/css/site.css">
-  <style>
+{layout '../@admin.latte'}
+
+{block pageTitle}Úprava hlavnej stránky{/block}
+
+{block extraHead}
+<style>
     .cms-editor { max-width: 54rem; }
     .cms-editor h1 { font-size: var(--text-h2); }
     .cms-editor-form label { display: block; margin: var(--s4) 0 var(--s2); font-weight: 700; }
@@ -17,22 +13,21 @@
     .cms-editor-form .button { margin-top: var(--s5); cursor: pointer; }
     .cms-editor-errors { color: #a12828; }
   </style>
-</head>
-<body>
+{/block}
+
+{block content}
 <main id="main" class="container inner-page cms-editor">
   <nav aria-label="Administrácia">
     <a class="back-link" href="/admin">← Administrácia</a>
-    {foreach $editingLanguages as $language}
-      <a class="back-link" href="/admin/home/{$language}">{strtoupper($language)}</a>
-    {/foreach}
+    <a class="back-link" href="/admin/home/sk">Slovenčina</a>
+    <a class="back-link" href="/admin/home/en">English</a>
     <a class="back-link" href="/">Verejný web</a>
   </nav>
   <section class="info-card">
     <h1>Hlavná stránka – {$editingLocale|upper}</h1>
     <p class="page-lead">Upravený nadpis a úvodný text sa po uložení zobrazia na verejnom webe.</p>
-    {foreach $flashes as $flash}
-      <p role="status" class="subtle-note">{$flash->message}</p>
-    {/foreach}
+
+    {include '../_adminFlashes.latte'}
     <div class="cms-editor-form">
     {form homepageForm}
       <ul class="cms-editor-errors" n:if="$form->hasErrors()">
@@ -47,5 +42,4 @@
     </div>
   </section>
 </main>
-</body>
-</html>
+{/block}

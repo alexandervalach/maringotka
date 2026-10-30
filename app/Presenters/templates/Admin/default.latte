@@ -1,12 +1,9 @@
-{layout none}
-<!doctype html>
-<html lang="sk">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <title>Administrácia – Maringotka na Závadke</title>
-  <style>
+{layout '../@admin.latte'}
+
+{block pageTitle}Administrácia{/block}
+
+{block extraHead}
+<style>
     *, *::before, *::after { box-sizing: border-box; }
     body { min-height: 100vh; margin: 0; padding: 3rem 1.5rem; background: #f5f2ec; color: #1f3126; font: 16px/1.55 system-ui, sans-serif; }
     main { max-width: 56rem; margin: 0 auto; }
@@ -16,8 +13,9 @@
     button { border: 0; border-radius: .5rem; padding: .8rem 1.2rem; background: #405e48; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
     button:focus-visible { outline: 3px solid #a6bfa7; outline-offset: 3px; }
   </style>
-</head>
-<body>
+{/block}
+
+{block content}
 <main>
   <section class="panel">
     <h1>Administrácia</h1>
@@ -26,10 +24,10 @@
     <p><a href="/admin/contact">Upraviť kontaktné údaje</a></p>
     <p><a href="/admin/pricing">Upraviť cenník</a></p>
     <p><a href="/admin/gallery">Správa galérie</a></p>
+    <p><a href="/admin/bookings">Správa rezervácií</a></p>
     {form logoutForm}
-      {input submit}
+      {input submit class => 'button'}
     {/form}
   </section>
 </main>
-</body>
-</html>
+{/block}

@@ -1,21 +1,18 @@
-{layout none}
-<!doctype html>
-<html lang="sk">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <title>Správa rezervácií – Maringotka na Závadke</title>
-  <link rel="stylesheet" href="/assets/css/site.css">
+{layout '../@admin.latte'}
+
+{block pageTitle}Správa rezervácií{/block}
+
+{block extraHead}
   <link rel="stylesheet" href="/assets/css/booking-management.css">
-</head>
-<body>
+{/block}
+
+{block content}
 <main class="container inner-page cms-editor booking-admin-page">
   <nav aria-label="Administrácia"><a class="back-link" href="/admin">← Administrácia</a></nav>
   <section class="info-card">
     <h1>Rezervácie</h1>
     <p class="page-lead">Prehľad všetkých žiadostí. Čakajúce aj potvrdené rezervácie blokujú termín.</p>
-    <p n:foreach="$flashes as $flash" role="status" class="subtle-note">{$flash->message}</p>
+    {include '../_adminFlashes.latte'}
 
     <form method="get" action="/admin/bookings" class="booking-admin-filters" role="search">
       <div class="booking-admin-filter">
@@ -108,5 +105,4 @@
     </nav>
   </section>
 </main>
-</body>
-</html>
+{/block}

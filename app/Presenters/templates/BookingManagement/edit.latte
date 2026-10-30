@@ -1,14 +1,8 @@
-{layout none}
-<!doctype html>
-<html lang="sk">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <title>Rozhodnutie o rezervácii – Maringotka na Závadke</title>
-  <link rel="stylesheet" href="/assets/css/site.css">
-</head>
-<body>
+{layout '../@admin.latte'}
+
+{block pageTitle}Rozhodnutie o rezervácii{/block}
+
+{block content}
 <main class="container inner-page cms-editor">
   <nav aria-label="Administrácia"><a class="back-link" n:href="default">← Rezervácie</a></nav>
   <section class="info-card">
@@ -38,5 +32,4 @@
     {/if}
   </section>
 </main>
-</body>
-</html>
+{/block}
