@@ -8,6 +8,7 @@ use App\Forms\BookingDecisionFormFactory;
 use App\Model\BookingManagementRepository;
 use DomainException;
 use InvalidArgumentException;
+use Nette\Application\BadRequestException;
 use Nette\Application\UI\Form;
 
 /**
@@ -42,7 +43,38 @@ final class BookingManagementPresenter extends BasePresenter
    */
   public function renderDefault(): void
   {
-    $this->template->add('requests', $this->bookings->allRequests());
+    $status = trim((string) ($this->getParameter('status') ?? ''));
+    $search = trim((string) ($this->getParameter('q') ?? ''));
+    $before = $this->readCursor('before');
+    $after = $this->readCursor('after');
+    try {
+      $page = $this->bookings->page($status, $search, $before, $after);
+    } catch (InvalidArgumentException $error) {
+      throw new BadRequestException($error->getMessage(), 400);
+    }
+    $this->template->add('requests', $page['requests']);
+    $this->template->add('olderCursor', $page['older']);
+    $this->template->add('newerCursor', $page['newer']);
+    $this->template->add('statusFilter', $status);
+    $this->template->add('searchTerm', $search);
+  }
+
+  /**
+   * Reads a positive decimal cursor without silently coercing invalid values.
+   *
+   * @param string $name Query parameter name.
+   * @return int|null Parsed cursor.
+   */
+  private function readCursor(string $name): ?int
+  {
+    $raw = $this->getParameter($name);
+    if ($raw === null || $raw === '') {
+      return null;
+    }
+    if (!is_string($raw) || !ctype_digit($raw) || strlen($raw) > 18 || (int) $raw < 1) {
+      throw new BadRequestException('Neplatný kurzor stránkovania.', 400);
+    }
+    return (int) $raw;
   }
 
   /**

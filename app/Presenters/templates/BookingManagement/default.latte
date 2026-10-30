@@ -7,6 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Správa rezervácií – Maringotka na Závadke</title>
   <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/assets/css/booking-management.css">
 </head>
 <body>
 <main class="container inner-page cms-editor booking-admin-page">
@@ -15,8 +16,28 @@
     <h1>Rezervácie</h1>
     <p class="page-lead">Prehľad všetkých žiadostí. Čakajúce aj potvrdené rezervácie blokujú termín.</p>
     <p n:foreach="$flashes as $flash" role="status" class="subtle-note">{$flash->message}</p>
+
+    <form method="get" action="/admin/bookings" class="booking-admin-filters" role="search">
+      <div class="booking-admin-filter">
+        <label for="booking-status-filter">Stav rezervácie</label>
+        <select name="status" id="booking-status-filter">
+          <option value="" selected={$statusFilter === ''}>Všetky stavy</option>
+          <option value="pending" selected={$statusFilter === 'pending'}>Čaká na potvrdenie</option>
+          <option value="confirmed" selected={$statusFilter === 'confirmed'}>Potvrdená</option>
+          <option value="rejected" selected={$statusFilter === 'rejected'}>Zamietnutá</option>
+          <option value="cancelled" selected={$statusFilter === 'cancelled'}>Zrušená</option>
+        </select>
+      </div>
+      <div class="booking-admin-filter booking-admin-search">
+        <label for="booking-admin-search">Číslo, meno alebo e-mail</label>
+        <input type="search" id="booking-admin-search" name="q" value="{$searchTerm}" maxlength="100" placeholder="Hľadať rezerváciu">
+      </div>
+      <button class="button" type="submit">Vyhľadať</button>
+      <a class="booking-admin-reset" href="/admin/bookings">Vymazať filtre</a>
+    </form>
+
     <div class="booking-admin-table-scroll" role="region" aria-label="Prehľad rezervácií" tabindex="0">
-      <table class="booking-admin-table">
+      <table class="booking-admin-table booking-admin-table--colored">
         <thead>
           <tr>
             <th scope="col">Číslo</th>
@@ -36,32 +57,16 @@
           {foreach $requests as $request}
             <tr class="booking-admin-row booking-admin-row--{$request['status']}">
               <th scope="row" class="booking-admin-number">
-                <span class="booking-admin-number-content">
-                  {if $request['status'] === 'pending'}
-                    <span class="booking-admin-state" title="Čaká na potvrdenie">
-                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
-                      <span class="booking-admin-sr-only">Čaká na potvrdenie</span>
-                    </span>
-                  {elseif $request['status'] === 'confirmed'}
-                    <span class="booking-admin-state" title="Potvrdená">
-                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"></path></svg>
-                      <span class="booking-admin-sr-only">Potvrdená</span>
-                    </span>
-                  {elseif $request['status'] === 'rejected'}
-                    <span class="booking-admin-state" title="Zamietnutá">
-                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"></path></svg>
-                      <span class="booking-admin-sr-only">Zamietnutá</span>
-                    </span>
-                  {elseif $request['status'] === 'cancelled'}
-                    <span class="booking-admin-state" title="Zrušená">
-                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M6 18L18 6"></path></svg>
-                      <span class="booking-admin-sr-only">Zrušená</span>
-                    </span>
-                  {else}
-                    <span class="booking-admin-sr-only">{$request['status']}</span>
-                  {/if}
-                  <span>#{$request['id']}</span>
-                </span>
+                {if $request['status'] === 'pending'}
+                  <span class="booking-admin-status-icon" aria-label="Čaká na potvrdenie" title="Čaká na potvrdenie">◷</span>
+                {elseif $request['status'] === 'confirmed'}
+                  <span class="booking-admin-status-icon" aria-label="Potvrdená" title="Potvrdená">✓</span>
+                {elseif $request['status'] === 'rejected'}
+                  <span class="booking-admin-status-icon" aria-label="Zamietnutá" title="Zamietnutá">✕</span>
+                {else}
+                  <span class="booking-admin-status-icon" aria-label="Zrušená" title="Zrušená">–</span>
+                {/if}
+                <span>#{$request['id']}</span>
               </th>
               <td class="booking-admin-nowrap">{$request['arrival_date']|date:'d. m. Y'}</td>
               <td class="booking-admin-nowrap">{$request['departure_date']|date:'d. m. Y'}</td>
@@ -73,24 +78,34 @@
               <td class="booking-admin-longtext">{$request['decision_reason'] ?: '—'}</td>
               <td class="booking-admin-nowrap">{$request['created_at']|date:'d. m. Y H:i'}</td>
               <td class="booking-admin-action">
-                <details class="booking-admin-dropdown">
-                  <summary aria-label="Akcie pre rezerváciu č. {$request['id']}">
-                    Akcie
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"></path></svg>
-                  </summary>
-                  <div class="booking-admin-dropdown-links">
-                    <a n:href="edit, id: $request['id']">{if $request['status'] === 'pending'}Vybaviť rezerváciu{else}Zobraziť detail{/if}</a>
+                <details class="booking-admin-actions">
+                  <summary>Akcie</summary>
+                  <div class="booking-admin-actions-menu">
+                    <a n:href="edit, id: $request['id']">{if $request['status'] === 'pending'}Vybaviť rezerváciu{else}Detail rezervácie{/if}</a>
                     <a href="mailto:{$request['guest_email']}">Kontaktovať hosťa</a>
                   </div>
                 </details>
               </td>
             </tr>
           {else}
-            <tr><td colspan="11" class="booking-admin-empty">Zatiaľ nie sú evidované žiadne rezervácie.</td></tr>
+            <tr><td colspan="11" class="booking-admin-empty">Pre zvolené filtre sa nenašli žiadne rezervácie.</td></tr>
           {/foreach}
         </tbody>
       </table>
     </div>
+    <nav class="booking-admin-pagination" aria-label="Stránkovanie rezervácií">
+      <div>
+        {if $newerCursor !== null}
+          <a class="button" n:href="default, status: $statusFilter, q: $searchTerm, after: $newerCursor, before: null">← Novšie</a>
+        {/if}
+      </div>
+      <span>Najviac 25 rezervácií na stránku</span>
+      <div>
+        {if $olderCursor !== null}
+          <a class="button" n:href="default, status: $statusFilter, q: $searchTerm, before: $olderCursor, after: null">Staršie →</a>
+        {/if}
+      </div>
+    </nav>
   </section>
 </main>
 </body>
