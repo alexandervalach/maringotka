@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "72f8e09280e0f25bbacf0940367b7c7c",
+    "content-hash": "c499c967334c4e59aaf813ae60793022",
     "packages": [
         {
             "name": "contributte/translation",
@@ -846,22 +846,22 @@
         },
         {
             "name": "nette/mail",
-            "version": "v4.2.1",
+            "version": "v4.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nette/mail.git",
-                "reference": "b9b82b47f2e38050ae718877efc3ce82bd201a90"
+                "reference": "849c1f53a545ab694410b7ab32afc52eff6ad8df"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nette/mail/zipball/b9b82b47f2e38050ae718877efc3ce82bd201a90",
-                "reference": "b9b82b47f2e38050ae718877efc3ce82bd201a90",
+                "url": "https://api.github.com/repos/nette/mail/zipball/849c1f53a545ab694410b7ab32afc52eff6ad8df",
+                "reference": "849c1f53a545ab694410b7ab32afc52eff6ad8df",
                 "shasum": ""
             },
             "require": {
                 "ext-iconv": "*",
                 "nette/utils": "^4.1",
-                "php": "8.2 - 8.5"
+                "php": "8.2 - 8.6"
             },
             "require-dev": {
                 "nette/di": "^3.1 || ^4.0",
@@ -902,26 +902,26 @@
                 {
                     "name": "David Grudl",
                     "homepage": "https://davidgrudl.com"
-                },
-                {
-                    "name": "Nette Community",
-                    "homepage": "https://nette.org/contributors"
                 }
             ],
-            "description": "📧 Nette Mail: A handy library for creating and sending emails in PHP.",
-            "homepage": "https://nette.org",
+            "description": "📧 Nette Mail: composes and sends emails. HTML with images embedded automatically, attachments, Latte templates, SMTP with OAuth 2.0 and DKIM signing.",
+            "homepage": "https://doc.nette.org/mail",
             "keywords": [
+                "attachments",
+                "dkim",
+                "email",
                 "mail",
                 "mailer",
-                "mime",
                 "nette",
+                "oauth2",
+                "phpmailer",
                 "smtp"
             ],
             "support": {
                 "issues": "https://github.com/nette/mail/issues",
-                "source": "https://github.com/nette/mail/tree/v4.2.1"
+                "source": "https://github.com/nette/mail/tree/v4.2.2"
             },
-            "time": "2026-08-18T10:11:07+00:00"
+            "time": "2026-10-27T09:46:02+00:00"
         },
         {
             "name": "nette/neon",
