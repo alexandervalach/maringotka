@@ -99,7 +99,6 @@ final class BookingPresenter extends BasePresenter
         $form->addError($error->getMessage());
         return;
       }
-      // Display confirmation without exposing internal cancellation credentials.
       $this->requestSubmitted = true;
     };
     return $form;

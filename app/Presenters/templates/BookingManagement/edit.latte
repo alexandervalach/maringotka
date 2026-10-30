@@ -1,0 +1,42 @@
+{layout none}
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Rozhodnutie o rezervácii – Maringotka na Závadke</title>
+  <link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+<main class="container inner-page cms-editor">
+  <nav aria-label="Administrácia"><a class="back-link" n:href="default">← Rezervácie</a></nav>
+  <section class="info-card">
+    <h1>Rezervácia č. {$request['id']}</h1>
+    <p><strong>Termín:</strong> {$request['arrival_date']|date:'d. m. Y'} – {$request['departure_date']|date:'d. m. Y'}</p>
+    <p><strong>Stav:</strong> {$request['status']}</p>
+    <p><strong>Meno:</strong> {$request['guest_name']}</p>
+    <p><strong>E-mail:</strong> {$request['guest_email']}</p>
+    <p><strong>Telefón:</strong> {$request['guest_phone'] ?: '—'}</p>
+    <p><strong>Poznámka:</strong> {$request['guest_note'] ?: '—'}</p>
+    {if $request['status'] === 'pending'}
+      <div class="cms-form booking-admin-form">
+        {form decisionForm}
+          <ul class="cms-form-errors" n:if="$form->hasErrors()">
+            <li n:foreach="$form->getErrors() as $error">{$error}</li>
+          </ul>
+          {label decision /}
+          {input decision}
+          {label reason /}
+          {input reason}
+          {input save}
+        {/form}
+      </div>
+    {else}
+      <p>O tejto rezervácii už bolo rozhodnuté.</p>
+      {if $request['decision_reason']}<p><strong>Dôvod:</strong> {$request['decision_reason']}</p>{/if}
+    {/if}
+  </section>
+</main>
+</body>
+</html>

@@ -18,6 +18,8 @@ final class RouterFactory
     $router->addRoute('admin/pricing', ['presenter' => 'Pricing', 'action' => 'edit']);
     $router->addRoute('admin/gallery/<id \d+>', ['presenter' => 'Gallery', 'action' => 'edit']);
     $router->addRoute('admin/gallery', ['presenter' => 'Gallery', 'action' => 'manage']);
+    $router->addRoute('admin/bookings/<id \d+>', ['presenter' => 'BookingManagement', 'action' => 'edit']);
+    $router->addRoute('admin/bookings', ['presenter' => 'BookingManagement', 'action' => 'default']);
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);
     foreach (PublicRoutes::PATHS as $action => $_) {
       foreach (SupportedLocales::CODES as $locale) {

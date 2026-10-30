@@ -405,3 +405,64 @@ body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column;
 .booking-feedback-message.booking-feedback-success {
   border-left-color: #586b54;
 }
+
+/* Admin bookings only */
+.booking-admin-list { display: grid; gap: 1rem; }
+.booking-admin-item { padding: 1rem 1.25rem; border: 1px solid #ddd8ce; border-radius: 0.75rem; }
+.booking-admin-item h2 { margin-top: 0; }
+.booking-admin-form input[type="radio"] { width: auto; margin-right: 0.4rem; }
+.booking-admin-form textarea { display: block; box-sizing: border-box; width: 100%; max-width: 100%; min-height: 7rem; padding: 0.75rem; border: 1px solid #ddd8ce; border-radius: 0.65rem; font: inherit; }
+.booking-admin-form input[type="submit"].button { display: block; margin-top: 1.5rem; }
+
+.booking-admin-page { max-width: none; }
+.booking-admin-page .info-card { min-width: 0; }
+.booking-admin-table-scroll { width: 100%; max-width: 100%; overflow-x: auto; border: 1px solid #ddd8ce; border-radius: 0.75rem; background: #fff; }
+.booking-admin-table { width: 100%; min-width: 1260px; border-collapse: collapse; font-size: 0.92rem; line-height: 1.45; }
+.booking-admin-table th, .booking-admin-table td { text-align: left; vertical-align: top; padding: 0.85rem 0.8rem; border-bottom: 1px solid #e8e3da; }
+.booking-admin-table thead th { position: sticky; top: 0; z-index: 1; background: #f3f0e9; font-weight: 700; white-space: nowrap; }
+.booking-admin-table tbody tr:nth-child(even) { background: #faf9f6; }
+.booking-admin-table tbody tr:hover { background: #f3f0e9; }
+.booking-admin-table tbody tr:last-child > * { border-bottom: 0; }
+.booking-admin-number, .booking-admin-nowrap, .booking-admin-action { white-space: nowrap; }
+.booking-admin-longtext { min-width: 170px; max-width: 260px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.booking-admin-table td a:not(.button) { overflow-wrap: anywhere; }
+.booking-admin-table .button { display: inline-block; width: auto; padding: 0.55rem 0.85rem; font-size: 0.9rem; text-align: center; white-space: nowrap; }
+.booking-admin-status { display: inline-block; padding: 0.3rem 0.55rem; border-radius: 0.4rem; background: #efefec; white-space: nowrap; font-weight: 600; font-size: 0.82rem; }
+.booking-admin-status--pending { background: #fff2d4; color: #6b4c18; }
+.booking-admin-status--confirmed { background: #e6efe7; color: #31573b; }
+.booking-admin-status--rejected { background: #f7e7e4; color: #823d37; }
+.booking-admin-status--cancelled { background: #ecebea; color: #555; }
+.booking-admin-empty { text-align: center !important; padding: 2rem !important; }
+@media (max-width: 700px) { .booking-admin-table th, .booking-admin-table td { padding: 0.7rem 0.65rem; } }
+
+.booking-admin-table { min-width: 1320px; }
+.booking-admin-table tbody tr.booking-admin-row > th,
+.booking-admin-table tbody tr.booking-admin-row > td { background: var(--booking-row-color, #fff); }
+.booking-admin-table tbody tr.booking-admin-row--pending { --booking-row-color: #fff6e1; --booking-row-hover: #ffefc8; --booking-state-color: #87601d; }
+.booking-admin-table tbody tr.booking-admin-row--confirmed { --booking-row-color: #eaf5ec; --booking-row-hover: #daeddf; --booking-state-color: #326c42; }
+.booking-admin-table tbody tr.booking-admin-row--rejected { --booking-row-color: #fbe9e9; --booking-row-hover: #f6dddd; --booking-state-color: #a14040; }
+.booking-admin-table tbody tr.booking-admin-row--cancelled { --booking-row-color: #efefed; --booking-row-hover: #e5e5e1; --booking-state-color: #626460; }
+.booking-admin-table tbody tr.booking-admin-row:hover > th,
+.booking-admin-table tbody tr.booking-admin-row:hover > td { background: var(--booking-row-hover, #f4f3f1); }
+.booking-admin-table tbody tr.booking-admin-row > th:first-child { border-left: 4px solid var(--booking-state-color, #ccc); padding-left: 0.6rem; }
+.booking-admin-number-content { display: inline-flex; align-items: center; gap: 0.5rem; }
+.booking-admin-state { color: var(--booking-state-color, #555); display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 1.35rem; height: 1.35rem; }
+.booking-admin-state svg { display: block; width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.booking-admin-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.booking-admin-table td.booking-admin-email { min-width: 195px; overflow-wrap: normal; word-break: normal; }
+.booking-admin-table td.booking-admin-email a { overflow-wrap: normal; word-break: normal; }
+.booking-admin-table .booking-admin-action { min-width: 155px; }
+
+.booking-admin-dropdown { position: relative; width: 100%; }
+.booking-admin-dropdown > summary { display: inline-flex; align-items: center; justify-content: space-between; gap: 0.6rem; width: 100%; padding: 0.5rem 0.7rem; border: 1px solid #b9aa96; border-radius: 0.45rem; color: #2a392d; background: #fff; font: inherit; font-weight: 600; cursor: pointer; user-select: none; list-style: none; }
+.booking-admin-dropdown > summary::-webkit-details-marker { display: none; }
+.booking-admin-dropdown > summary::marker { content: ''; }
+.booking-admin-dropdown > summary svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.15s ease; }
+.booking-admin-dropdown[open] > summary svg { transform: rotate(180deg); }
+.booking-admin-dropdown > summary:hover { background: #f5f0e9; }
+.booking-admin-dropdown > summary:focus-visible { outline: 2px solid #76542e; outline-offset: 2px; }
+.booking-admin-dropdown-links { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.35rem 0; }
+.booking-admin-table .booking-admin-dropdown-links a { display: block; padding: 0.45rem 0.6rem; border-radius: 0.3rem; color: #2a392d; font-size: 0.86rem; line-height: 1.25; text-decoration: none; white-space: normal; overflow-wrap: normal; }
+.booking-admin-table .booking-admin-dropdown-links a:hover,
+.booking-admin-table .booking-admin-dropdown-links a:focus-visible { background: rgba(255, 255, 255, 0.75); text-decoration: underline; }
