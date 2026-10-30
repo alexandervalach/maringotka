@@ -58,16 +58,21 @@ final class BookingRepository extends Repository
       ->fetchAll();
 
     $intervals = [];
+
     foreach ($rows as $row) {
+      $arrival = $row['arrival_date'];
+      $departure = $row['departure_date'];
+
       $intervals[] = [
-        'start' => $row->arrival_date instanceof \DateTimeInterface
-          ? $row->arrival_date->format('Y-m-d')
-          : (string) $row->arrival_date,
-        'end' => $row->departure_date instanceof \DateTimeInterface
-          ? $row->departure_date->format('Y-m-d')
-          : (string) $row->departure_date,
+        'start' => $arrival instanceof \DateTimeInterface
+          ? $arrival->format('Y-m-d')
+          : (string) $arrival,
+        'end' => $departure instanceof \DateTimeInterface
+          ? $departure->format('Y-m-d')
+          : (string) $departure,
       ];
     }
+
     return $intervals;
   }
 
@@ -89,6 +94,12 @@ final class BookingRepository extends Repository
     if ($start < new DateTimeImmutable('today')) {
       throw new InvalidArgumentException('Dátum príchodu nemôže byť v minulosti.');
     }
+
+    $calendarUntil = (new DateTimeImmutable('first day of this month'))->modify('+12 months');
+    if ($start >= $calendarUntil || $end > $calendarUntil) {
+      throw new InvalidArgumentException('Zvoľte termín v rámci nasledujúcich 12 kalendárnych mesiacov.');
+    }
+
     $nights = (int) $start->diff($end)->format('%r%a');
     if ($nights < $minimumNights || $nights > 365) {
       throw new InvalidArgumentException(sprintf('Pobyt musí trvať od %d do 365 nocí.', $minimumNights));

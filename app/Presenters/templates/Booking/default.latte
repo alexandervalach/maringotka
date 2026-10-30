@@ -40,7 +40,7 @@
     aria-label="{if $locale === 'en'}Availability calendar{else}Kalendár dostupnosti{/if}">
     <h2>{if $locale === 'en'}Available dates{else}Dostupné termíny{/if}</h2>
     <p class="booking-calendar-intro">
-      {if $locale === 'en'}Choose check-in and check-out on the calendar. Occupied nights are marked; check-out on the next guest's arrival date is allowed.{else}Vyberte príchod a odchod v kalendári. Obsadené noci sú vyznačené; odchod v deň príchodu ďalšieho hosťa je možný.{/if}
+      {if $locale === 'en'}Choose check-in and check-out on the calendar. Occupied terms are marked.{else}Vyberte príchod a odchod v kalendári. Obsadené dni sú vyznačené.{/if}
     </p>
     <div class="booking-calendar-intervals" hidden>
       {foreach $blockedIntervals as $interval}
