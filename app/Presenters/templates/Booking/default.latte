@@ -31,6 +31,31 @@
       {/foreach}
     </div>
   {/if}
+  {* Progressive enhancement: without JS the original native date fields still work. *}
+  <div class="booking-calendar"
+    data-today="{$calendarToday}"
+    data-until="{$calendarUntil}"
+    data-min-nights="{$minimumNights}"
+    data-locale="{$locale}"
+    aria-label="{if $locale === 'en'}Availability calendar{else}Kalendár dostupnosti{/if}">
+    <h2>{if $locale === 'en'}Available dates{else}Dostupné termíny{/if}</h2>
+    <p class="booking-calendar-intro">
+      {if $locale === 'en'}Choose check-in and check-out on the calendar. Occupied nights are marked; check-out on the next guest's arrival date is allowed.{else}Vyberte príchod a odchod v kalendári. Obsadené noci sú vyznačené; odchod v deň príchodu ďalšieho hosťa je možný.{/if}
+    </p>
+    <div class="booking-calendar-intervals" hidden>
+      {foreach $blockedIntervals as $interval}
+        <span data-start="{$interval['start']}" data-end="{$interval['end']}"></span>
+      {/foreach}
+    </div>
+    <div class="booking-calendar-controls" hidden>
+      <button type="button" class="booking-calendar-prev" aria-label="{if $locale === 'en'}Previous month{else}Predchádzajúci mesiac{/if}">‹</button>
+      <strong class="booking-calendar-month" aria-live="polite"></strong>
+      <button type="button" class="booking-calendar-next" aria-label="{if $locale === 'en'}Next month{else}Nasledujúci mesiac{/if}">›</button>
+    </div>
+    <div class="booking-calendar-days" hidden></div>
+    <p class="booking-calendar-message" role="status" aria-live="polite"></p>
+    <p class="booking-calendar-legend"><span class="booking-calendar-occupied-swatch"></span> {if $locale === 'en'}Occupied{else}Obsadené{/if}</p>
+  </div>
   <div class="cms-form booking-form">
     {form bookingForm}
       <div n:if="$form->hasErrors()" class="booking-feedback" role="alert">
@@ -69,4 +94,6 @@
   </div>
   {/if}
 </main>
+  <link rel="stylesheet" href="/assets/css/booking-calendar.css">
+  <script src="/assets/js/booking-calendar.js" defer></script>
 {/block}

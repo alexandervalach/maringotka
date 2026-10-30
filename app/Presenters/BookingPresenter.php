@@ -63,6 +63,16 @@ final class BookingPresenter extends BasePresenter
     $this->template->add('languageUrls', PublicRoutes::languageUrlsFor('booking'));
     $this->template->add('title', $locale === 'en' ? 'Reservation request' : 'Žiadosť o rezerváciu');
     $this->template->add('minimumNights', $this->pricing->getPrices()['minimum_nights']);
+  
+    $today = new \DateTimeImmutable('today');
+    $calendarEnd = $today->modify('first day of this month')->modify('+12 months');
+    $this->template->add('calendarToday', $today->format('Y-m-d'));
+    $this->template->add('calendarUntil', $calendarEnd->format('Y-m-d'));
+    $this->template->add('blockedIntervals', $this->bookings->blockedIntervals(
+      $today->format('Y-m-d'),
+      $calendarEnd->format('Y-m-d'),
+    ));
+    
     $this->template->add('requestSubmitted', $this->requestSubmitted);
   }
 
@@ -99,6 +109,7 @@ final class BookingPresenter extends BasePresenter
         $form->addError($error->getMessage());
         return;
       }
+      // Display confirmation without exposing internal cancellation credentials.
       $this->requestSubmitted = true;
     };
     return $form;

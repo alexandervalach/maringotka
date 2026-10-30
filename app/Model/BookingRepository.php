@@ -41,6 +41,37 @@ final class BookingRepository extends Repository
   }
 
   /**
+   * Returns blocked half-open date intervals for the public calendar.
+   * Rejected and cancelled requests do not block dates.
+   *
+   * @param string $from Inclusive start date in YYYY-MM-DD format.
+   * @param string $until Exclusive end date in YYYY-MM-DD format.
+   * @return list<array{start: string, end: string}>
+   */
+  public function blockedIntervals(string $from, string $until): array
+  {
+    $rows = $this->getTable()
+      ->where('status', ['pending', 'confirmed'])
+      ->where('arrival_date < ?', $until)
+      ->where('departure_date > ?', $from)
+      ->order('arrival_date ASC')
+      ->fetchAll();
+
+    $intervals = [];
+    foreach ($rows as $row) {
+      $intervals[] = [
+        'start' => $row->arrival_date instanceof \DateTimeInterface
+          ? $row->arrival_date->format('Y-m-d')
+          : (string) $row->arrival_date,
+        'end' => $row->departure_date instanceof \DateTimeInterface
+          ? $row->departure_date->format('Y-m-d')
+          : (string) $row->departure_date,
+      ];
+    }
+    return $intervals;
+  }
+
+  /**
    * Validates an entire stay without relying on browser-side constraints.
    *
    * @param string $arrival Arrival date in YYYY-MM-DD format.

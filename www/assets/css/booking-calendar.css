@@ -1,0 +1,18 @@
+.booking-calendar { margin: 1.5rem 0; max-width: 38rem; }
+.booking-calendar h2 { font-size: 1.35rem; margin-bottom: .5rem; }
+.booking-calendar-intro { line-height: 1.55; margin-bottom: 1rem; }
+.booking-calendar-controls { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 0 .75rem; }
+.booking-calendar-controls button { cursor: pointer; background: #fff; color: #253c2d; border: 1px solid #d3d0c7; border-radius: .55rem; padding: .4rem 1rem; font-size: 1.5rem; }
+.booking-calendar-controls button:disabled { opacity: .35; cursor: default; }
+.booking-calendar-month { text-align: center; text-transform: capitalize; }
+.booking-calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; }
+.booking-calendar-weekday { text-align: center; font-size: .82rem; font-weight: 700; padding: .4rem 0; }
+.booking-calendar-day { min-height: 2.6rem; border: 1px solid #ddd8ce; border-radius: .45rem; background: #fff; color: #263d30; cursor: pointer; font: inherit; }
+.booking-calendar-day.is-occupied { background: #f1d9d9; color: #8c2e2e; border-color: #e6c4c4; cursor: not-allowed; }
+.booking-calendar-day.is-selected { background: #e3eee0; border-color: #699470; }
+.booking-calendar-day.is-arrival, .booking-calendar-day.is-departure { background: #805b3d; border-color: #805b3d; color: white; }
+.booking-calendar-day:disabled:not(.is-occupied) { opacity: .35; cursor: not-allowed; }
+.booking-calendar-day:focus-visible, .booking-calendar-controls button:focus-visible { outline: 3px solid #9b6b3f; outline-offset: 2px; }
+.booking-calendar-message { min-height: 1.5rem; margin: .7rem 0; }
+.booking-calendar-legend { display: flex; align-items: center; gap: .5rem; font-size: .9rem; }
+.booking-calendar-occupied-swatch { display: inline-block; width: 1.1rem; height: 1.1rem; background: #f1d9d9; border: 1px solid #e6c4c4; border-radius: .2rem; }
