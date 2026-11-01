@@ -17,7 +17,6 @@ Assert::type('string', $template);
 Assert::contains('function statusHistory(int $bookingId): array', $repository);
 Assert::contains('FROM booking_status_history WHERE booking_id = ? ORDER BY id DESC', $repository);
 Assert::contains('iterator_to_array($row)', $repository);
-Assert::contains("$this->bookings->statusHistory($id)", $presenter);
+Assert::contains('$this->bookings->statusHistory($id)', $presenter);
 Assert::contains('booking-decision-options', $template);
 Assert::contains('booking-history-table', $template);
-Assert::contains('booking-history.css', $template);

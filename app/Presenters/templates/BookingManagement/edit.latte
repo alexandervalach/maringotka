@@ -2,11 +2,6 @@
 
 {block pageTitle}Rozhodnutie o rezervácii{/block}
 
-{block extraHead}
-  <link rel="stylesheet" href="{$basePath}/assets/css/booking-decision.css">
-  <link rel="stylesheet" href="{$basePath}/assets/css/booking-history.css">
-{/block}
-
 {block content}
 <main class="container inner-page cms-editor">
   <nav aria-label="Administrácia"><a class="back-link" n:href="default">← Rezervácie</a></nav>
@@ -94,7 +89,6 @@
           </tbody>
         </table>
       </div>
-      <p class="booking-history-note">Pri udalostiach vytvorených migráciou je časom záznamu dátum migrácie, nie pôvodného rozhodnutia.</p>
     {else}
       <p>Zatiaľ neexistuje žiadna zaznamenaná zmena stavu.</p>
     {/if}
