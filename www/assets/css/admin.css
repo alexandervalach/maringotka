@@ -320,7 +320,6 @@
   }
 }
 
-/* Booking status history */
 .booking-history { margin-top: 1.5rem; }
 .booking-history h2 { margin-top: 0; }
 .booking-history-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }

@@ -1,0 +1,26 @@
+<section class="admin-pending" aria-labelledby="admin-pending-heading">
+  <div class="admin-pending-heading">
+    <h2 id="admin-pending-heading">Čakajúce rezervácie</h2>
+    <span class="admin-pending-count">{$pendingCount}</span>
+  </div>
+
+  {if $pendingCount === 0}
+    <p class="admin-pending-empty">Momentálne nemáte žiadne rezervácie čakajúce na vybavenie.</p>
+  {else}
+    <p class="admin-pending-description">Najnovšie nevybavené žiadosti:</p>
+    <ul class="admin-pending-list">
+      <li n:foreach="$pendingRequests as $request">
+        <span class="admin-pending-item">
+          <strong>#{$request['id']}</strong>
+          <span>{$request['guest_name']}</span>
+          <span>{$request['arrival_date']|date:'d. m. Y'} – {$request['departure_date']|date:'d. m. Y'}</span>
+        </span>
+        <a class="button button-small" href="/admin/bookings/{$request['id']}">Vybaviť</a>
+      </li>
+    </ul>
+    {if $pendingCount > count($pendingRequests)}
+      <p class="admin-pending-more">Zobrazených je posledných {count($pendingRequests)} žiadostí.</p>
+    {/if}
+  {/if}
+  <a class="admin-pending-all" href="/admin/bookings?status=pending">Všetky čakajúce rezervácie</a>
+</section>
