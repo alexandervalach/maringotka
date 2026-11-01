@@ -1,0 +1,8 @@
+.booking-history { margin-top: 1.5rem; }
+.booking-history h2 { margin-top: 0; }
+.booking-history-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.booking-history-table { border-collapse: collapse; width: 100%; min-width: 40rem; }
+.booking-history-table th, .booking-history-table td { padding: .8rem 1rem; text-align: left; vertical-align: top; border-bottom: 1px solid #dedbd3; }
+.booking-history-table th { background: #f1efe9; font-weight: 700; }
+.booking-history-table td:last-child { overflow-wrap: anywhere; }
+.booking-history-note { color: #67766a; font-size: .88rem; margin-top: 1rem; }

@@ -132,6 +132,32 @@ final class BookingManagementRepository extends Repository
   }
 
   /**
+   * Returns the status-change history of a booking, newest first.
+   *
+   * @param int $bookingId Booking identifier.
+   * @return list<array<string, mixed>> Recorded status transitions.
+   */
+  public function statusHistory(int $bookingId): array
+  {
+    if ($bookingId < 1) {
+      throw new InvalidArgumentException('Neplatné číslo rezervácie.');
+    }
+
+    $rows = $this->database->query(
+      'SELECT id, previous_status, current_status, decision_reason, changed_at'
+      . ' FROM booking_status_history WHERE booking_id = ? ORDER BY id DESC',
+      $bookingId,
+    )->fetchAll();
+
+    $history = [];
+    foreach ($rows as $row) {
+      $history[] = iterator_to_array($row);
+    }
+
+    return $history;
+  }
+
+  /**
    * Applies an administrator decision under a row lock.
    * Pending requests may be confirmed, rejected or cancelled.
    * Confirmed requests may only be cancelled; terminal states cannot change.

@@ -100,6 +100,7 @@ final class BookingManagementPresenter extends BasePresenter
       $this->error('Rezervácia neexistuje.', 404);
     }
     $this->template->add('request', $request);
+    $this->template->add('statusHistory', $this->bookings->statusHistory($id));
   }
 
   /**
