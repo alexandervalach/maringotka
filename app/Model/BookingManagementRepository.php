@@ -132,22 +132,24 @@ final class BookingManagementRepository extends Repository
   }
 
   /**
-   * Only pending requests may be decided. The row lock also prevents
-   * concurrent administrator decisions from overwriting each other.
+   * Applies an administrator decision under a row lock.
+   * Pending requests may be confirmed, rejected or cancelled.
+   * Confirmed requests may only be cancelled; terminal states cannot change.
    *
-   * @param int $id Request ID.
-   * @param string $decision Either confirmed or rejected.
-   * @param string $reason Mandatory rejection reason.
+   * @param int $id Booking identifier.
+   * @param string $decision Target status.
+   * @param string $reason Explanation required for rejection or cancellation.
    * @return void
    */
   public function decide(int $id, string $decision, string $reason): void
   {
-    if ($id < 1 || !in_array($decision, ['confirmed', 'rejected'], true)) {
+    if ($id < 1 || !in_array($decision, ['confirmed', 'rejected', 'cancelled'], true)) {
       throw new InvalidArgumentException('Neplatné rozhodnutie o rezervácii.');
     }
+
     $reason = trim($reason);
-    if ($decision === 'rejected' && $reason === '') {
-      throw new InvalidArgumentException('Pri zamietnutí zadajte dôvod.');
+    if (in_array($decision, ['rejected', 'cancelled'], true) && $reason === '') {
+      throw new InvalidArgumentException('Pri zamietnutí alebo zrušení zadajte dôvod.');
     }
     if (mb_strlen($reason) > 2000) {
       throw new InvalidArgumentException('Dôvod môže mať najviac 2000 znakov.');
@@ -155,7 +157,6 @@ final class BookingManagementRepository extends Repository
 
     $this->database->beginTransaction();
     try {
-      // Serialize competing decisions; column identifiers are fixed, ID is bound.
       $row = $this->database->query(
         'SELECT id, status FROM booking_requests WHERE id = ? FOR UPDATE',
         $id,
@@ -163,13 +164,21 @@ final class BookingManagementRepository extends Repository
       if ($row === null) {
         throw new DomainException('Rezervácia neexistuje.');
       }
-      if ($row->status !== 'pending') {
-        throw new DomainException('O tejto rezervácii už bolo rozhodnuté.');
+
+      $currentStatus = (string) $row['status'];
+      $allowed = match ($currentStatus) {
+        'pending' => ['confirmed', 'rejected', 'cancelled'],
+        'confirmed' => ['cancelled'],
+        default => [],
+      };
+      if (!in_array($decision, $allowed, true)) {
+        throw new DomainException('Rezerváciu v tomto stave nemožno takto zmeniť.');
       }
+
       $this->database->query(
         'UPDATE booking_requests SET status = ?, decision_reason = ?, decided_at = NOW(), updated_at = NOW() WHERE id = ?',
         $decision,
-        $decision === 'rejected' ? $reason : null,
+        in_array($decision, ['rejected', 'cancelled'], true) ? $reason : null,
         $id,
       );
       $this->database->commit();

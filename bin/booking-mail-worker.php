@@ -26,9 +26,11 @@ function bookingMailEnv(string $name): string
  * Formats one e-mail without disclosing cancellation credentials.
  *
  * @param array<string, mixed> $row Outbox event and reservation data.
+ * @param string $contactAddress Public contact e-mail for cancellation requests.
+ * @param string $contactPhone Optional public contact phone number.
  * @return array{subject: string, body: string}
  */
-function bookingMailContent(array $row): array
+function bookingMailContent(array $row, string $contactAddress = '', string $contactPhone = ''): array
 {
   $number = 'R-' . str_pad((string) $row['booking_id'], 6, '0', STR_PAD_LEFT);
   $guest = (string) $row['guest_name'];
@@ -41,6 +43,7 @@ function bookingMailContent(array $row): array
     'received' => 'Žiadosť bola prijatá',
     'confirmed' => 'Rezervácia bola potvrdená',
     'rejected' => 'Rezervácia bola zamietnutá',
+    'cancelled' => 'Rezervácia bola zrušená',
   ];
   if (!isset($headings[$event])) {
     throw new RuntimeException('Unknown booking event.');
@@ -57,9 +60,23 @@ function bookingMailContent(array $row): array
   if ($event === 'received') {
     $lines[] = 'Žiadosť čaká na schválenie; pobyt zatiaľ nie je potvrdený.';
   }
-  if ($event === 'rejected' && trim((string) ($row['decision_reason'] ?? '')) !== '') {
-    $lines[] = 'Dôvod zamietnutia: ' . trim((string) $row['decision_reason']);
+  
+  if (in_array($event, ['rejected', 'cancelled'], true) && trim((string) ($row['decision_reason'] ?? '')) !== '') {
+    $lines[] = 'Dôvod ' . ($event === 'cancelled' ? 'zrušenia' : 'zamietnutia') . ': ' . trim((string) $row['decision_reason']);
   }
+
+  if (!$admin) {
+    if ($event === 'received' || $event === 'confirmed') {
+      $lines[] = 'Ak potrebujete rezerváciu zrušiť, kontaktujte prevádzkovateľa. Zrušenie vybaví manuálne.';
+    }
+    if ($contactAddress !== '') {
+      $lines[] = 'Kontakt prevádzkovateľa: ' . $contactAddress;
+    }
+    if ($contactPhone !== '') {
+      $lines[] = 'Telefón prevádzkovateľa: ' . $contactPhone;
+    }
+  }
+
   if ($admin) {
     $lines[] = 'Kontakt: ' . (string) $row['guest_email'];
     if ($row['guest_phone'] !== null && (string) $row['guest_phone'] !== '') {
@@ -69,6 +86,7 @@ function bookingMailContent(array $row): array
       $lines[] = 'Poznámka: ' . (string) $row['guest_note'];
     }
   }
+  
   return ['subject' => $subject, 'body' => implode("\n", $lines) . "\n"];
 }
 
@@ -104,7 +122,8 @@ SQL);
         $pdo->commit();
         break;
       }
-      $content = bookingMailContent($event);
+      $contactPhone = getenv('BOOKING_CONTACT_PHONE');
+      $content = bookingMailContent($event, $adminAddress, is_string($contactPhone) ? trim($contactPhone) : '');
       $recipient = $event['recipient_type'] === 'admin' ? $adminAddress : (string) $event['guest_email'];
       $message = new Message();
       $message->setFrom($from)

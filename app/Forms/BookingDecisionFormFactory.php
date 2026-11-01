@@ -12,16 +12,22 @@ use Nette\Application\UI\Form;
 final class BookingDecisionFormFactory extends FormFactory
 {
   /**
+   * @param string $status Current reservation status.
    * @return Form Decision form with CSRF protection.
    */
-  public function create(): Form
+  public function create(string $status = 'pending'): Form
   {
     $form = parent::create();
-    $form->addRadioList('decision', 'Rozhodnutie', [
-      'confirmed' => 'Potvrdiť',
-      'rejected' => 'Zamietnuť',
-    ])->setRequired('Vyberte rozhodnutie.');
-    $form->addTextArea('reason', 'Dôvod zamietnutia')
+    $decisions = $status === 'confirmed'
+      ? ['cancelled' => 'Zrušiť rezerváciu']
+      : [
+        'confirmed' => 'Potvrdiť',
+        'rejected' => 'Zamietnuť',
+        'cancelled' => 'Zrušiť rezerváciu',
+      ];
+    $form->addRadioList('decision', 'Rozhodnutie', $decisions)
+      ->setRequired('Vyberte rozhodnutie.');
+    $form->addTextArea('reason', 'Dôvod zamietnutia alebo zrušenia')
       ->setMaxLength(2000)
       ->setHtmlAttribute('rows', 4);
     $form->addSubmit('save', 'Uložiť zmeny')

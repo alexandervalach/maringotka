@@ -107,7 +107,8 @@ final class BookingManagementPresenter extends BasePresenter
    */
   protected function createComponentDecisionForm(): Form
   {
-    $form = $this->forms->create();
+    $request = $this->editingId > 0 ? $this->bookings->requestById($this->editingId) : null;
+    $form = $this->forms->create($request !== null && $request['status'] === 'confirmed' ? 'confirmed' : 'pending');
     $form->onSuccess[] = function (Form $form): void {
       $values = $form->getValues('array');
       try {

@@ -13,7 +13,10 @@
     <p><strong>E-mail:</strong> {$request['guest_email']}</p>
     <p><strong>Telefón:</strong> {$request['guest_phone'] ?: '—'}</p>
     <p><strong>Poznámka:</strong> {$request['guest_note'] ?: '—'}</p>
-    {if $request['status'] === 'pending'}
+    {if $request['status'] === 'pending' || $request['status'] === 'confirmed'}
+      {if $request['status'] === 'confirmed'}
+        <p>Potvrdená rezervácia. Môžete ju zrušiť po dohode s hosťom. Termín sa následne uvoľní.</p>
+      {/if}
       <div class="cms-form booking-admin-form">
         {form decisionForm}
           <ul class="cms-form-errors" n:if="$form->hasErrors()">
@@ -21,14 +24,15 @@
           </ul>
           {label decision /}
           {input decision}
+          <p>Pri zamietnutí alebo zrušení uveďte dôvod. Zrušenie je nevratné.</p>
           {label reason /}
           {input reason}
           {input save}
         {/form}
       </div>
     {else}
-      <p>O tejto rezervácii už bolo rozhodnuté.</p>
-      {if $request['decision_reason']}<p><strong>Dôvod:</strong> {$request['decision_reason']}</p>{/if}
+      <p>Túto rezerváciu už nemožno ďalej meniť.</p>
+      {if $request['decision_reason']}<p><strong>Dôvod rozhodnutia:</strong> {$request['decision_reason']}</p>{/if}
     {/if}
   </section>
 </main>
