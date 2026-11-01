@@ -328,3 +328,113 @@
 .booking-history-table th { background: #f1efe9; font-weight: 700; }
 .booking-history-table td:last-child { overflow-wrap: anywhere; }
 .booking-history-note { color: #67766a; font-size: .88rem; margin-top: 1rem; }
+
+.admin-pending-widget {
+  margin: 1.75rem 0 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--line, #dedbd3);
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.admin-pending-widget__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-pending-widget__title-wrap h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.admin-pending-widget__lead {
+  margin: 0.4rem 0 0;
+  color: var(--muted, #627166);
+}
+
+.admin-pending-widget__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.8rem;
+  border-radius: 999px;
+  background: #fff2d4;
+  color: #6b4c18;
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.admin-pending-widget__empty {
+  margin: 0;
+  color: var(--muted, #627166);
+}
+
+.admin-pending-widget__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-pending-widget__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--line, #dedbd3);
+}
+
+.admin-pending-widget__item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.admin-pending-widget__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.admin-pending-widget__meta span {
+  overflow-wrap: anywhere;
+}
+
+.admin-pending-widget__list .button,
+.admin-pending-widget__all {
+  min-height: 2.4rem;
+  padding: 0.45rem 0.85rem;
+  flex-shrink: 0;
+}
+
+.admin-pending-widget__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line, #dedbd3);
+}
+
+.admin-pending-widget__note {
+  margin: 0;
+  color: var(--muted, #627166);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 720px) {
+  .admin-pending-widget__header,
+  .admin-pending-widget__footer,
+  .admin-pending-widget__item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

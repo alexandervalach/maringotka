@@ -1,26 +1,37 @@
-<section class="admin-pending" aria-labelledby="admin-pending-heading">
-  <div class="admin-pending-heading">
-    <h2 id="admin-pending-heading">Čakajúce rezervácie</h2>
-    <span class="admin-pending-count">{$pendingCount}</span>
+<section class="admin-pending-widget" aria-labelledby="admin-pending-heading">
+  <div class="admin-pending-widget__header">
+    <div class="admin-pending-widget__title-wrap">
+      <h2 id="admin-pending-heading">Čakajúce rezervácie</h2>
+      <p class="admin-pending-widget__lead">Prehľad rezervácií, ktoré čakajú na vybavenie.</p>
+    </div>
+
+    {if $pendingCount > 0}
+      <span class="admin-pending-widget__badge" aria-label="Počet čakajúcich rezervácií">{$pendingCount}</span>
+    {/if}
   </div>
 
   {if $pendingCount === 0}
-    <p class="admin-pending-empty">Momentálne nemáte žiadne rezervácie čakajúce na vybavenie.</p>
+    <p class="admin-pending-widget__empty">Momentálne nemáte žiadne rezervácie čakajúce na vybavenie.</p>
   {else}
-    <p class="admin-pending-description">Najnovšie nevybavené žiadosti:</p>
-    <ul class="admin-pending-list">
-      <li n:foreach="$pendingRequests as $request">
-        <span class="admin-pending-item">
+    <ul class="admin-pending-widget__list">
+      <li n:foreach="$pendingRequests as $request" class="admin-pending-widget__item">
+        <div class="admin-pending-widget__meta">
           <strong>#{$request['id']}</strong>
           <span>{$request['guest_name']}</span>
           <span>{$request['arrival_date']|date:'d. m. Y'} – {$request['departure_date']|date:'d. m. Y'}</span>
-        </span>
+        </div>
         <a class="button button-small" href="/admin/bookings/{$request['id']}">Vybaviť</a>
       </li>
     </ul>
-    {if $pendingCount > count($pendingRequests)}
-      <p class="admin-pending-more">Zobrazených je posledných {count($pendingRequests)} žiadostí.</p>
-    {/if}
   {/if}
-  <a class="admin-pending-all" href="/admin/bookings?status=pending">Všetky čakajúce rezervácie</a>
+
+  <div class="admin-pending-widget__footer">
+    {if $pendingCount > count($pendingRequests)}
+      <p class="admin-pending-widget__note">Zobrazených je posledných {count($pendingRequests)} žiadostí.</p>
+    {else}
+      <span></span>
+    {/if}
+
+    <a class="button button-small admin-pending-widget__all" href="/admin/bookings?status=pending">Všetky čakajúce rezervácie</a>
+  </div>
 </section>
