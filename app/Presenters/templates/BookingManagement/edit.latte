@@ -2,6 +2,10 @@
 
 {block pageTitle}Rozhodnutie o rezervácii{/block}
 
+{block extraHead}
+  <link rel="stylesheet" href="{$basePath}/assets/css/booking-decision.css">
+{/block}
+
 {block content}
 <main class="container inner-page cms-editor">
   <nav aria-label="Administrácia"><a class="back-link" n:href="default">← Rezervácie</a></nav>
@@ -22,8 +26,23 @@
           <ul class="cms-form-errors" n:if="$form->hasErrors()">
             <li n:foreach="$form->getErrors() as $error">{$error}</li>
           </ul>
-          {label decision /}
-          {input decision}
+          <fieldset class="booking-decision-fieldset">
+            <legend>Rozhodnutie</legend>
+            <div class="booking-decision-options">
+              {foreach $form[decision]->getItems() as $key => $caption}
+                <label n:name="decision:$key" class="booking-decision-option booking-decision-option--{$key}">
+                  <input n:name="decision:$key" class="booking-decision-option__input">
+                  <span class="booking-decision-option__surface">
+                    <span class="booking-decision-option__icon" aria-hidden="true">
+                      {if $key === 'confirmed'}✓{elseif $key === 'rejected'}✕{else}⊘{/if}
+                    </span>
+                    <span>{$caption}</span>
+                  </span>
+                </label>
+              {/foreach}
+            </div>
+            <span class="cms-form-error" n:ifcontent>{inputError decision}</span>
+          </fieldset>
           <p>Pri zamietnutí alebo zrušení uveďte dôvod. Zrušenie je nevratné.</p>
           {label reason /}
           {input reason}
