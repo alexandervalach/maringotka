@@ -12,32 +12,46 @@
   </header>
 
   <div class="admin-dashboard__grid">
-    <section class="admin-dashboard__card admin-dashboard__card--menu" aria-labelledby="admin-menu-heading">
-      <div class="admin-dashboard__card-header">
-        <span class="admin-dashboard__card-icon" aria-hidden="true">☰</span>
-        <h2 id="admin-menu-heading">Správa webu</h2>
+    <details class="admin-dashboard__card admin-dashboard__card--pending admin-dashboard__card--collapsible" open>
+      <summary class="admin-dashboard__card-toggle">
+        <span class="admin-dashboard__card-toggle-label">Čakajúce rezervácie</span>
+        <span class="admin-dashboard__chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="admin-dashboard__card-body">
+        {control pendingBookings}
       </div>
-      <p class="admin-dashboard__card-description">Obsah, ceny a fotografie.</p>
-      <nav class="admin-dashboard__menu" aria-label="Správa obsahu">
-        <a href="/admin/home/sk">Hlavná stránka – SK</a>
-        <a href="/admin/home/en">Hlavná stránka – EN</a>
-        <a href="/admin/contact">Kontaktné údaje</a>
-        <a href="/admin/pricing">Cenník</a>
-        <a href="/admin/gallery">Galéria</a>
-        <a href="/admin/bookings">Všetky rezervácie</a>
-      </nav>
-    </section>
+    </details>
 
-    <section class="admin-dashboard__card admin-dashboard__card--pending" aria-label="Nevybavené žiadosti o rezerváciu">
-      {control pendingBookings}
-    </section>
-
-    <section class="admin-dashboard__card admin-dashboard__card--arrivals" aria-label="Najbližšie potvrdené pobyty">
-      {control upcomingArrivals}
-      <div class="admin-dashboard__card-footer">
-        <a class="button button-small" href="/admin/bookings?status=confirmed">Všetky potvrdené rezervácie</a>
+    <details class="admin-dashboard__card admin-dashboard__card--menu admin-dashboard__card--collapsible">
+      <summary class="admin-dashboard__card-toggle">
+        <span class="admin-dashboard__card-toggle-label">Správa webu</span>
+        <span class="admin-dashboard__chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="admin-dashboard__card-body">
+        <p class="admin-dashboard__card-description">Obsah, ceny a fotografie.</p>
+        <nav class="admin-dashboard__menu" aria-label="Správa obsahu">
+          <a href="/admin/home/sk">Hlavná stránka – SK</a>
+          <a href="/admin/home/en">Hlavná stránka – EN</a>
+          <a href="/admin/contact">Kontaktné údaje</a>
+          <a href="/admin/pricing">Cenník</a>
+          <a href="/admin/gallery">Galéria</a>
+          <a href="/admin/bookings">Všetky rezervácie</a>
+        </nav>
       </div>
-    </section>
+    </details>
+
+    <details class="admin-dashboard__card admin-dashboard__card--arrivals admin-dashboard__card--collapsible">
+      <summary class="admin-dashboard__card-toggle">
+        <span class="admin-dashboard__card-toggle-label">Najbližšie príchody</span>
+        <span class="admin-dashboard__chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="admin-dashboard__card-body">
+        {control upcomingArrivals}
+        <div class="admin-dashboard__card-footer">
+          <a class="button button-small" href="/admin/bookings?status=confirmed">Všetky potvrdené rezervácie</a>
+        </div>
+      </div>
+    </details>
   </div>
 
   <div class="admin-dashboard__logout">
