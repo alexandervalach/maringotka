@@ -2,35 +2,48 @@
 
 {block pageTitle}Administrácia{/block}
 
-{block extraHead}
-<style>
-    *, *::before, *::after { box-sizing: border-box; }
-    body { min-height: 100vh; margin: 0; padding: 3rem 1.5rem; background: #f5f2ec; color: #1f3126; font: 16px/1.55 system-ui, sans-serif; }
-    main { max-width: 56rem; margin: 0 auto; }
-    .panel { background: #fff; border-radius: 1rem; padding: 2rem; box-shadow: 0 12px 35px rgba(31, 49, 38, .08); }
-    h1 { margin: 0 0 .5rem; font-size: 1.75rem; }
-    p { color: #627067; margin: 0 0 1.5rem; }
-    button { border: 0; border-radius: .5rem; padding: .8rem 1.2rem; background: #405e48; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
-    button:focus-visible { outline: 3px solid #a6bfa7; outline-offset: 3px; }
-  </style>
-{/block}
-
 {block content}
-<main>
-  <section class="panel">
-    <h1>Administrácia</h1>
+<main class="admin-dashboard">
+  <header class="admin-dashboard__header">
+    <div>
+      <h1>Administrácia</h1>
+      <p>Správa webu a rezervácií na jednom mieste.</p>
+    </div>
+  </header>
 
-    {control pendingBookings}
+  <div class="admin-dashboard__grid">
+    <section class="admin-dashboard__card admin-dashboard__card--menu" aria-labelledby="admin-menu-heading">
+      <div class="admin-dashboard__card-header">
+        <span class="admin-dashboard__card-icon" aria-hidden="true">☰</span>
+        <h2 id="admin-menu-heading">Správa webu</h2>
+      </div>
+      <p class="admin-dashboard__card-description">Obsah, ceny a fotografie.</p>
+      <nav class="admin-dashboard__menu" aria-label="Správa obsahu">
+        <a href="/admin/home/sk">Hlavná stránka – SK</a>
+        <a href="/admin/home/en">Hlavná stránka – EN</a>
+        <a href="/admin/contact">Kontaktné údaje</a>
+        <a href="/admin/pricing">Cenník</a>
+        <a href="/admin/gallery">Galéria</a>
+        <a href="/admin/bookings">Všetky rezervácie</a>
+      </nav>
+    </section>
 
-    <p>Správa obsahu hlavnej stránky:</p>
-    <p><a href="/admin/home/sk">Upraviť hlavnú stránku – SK</a> · <a href="/admin/home/en">EN</a></p>
-    <p><a href="/admin/contact">Upraviť kontaktné údaje</a></p>
-    <p><a href="/admin/pricing">Upraviť cenník</a></p>
-    <p><a href="/admin/gallery">Správa galérie</a></p>
-    <p><a href="/admin/bookings">Správa rezervácií</a></p>
+    <section class="admin-dashboard__card admin-dashboard__card--pending" aria-label="Nevybavené žiadosti o rezerváciu">
+      {control pendingBookings}
+    </section>
+
+    <section class="admin-dashboard__card admin-dashboard__card--arrivals" aria-label="Najbližšie potvrdené pobyty">
+      {control upcomingArrivals}
+      <div class="admin-dashboard__card-footer">
+        <a class="button button-small" href="/admin/bookings?status=confirmed">Všetky potvrdené rezervácie</a>
+      </div>
+    </section>
+  </div>
+
+  <div class="admin-dashboard__logout">
     {form logoutForm}
-      {input submit class => 'button'}
+      {input submit}
     {/form}
-  </section>
+  </div>
 </main>
 {/block}

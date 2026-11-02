@@ -8,6 +8,7 @@ use App\Infrastructure\Admin\AdminCredentials;
 use App\Infrastructure\Admin\AdminLoginLimiter;
 use App\Infrastructure\Database\ConnectionFactory;
 use App\Components\PendingBookingsControl;
+use App\Components\UpcomingArrivalsControl;
 use Nette\Application\UI\Form;
 use Nette\Application\UI\Presenter;
 use Nette\Http\Session;
@@ -119,5 +120,15 @@ final class AdminPresenter extends Presenter
   protected function createComponentPendingBookings(): PendingBookingsControl
   {
     return new PendingBookingsControl($this->connectionFactory);
+  }
+
+  /**
+   * Creates the widget displaying the next confirmed guest arrivals.
+   *
+   * @return UpcomingArrivalsControl
+   */
+  protected function createComponentUpcomingArrivals(): UpcomingArrivalsControl
+  {
+    return new UpcomingArrivalsControl($this->connectionFactory);
   }
 }

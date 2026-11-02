@@ -1,0 +1,17 @@
+<section class="admin-upcoming-widget" aria-labelledby="admin-upcoming-heading">
+  <h2 id="admin-upcoming-heading">Najbližšie príchody</h2>
+  {if count($upcomingArrivals) === 0}
+    <p class="admin-upcoming-widget__empty">Momentálne nemáte naplánované žiadne ďalšie potvrdené príchody.</p>
+  {else}
+    <ul class="admin-upcoming-widget__list">
+      <li class="admin-upcoming-widget__item" n:foreach="$upcomingArrivals as $arrival">
+        <div class="admin-upcoming-widget__details">
+          <strong>#{$arrival['id']}</strong>
+          <span>{$arrival['guest_name']}</span>
+          <span>{$arrival['arrival_date']|date:'d. m. Y'} – {$arrival['departure_date']|date:'d. m. Y'}</span>
+        </div>
+        <a class="button button-small" href="/admin/bookings/{$arrival['id']}">Detail</a>
+      </li>
+    </ul>
+  {/if}
+</section>
