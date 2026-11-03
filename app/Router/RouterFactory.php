@@ -29,9 +29,10 @@ final class RouterFactory
             'pricing' => 'Pricing',
             'gallery' => 'Gallery',
             'booking' => 'Booking',
+            'surroundings' => 'Surroundings',
             default => 'Homepage',
           },
-          'action' => in_array($action, ['contact', 'pricing', 'gallery', 'booking'], true) ? 'default' : $action,
+          'action' => in_array($action, ['contact', 'pricing', 'gallery', 'booking', 'surroundings'], true) ? 'default' : $action,
           'locale' => $locale,
         ]);
       }

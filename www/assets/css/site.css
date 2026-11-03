@@ -588,3 +588,94 @@ body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column;
 .booking-calendar-message { min-height: 1.5rem; margin: .7rem 0; }
 .booking-calendar-legend { display: flex; align-items: center; gap: .5rem; font-size: .9rem; }
 .booking-calendar-occupied-swatch { display: inline-block; width: 1.1rem; height: 1.1rem; background: #f1d9d9; border: 1px solid #e6c4c4; border-radius: .2rem; }
+
+.place-grid.surroundings-links > a.place-card.surroundings-link,
+.place-grid.surroundings-links > a.place-card.surroundings-link:link,
+.place-grid.surroundings-links > a.place-card.surroundings-link:visited,
+.place-grid.surroundings-links > a.place-card.surroundings-link:hover,
+.place-grid.surroundings-links > a.place-card.surroundings-link:focus-visible {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-width: 0;
+  padding-right: 4.25rem;
+  color: var(--deep);
+  text-decoration: none;
+  border-color: var(--line);
+}
+
+.place-grid.surroundings-links > a.place-card.surroundings-link h2,
+.place-grid.surroundings-links > a.place-card.surroundings-link p,
+.place-grid.surroundings-links > a.place-card.surroundings-link span {
+  text-decoration: none;
+}
+
+.place-grid.surroundings-links > a.place-card.surroundings-link h2 {
+  margin: 0;
+  color: var(--deep);
+  font-size: 1.35rem;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.place-grid.surroundings-links > a.place-card.surroundings-link p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.place-grid.surroundings-links > a.place-card.surroundings-link .surroundings-link__icon {
+  position: absolute;
+  top: 1.9rem;
+  right: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.65rem;
+  height: 2.65rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--brown);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.place-grid.surroundings-links > a.place-card.surroundings-link .surroundings-link__icon svg {
+  display: block;
+}
+
+.place-grid.surroundings-links > a.place-card.surroundings-link:hover {
+  border-color: #ae9b79;
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.place-grid.surroundings-links > a.place-card.surroundings-link:hover .surroundings-link__icon {
+  background: var(--sand);
+  border-color: #ae9b79;
+}
+
+.place-grid.surroundings-links > a.place-card.surroundings-link:focus-visible {
+  outline: 3px solid #bb8654;
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .place-grid.surroundings-links > a.place-card.surroundings-link {
+    padding-right: 3.7rem;
+  }
+  .place-grid.surroundings-links > a.place-card.surroundings-link .surroundings-link__icon {
+    top: 1.2rem;
+    right: 1rem;
+    width: 2.3rem;
+    height: 2.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .place-grid.surroundings-links > a.place-card.surroundings-link:hover {
+    transform: none;
+  }
+}

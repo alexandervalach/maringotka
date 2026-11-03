@@ -1,0 +1,42 @@
+{block content}
+<main id="main" class="inner-page container">
+  <a class="back-link" href="{$paths['default']}">← {_'messages.navigation.home'}</a>
+  <p class="eyebrow inner-eyebrow">Maringotka na Závadke</p>
+  <h1>{if $cmsTitle !== null}{$cmsTitle}{else}{_'messages.navigation.surroundings'}{/if}</h1>
+  <p class="page-lead">{if $cmsSummary !== null}{$cmsSummary}{else}{_'messages.sections.surroundings.text'}{/if}</p>
+  <section class="cms-extra" n:if="$cmsBody !== null && $cmsBody !== ''">{$cmsBody}</section>
+
+  <div class="place-grid surroundings-links">
+    <a class="place-card surroundings-link" href="https://maps.app.goo.gl/RUqNKqPiAbBZvyjCA" target="_blank" rel="noopener noreferrer">
+      <h2>{_'messages.surroundings.tatras'}</h2>
+      <p>{_'messages.surroundings.tatrasText'}</p>
+      <span class="surroundings-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+    </a>
+    <a class="place-card surroundings-link" href="https://novejsa.sk/utulna-a-kaplnka-v-jednom-pribeh-kaplnky-pod-holym-vrchom/" target="_blank" rel="noopener noreferrer">
+      <h2>{_'messages.surroundings.chapel'}</h2>
+      <p>{_'messages.surroundings.chapelText'}</p>
+      <span class="surroundings-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h6v6"/><path d="M19 5 10 14"/><path d="M19 13v6H5V5h6"/></svg></span>
+    </a>
+    <a class="place-card surroundings-link" href="https://maps.app.goo.gl/PQEyR2eXNZ9vE71m9" target="_blank" rel="noopener noreferrer">
+      <h2>{_'messages.surroundings.nalepkovo'}</h2>
+      <p>{_'messages.surroundings.nalepkovoText'}</p>
+      <span class="surroundings-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+    </a>
+    <a class="place-card surroundings-link" href="https://maps.app.goo.gl/VBnqf5jKLZXZmzhQ6" target="_blank" rel="noopener noreferrer">
+      <h2>{_'messages.surroundings.hnilcik'}</h2>
+      <p>{_'messages.surroundings.hnilcikText'}</p>
+      <span class="surroundings-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+    </a>
+    <a class="place-card surroundings-link" href="https://maps.app.goo.gl/zhtxitHemY9oPvVk9" target="_blank" rel="noopener noreferrer">
+      <h2>{_'messages.surroundings.paradise'}</h2>
+      <p>{_'messages.surroundings.paradiseText'}</p>
+      <span class="surroundings-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+    </a>
+    <a class="place-card surroundings-link" href="https://maps.app.goo.gl/tBvQGy1nhiksMuQF7" target="_blank" rel="noopener noreferrer">
+      <h2>{_'messages.surroundings.spisska'}</h2>
+      <p>{_'messages.surroundings.spisskaText'}</p>
+      <span class="surroundings-link__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+    </a>
+  </div>
+</main>
+{/block}
