@@ -4,26 +4,64 @@
   <p class="eyebrow inner-eyebrow">Maringotka na Závadke</p>
   <h1>{_'messages.navigation.contact'}</h1>
   <p class="page-lead">{_'messages.sections.contact.text'}</p>
-  <div class="info-card contact-list">
-    <h2>{_'messages.contact.details'}</h2>
-    {if $contact['phone'] !== ''}
-      <p><a href="tel:{$telephoneNumber}">{$contact['phone']}</a></p>
-    {/if}
-    {if $contact['email'] !== ''}
-      <p><a href="mailto:{$contact['email']}">{$contact['email']}</a></p>
-    {/if}
-    {if $contact['instagram_url'] !== ''}
-      <p><a href="{$contact['instagram_url']}" target="_blank" rel="noopener noreferrer">Instagram ↗</a></p>
-    {/if}
-    {if $contact['booking_url'] !== ''}
-      <p><a href="{$contact['booking_url']}" target="_blank" rel="noopener noreferrer">Booking.com ↗</a></p>
-    {/if}
-    {if $contact['maps_url'] !== ''}
-      <p><a href="{$contact['maps_url']}" target="_blank" rel="noopener noreferrer">{_'messages.contact.map'} ↗</a></p>
-    {/if}
-    {if $contact['youtube_url'] !== ''}
-      <p><a href="{$contact['youtube_url']}" target="_blank" rel="noopener noreferrer">YouTube ↗</a></p>
-    {/if}
-  </div>
+
+  <section class="contact-public" aria-label="{_'messages.contact.details'}">
+    <h2 class="section-heading">{_'messages.contact.details'}</h2>
+    <div class="place-grid contact-public__grid">
+      {if $contact['phone'] !== ''}
+        <a class="place-card contact-public__card" href="tel:{$telephoneNumber}">
+          <h3>{_'messages.contactPublic.phone'}</h3>
+          <p>{$contact['phone']}</p>
+          <span class="contact-public__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3.09 5.18 2 2 0 0 1 5.08 3h3a2 2 0 0 1 2 1.72l.5 3a2 2 0 0 1-.57 1.72L8.2 11.27a16 16 0 0 0 4.53 4.53l1.83-1.81a2 2 0 0 1 1.72-.57l3 .5A2 2 0 0 1 22 16.92Z"/></svg></span>
+        </a>
+      {/if}
+      {if $contact['email'] !== ''}
+        <a class="place-card contact-public__card" href="mailto:{$contact['email']}">
+          <h3>{_'messages.contactPublic.email'}</h3>
+          <p>{$contact['email']}</p>
+          <span class="contact-public__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 7 9-7"/></svg></span>
+        </a>
+      {/if}
+    </div>
+
+    <h2 class="section-heading">{_'messages.contactPublic.findUs'}</h2>
+    <div class="contact-public__arrival">
+      <a class="contact-public__map" href="{if $contact['maps_url'] !== ''}{$contact['maps_url']}{else}https://share.google/N34OKl6JS5X3Kh5OC{/if}" target="_blank" rel="noopener noreferrer" aria-label="{_'messages.contactPublic.openMap'}">
+        <img src="/assets/images/contact/arrival-map.jpg" alt="{_'messages.contactPublic.mapAlt'}" width="1167" height="912" loading="lazy" decoding="async">
+        <span class="contact-public__map-label">{_'messages.contactPublic.openMap'} <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h6v6"/><path d="M19 5 10 14"/><path d="M19 13v6H5V5h6"/></svg></span>
+      </a>
+      <div class="contact-public__arrival-copy">
+        <h3>{_'messages.contactPublic.arrivalTitle'}</h3>
+        <p>{_'messages.contactPublic.arrivalDescription'}</p>
+        <p class="contact-public__hint">{_'messages.contactPublic.mapHint'}</p>
+      </div>
+    </div>
+
+    <h2 class="section-heading">{_'messages.contactPublic.more'}</h2>
+    <div class="place-grid contact-public__grid">
+      {if $contact['instagram_url'] !== ''}
+        <a class="place-card contact-public__card" href="{$contact['instagram_url']}" target="_blank" rel="noopener noreferrer">
+          <h3>Instagram</h3><p>{_'messages.contactPublic.instagramDescription'}</p>
+          <span class="contact-public__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.6 6.4h.01"/></svg></span>
+        </a>
+      {/if}
+      {if $contact['booking_url'] !== ''}
+        <a class="place-card contact-public__card" href="{$contact['booking_url']}" target="_blank" rel="noopener noreferrer">
+          <h3>Booking.com</h3><p>{_'messages.contactPublic.bookingDescription'}</p>
+          <span class="contact-public__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h6v6"/><path d="M19 5 10 14"/><path d="M19 13v6H5V5h6"/></svg></span>
+        </a>
+      {/if}
+      {if $contact['youtube_url'] !== ''}
+        <a class="place-card contact-public__card" href="{$contact['youtube_url']}" target="_blank" rel="noopener noreferrer">
+          <h3>YouTube</h3><p>{_'messages.contactPublic.youtubeDescription'}</p>
+          <span class="contact-public__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="m10 9 5 3-5 3z"/></svg></span>
+        </a>
+      {/if}
+      <a class="place-card contact-public__card" href="https://novejsa.sk/maly-domcek-s-velkym-vyhladom-maringotka-za-zavadke-ponuka-panoramu-tatier-z-postele/" target="_blank" rel="noopener noreferrer">
+        <h3>{_'messages.contactPublic.articleTitle'}</h3><p>{_'messages.contactPublic.articleDescription'}</p>
+        <span class="contact-public__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h6v6"/><path d="M19 5 10 14"/><path d="M19 13v6H5V5h6"/></svg></span>
+      </a>
+    </div>
+  </section>
 </main>
 {/block}
