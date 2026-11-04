@@ -20,6 +20,10 @@ final class RouterFactory
     $router->addRoute('admin/gallery', ['presenter' => 'Gallery', 'action' => 'manage']);
     $router->addRoute('admin/bookings/<id \d+>', ['presenter' => 'BookingManagement', 'action' => 'edit']);
     $router->addRoute('admin/bookings', ['presenter' => 'BookingManagement', 'action' => 'default']);
+    $router->addRoute('admin/booking-calendar', [
+      'presenter' => 'BookingCalendar',
+      'action' => 'default',
+    ]);
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);
     foreach (PublicRoutes::PATHS as $action => $_) {
       foreach (SupportedLocales::CODES as $locale) {

@@ -27,3 +27,4 @@ services:
   - App\Presenters\BookingManagementPresenter
   - App\Model\BookingManagementRepository
   - App\Forms\BookingDecisionFormFactory
+  - App\Model\BookingCalendarRepository

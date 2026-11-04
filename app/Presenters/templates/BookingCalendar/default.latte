@@ -1,0 +1,71 @@
+{layout '../@admin.latte'}
+
+{block pageTitle}Kalendár rezervácií{/block}
+
+{block content}
+<main class="container inner-page booking-calendar-admin">
+  <nav aria-label="Administrácia">
+    <a class="back-link" href="/admin">← Administrácia</a>
+  </nav>
+
+  <div class="booking-calendar-admin__heading">
+    <div>
+      <h1>Kalendár rezervácií</h1>
+      <p class="page-lead">Čakajúce a potvrdené rezervácie v mesačnom prehľade.</p>
+    </div>
+    <a class="button button-small" href="/admin/bookings">Tabuľkový prehľad</a>
+  </div>
+
+  <section class="booking-calendar-admin__panel" aria-labelledby="calendar-month-title">
+    <div class="booking-calendar-admin__navigation">
+      <a class="booking-calendar-admin__arrow" href="?month={$previousMonth}" aria-label="Predchádzajúci mesiac">←</a>
+      <h2 id="calendar-month-title">{$monthTitle}</h2>
+      <a class="booking-calendar-admin__arrow" href="?month={$nextMonth}" aria-label="Nasledujúci mesiac">→</a>
+    </div>
+
+    <div class="booking-calendar-admin__legend" aria-label="Význam farieb">
+      <span><i class="booking-calendar-admin__swatch booking-calendar-admin__swatch--pending" aria-hidden="true"></i> Čaká na potvrdenie ({$pendingCount})</span>
+      <span><i class="booking-calendar-admin__swatch booking-calendar-admin__swatch--confirmed" aria-hidden="true"></i> Potvrdená ({$confirmedCount})</span>
+      <span class="booking-calendar-admin__legend-note">Odchodový deň je voľný, ak v ňom nezačína iný pobyt.</span>
+    </div>
+
+    <div class="booking-calendar-admin__desktop">
+      <div class="booking-calendar-admin__weekdays" aria-hidden="true">
+        <span>Po</span><span>Ut</span><span>St</span><span>Št</span><span>Pi</span><span>So</span><span>Ne</span>
+      </div>
+      <div class="booking-calendar-admin__grid">
+        {foreach $days as $day}
+          <div class="booking-calendar-admin__day {$day['inMonth'] ? '' : 'booking-calendar-admin__day--outside'} {$day['today'] ? 'booking-calendar-admin__day--today' : ''}">
+            <span class="booking-calendar-admin__date">{$day['day']}</span>
+            {foreach $day['items'] as $item}
+              <a class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status']}" href="/admin/bookings/{$item['id']}" title="Rezervácia č. {$item['id']} – {$item['guest']}">
+                {if $item['arrival']}<strong>Príchod · </strong>{/if}
+                #{$item['id']} {$item['guest']}
+              </a>
+            {/foreach}
+          </div>
+        {/foreach}
+      </div>
+    </div>
+
+    <div class="booking-calendar-admin__mobile">
+      {if count($agenda) === 0}
+        <p>V tomto mesiaci nie sú žiadne čakajúce ani potvrdené pobyty.</p>
+      {else}
+        {foreach $agenda as $day}
+          <div class="booking-calendar-admin__agenda-day">
+            <strong>{$day['day']}. {$monthTitle}</strong>
+            {foreach $day['items'] as $item}
+              <a class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status']}" href="/admin/bookings/{$item['id']}">
+                {if $item['arrival']}<strong>Príchod · </strong>{/if}
+                #{$item['id']} {$item['guest']}
+              </a>
+            {/foreach}
+          </div>
+        {/foreach}
+      {/if}
+    </div>
+    <p class="booking-calendar-admin__note">Zamietnuté a zrušené rezervácie nie sú v kalendári zobrazené; nájdeš ich v tabuľkovom prehľade.</p>
+  </section>
+</main>
+{/block}
