@@ -61,6 +61,10 @@ final class BookingCalendarPresenter extends BasePresenter
       'Júl', 'August', 'September', 'Október', 'November', 'December',
     ];
 
+    $view = $this->getSession('booking-admin-view');
+    $view->set('mode', 'calendar');
+    $view->set('month', $month->format('Y-m'));
+
     $this->template->add('monthTitle', $monthNames[(int) $month->format('n')] . ' ' . $month->format('Y'));
     $this->template->add('previousMonth', $month->modify('-1 month')->format('Y-m'));
     $this->template->add('nextMonth', $next->format('Y-m'));

@@ -16,8 +16,8 @@ final class BookingCalendarMonth
 {
   /**
    * @param DateTimeImmutable $month First day of the requested month.
-   * @param list<array{id: int, guest: string, start: string, end: string, status: string}> $reservations Active stays.
-   * @return array{days: list<array{date: string, day: int, inMonth: bool, today: bool, items: list<array{id: int, guest: string, status: string, arrival: bool}>}>, agenda: list<array{date: string, day: int, items: list<array{id: int, guest: string, status: string, arrival: bool}>}>, pending: int, confirmed: int}
+   * @param list<array{id: int, guest: string, email?: string, phone?: string, note?: string, start: string, end: string, status: string}> $reservations Active stays.
+   * @return array{days: list<array{date: string, day: int, inMonth: bool, today: bool, items: list<array{id: int, guest: string, email: string, phone: string, note: string, start: string, end: string, status: string, arrival: bool}>}>, agenda: list<array{date: string, day: int, items: list<array{id: int, guest: string, email: string, phone: string, note: string, start: string, end: string, status: string, arrival: bool}>}>, pending: int, confirmed: int}
    */
   public static function build(DateTimeImmutable $month, array $reservations): array
   {
@@ -42,6 +42,11 @@ final class BookingCalendarMonth
             $items[] = [
               'id' => $reservation['id'],
               'guest' => $reservation['guest'],
+              'email' => $reservation['email'] ?? '',
+              'phone' => $reservation['phone'] ?? '',
+              'note' => $reservation['note'] ?? '',
+              'start' => $reservation['start'],
+              'end' => $reservation['end'],
               'status' => $reservation['status'],
               'arrival' => $reservation['start'] === $key,
             ];

@@ -13,7 +13,10 @@
       <h1>Kalendár rezervácií</h1>
       <p class="page-lead">Čakajúce a potvrdené rezervácie v mesačnom prehľade.</p>
     </div>
-    <a class="button button-small" href="/admin/bookings">Tabuľkový prehľad</a>
+    <nav class="booking-view-toggle" aria-label="Režim zobrazenia rezervácií">
+      <a class="booking-view-toggle__option" href="/admin/bookings" aria-label="Tabuľka rezervácií">▤ Tabuľka</a>
+      <span class="booking-view-toggle__option booking-view-toggle__option--active" aria-current="page">▦ Kalendár</span>
+    </nav>
   </div>
 
   <section class="booking-calendar-admin__panel" aria-labelledby="calendar-month-title">
@@ -38,10 +41,13 @@
           <div class="booking-calendar-admin__day {$day['inMonth'] ? '' : 'booking-calendar-admin__day--outside'} {$day['today'] ? 'booking-calendar-admin__day--today' : ''}">
             <span class="booking-calendar-admin__date">{$day['day']}</span>
             {foreach $day['items'] as $item}
-              <a class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status']}" href="/admin/bookings/{$item['id']}" title="Rezervácia č. {$item['id']} – {$item['guest']}">
-                {if $item['arrival']}<strong>Príchod · </strong>{/if}
-                #{$item['id']} {$item['guest']}
-              </a>
+              <details class="booking-calendar-admin__preview booking-calendar-admin__preview--{$item['status']}">
+                <summary class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status']}" aria-label="Náhľad rezervácie číslo {$item['id']}">
+                  {if $item['arrival']}<strong>Príchod · </strong>{/if}
+                  #{$item['id']} {$item['guest']}
+                </summary>
+                {include reservationPreview, item: $item}
+              </details>
             {/foreach}
           </div>
         {/foreach}
@@ -56,10 +62,13 @@
           <div class="booking-calendar-admin__agenda-day">
             <strong>{$day['day']}. {$monthTitle}</strong>
             {foreach $day['items'] as $item}
-              <a class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status']}" href="/admin/bookings/{$item['id']}">
-                {if $item['arrival']}<strong>Príchod · </strong>{/if}
-                #{$item['id']} {$item['guest']}
-              </a>
+              <details class="booking-calendar-admin__preview booking-calendar-admin__preview--{$item['status']}">
+                <summary class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status']}" aria-label="Náhľad rezervácie číslo {$item['id']}">
+                  {if $item['arrival']}<strong>Príchod · </strong>{/if}
+                  #{$item['id']} {$item['guest']}
+                </summary>
+                {include reservationPreview, item: $item}
+              </details>
             {/foreach}
           </div>
         {/foreach}
@@ -69,3 +78,18 @@
   </section>
 </main>
 {/block}
+
+{define reservationPreview $item}
+  <div class="booking-calendar-admin__popup">
+    <strong>Rezervácia č. {$item['id']}</strong>
+    <dl>
+      <div><dt>Hosť</dt><dd>{$item['guest']}</dd></div>
+      <div><dt>Stav</dt><dd>{$item['status'] === 'pending' ? 'Čaká na potvrdenie' : 'Potvrdená'}</dd></div>
+      <div><dt>Termín</dt><dd>{$item['start']|date:'d. m. Y'} – {$item['end']|date:'d. m. Y'}</dd></div>
+      <div><dt>E-mail</dt><dd><a href="mailto:{$item['email']}">{$item['email']}</a></dd></div>
+      {if $item['phone'] !== ''}<div><dt>Telefón</dt><dd><a href="tel:{$item['phone']}">{$item['phone']}</a></dd></div>{/if}
+      {if $item['note'] !== ''}<div><dt>Poznámka</dt><dd>{$item['note']}</dd></div>{/if}
+    </dl>
+    <a class="button button-small" href="/admin/bookings/{$item['id']}">Otvoriť detail a akcie</a>
+  </div>
+{/define}

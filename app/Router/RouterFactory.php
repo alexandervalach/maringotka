@@ -24,6 +24,12 @@ final class RouterFactory
       'presenter' => 'BookingCalendar',
       'action' => 'default',
     ]);
+    
+    $router->addRoute('admin/booking-overview', [
+      'presenter' => 'BookingOverview',
+      'action' => 'default',
+    ]);
+
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);
     foreach (PublicRoutes::PATHS as $action => $_) {
       foreach (SupportedLocales::CODES as $locale) {

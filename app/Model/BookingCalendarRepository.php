@@ -30,12 +30,12 @@ final class BookingCalendarRepository
    *
    * @param string $monthStart First day of the month, in Y-m-d format.
    * @param string $nextMonthStart First day of the following month, in Y-m-d format.
-   * @return list<array{id: int, guest: string, start: string, end: string, status: string}>
+   * @return list<array{id: int, guest: string, email: string, phone: string, note: string, start: string, end: string, status: string}>
    */
   public function activeForMonth(string $monthStart, string $nextMonthStart): array
   {
     $rows = $this->database->query(
-      'SELECT id, guest_name, arrival_date, departure_date, status'
+      'SELECT id, guest_name, guest_email, guest_phone, guest_note, arrival_date, departure_date, status'
       . ' FROM booking_requests'
       . ' WHERE status IN (?, ?) AND arrival_date < ? AND departure_date > ?'
       . ' ORDER BY arrival_date ASC, id ASC',
@@ -60,6 +60,9 @@ final class BookingCalendarRepository
       $result[] = [
         'id' => (int) $row['id'],
         'guest' => (string) $row['guest_name'],
+        'email' => (string) ($row['guest_email'] ?? ''),
+        'phone' => (string) ($row['guest_phone'] ?? ''),
+        'note' => (string) ($row['guest_note'] ?? ''),
         'start' => $start,
         'end' => $end,
         'status' => $status,

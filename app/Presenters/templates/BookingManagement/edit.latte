@@ -4,7 +4,7 @@
 
 {block content}
 <main class="container inner-page cms-editor">
-  <nav aria-label="Administrácia"><a class="back-link" n:href="default">← Rezervácie</a></nav>
+  <nav aria-label="Administrácia"><a class="back-link" href="{$bookingBackUrl}">Späť na prehľad rezervácií</a></nav>
   <section class="info-card">
     <h1>Rezervácia č. {$request['id']}</h1>
     <p><strong>Termín:</strong> {$request['arrival_date']|date:'d. m. Y'} – {$request['departure_date']|date:'d. m. Y'}</p>
@@ -89,6 +89,7 @@
           </tbody>
         </table>
       </div>
+      <p class="booking-history-note">Pri udalostiach vytvorených migráciou je časom záznamu dátum migrácie, nie pôvodného rozhodnutia.</p>
     {else}
       <p>Zatiaľ neexistuje žiadna zaznamenaná zmena stavu.</p>
     {/if}

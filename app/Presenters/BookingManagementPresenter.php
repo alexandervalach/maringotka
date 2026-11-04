@@ -43,6 +43,7 @@ final class BookingManagementPresenter extends BasePresenter
    */
   public function renderDefault(): void
   {
+    $this->getSession('booking-admin-view')->set('mode', 'table');
     $status = trim((string) ($this->getParameter('status') ?? ''));
     $search = trim((string) ($this->getParameter('q') ?? ''));
     $before = $this->readCursor('before');
@@ -101,6 +102,11 @@ final class BookingManagementPresenter extends BasePresenter
     }
     $this->template->add('request', $request);
     $this->template->add('statusHistory', $this->bookings->statusHistory($id));
+    $view = $this->getSession('booking-admin-view');
+    $month = $view->get('month');
+    $this->template->add('bookingBackUrl', $view->get('mode') === 'calendar'
+      ? '/admin/booking-calendar' . (is_string($month) && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $month) ? '?month=' . $month : '')
+      : '/admin/bookings');
   }
 
   /**
@@ -123,7 +129,11 @@ final class BookingManagementPresenter extends BasePresenter
         return;
       }
       $this->flashMessage('Rozhodnutie bolo uložené.', 'success');
-      $this->redirect('default');
+      $view = $this->getSession('booking-admin-view');
+      $month = $view->get('month');
+      $this->redirectUrl($view->get('mode') === 'calendar'
+        ? '/admin/booking-calendar' . (is_string($month) && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $month) ? '?month=' . $month : '')
+        : '/admin/bookings');
     };
     return $form;
   }
