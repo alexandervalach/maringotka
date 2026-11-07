@@ -58,11 +58,9 @@ final class BookingRepository extends Repository
       ->fetchAll();
 
     $intervals = [];
-
     foreach ($rows as $row) {
       $arrival = $row['arrival_date'];
       $departure = $row['departure_date'];
-
       $intervals[] = [
         'start' => $arrival instanceof \DateTimeInterface
           ? $arrival->format('Y-m-d')
@@ -72,7 +70,6 @@ final class BookingRepository extends Repository
           : (string) $departure,
       ];
     }
-
     return $intervals;
   }
 
@@ -94,15 +91,15 @@ final class BookingRepository extends Repository
     if ($start < new DateTimeImmutable('today')) {
       throw new InvalidArgumentException('Dátum príchodu nemôže byť v minulosti.');
     }
-
+    // The public calendar displays twelve months, including the current month.
+    // Checkout on the first day after that window is allowed.
     $calendarUntil = (new DateTimeImmutable('first day of this month'))->modify('+12 months');
     if ($start >= $calendarUntil || $end > $calendarUntil) {
       throw new InvalidArgumentException('Zvoľte termín v rámci nasledujúcich 12 kalendárnych mesiacov.');
     }
-
     $nights = (int) $start->diff($end)->format('%r%a');
-    if ($nights < $minimumNights || $nights > 365) {
-      throw new InvalidArgumentException(sprintf('Pobyt musí trvať od %d do 365 nocí.', $minimumNights));
+    if ($nights < $minimumNights || $nights > BookingPriceCalculator::MAX_NIGHTS) {
+      throw new InvalidArgumentException(sprintf('Pobyt musí trvať od %d do %d nocí.', $minimumNights, BookingPriceCalculator::MAX_NIGHTS));
     }
   }
 

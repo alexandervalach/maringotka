@@ -13,8 +13,10 @@ use InvalidArgumentException;
  */
 final class BookingPriceCalculator
 {
+  public const MAX_NIGHTS = 30;
+
   /**
-   * Current public catalogue prices, until products are stored in pricing data.
+   * Current public catalogue prices from Commit 37, until products are stored in pricing data.
    *
    * @var array{frizzante: int, canvas_bag: int}
    */
@@ -45,10 +47,10 @@ final class BookingPriceCalculator
     }
 
     $nights = (int) $start->diff($end)->format('%r%a');
-    if ($prices['minimum_nights'] < 1 || $prices['minimum_nights'] > 365) {
+    if ($prices['minimum_nights'] < 1 || $prices['minimum_nights'] > self::MAX_NIGHTS) {
       throw new InvalidArgumentException('Neplatný minimálny počet nocí.');
     }
-    if ($nights < $prices['minimum_nights'] || $nights > 365) {
+    if ($nights < $prices['minimum_nights'] || $nights > self::MAX_NIGHTS) {
       throw new InvalidArgumentException('Neplatná dĺžka pobytu.');
     }
 
@@ -95,7 +97,6 @@ final class BookingPriceCalculator
       $items[] = $line;
       $extras += $line['total_cents'];
     }
-    
     foreach (self::PRODUCT_PRICES as $code => $price) {
       $quantity = $choices[$code] ?? 0;
       if ($quantity > 0) {

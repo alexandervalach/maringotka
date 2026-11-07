@@ -7,6 +7,7 @@ namespace App\Presenters;
 use App\Forms\BookingFormFactory;
 use App\Localization\SupportedLocales;
 use App\Model\BookingRepository;
+use App\Model\BookingPriceCalculator;
 use App\Model\BookingUnavailableException;
 use App\Model\PricingRepository;
 use App\Router\PublicRoutes;
@@ -63,7 +64,9 @@ final class BookingPresenter extends BasePresenter
     $this->template->add('languageUrls', PublicRoutes::languageUrlsFor('booking'));
     $this->template->add('title', $locale === 'en' ? 'Reservation request' : 'Žiadosť o rezerváciu');
     $this->template->add('minimumNights', $this->pricing->getPrices()['minimum_nights']);
-  
+    $this->template->add('bookingPrices', $this->pricing->getPrices());
+    $this->template->add('maxNights', BookingPriceCalculator::MAX_NIGHTS);
+    // Only future blocking stays are exposed; no guest information is returned.
     $today = new \DateTimeImmutable('today');
     $calendarEnd = $today->modify('first day of this month')->modify('+12 months');
     $this->template->add('calendarToday', $today->format('Y-m-d'));
@@ -72,7 +75,6 @@ final class BookingPresenter extends BasePresenter
       $today->format('Y-m-d'),
       $calendarEnd->format('Y-m-d'),
     ));
-    
     $this->template->add('requestSubmitted', $this->requestSubmitted);
   }
 
@@ -90,6 +92,15 @@ final class BookingPresenter extends BasePresenter
       $minimum = $this->pricing->getPrices()['minimum_nights'];
       try {
         BookingRepository::validateStay($arrival, $departure, $minimum);
+        // Never trust the browser's displayed total; compute from current DB rates.
+        // A price snapshot will be persisted in Commit 43, not in this commit.
+        (new BookingPriceCalculator())->calculate($arrival, $departure, $this->pricing->getPrices(), [
+          'wellness' => (bool) $values['wellness'],
+          'breakfast' => (bool) $values['breakfast'],
+          'romance' => (bool) $values['romance'],
+          'frizzante' => (int) ($values['frizzante'] ?? 0),
+          'canvas_bag' => (int) ($values['canvas_bag'] ?? 0),
+        ]);
         if ($this->bookings->isOccupied($arrival, $departure)) {
           $form->addError('Zvolený termín je už obsadený alebo čaká na potvrdenie.');
           return;

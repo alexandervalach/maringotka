@@ -35,7 +35,7 @@
 
   function validStay(start, end) {
     return inRange(start) && end > start && end <= until &&
-      nightsBetween(start, end) >= minimum && nightsBetween(start, end) <= 365 &&
+      nightsBetween(start, end) >= minimum && nightsBetween(start, end) <= 30 &&
       !crossesOccupied(start, end);
   }
 

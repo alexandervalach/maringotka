@@ -1,6 +1,6 @@
 {block content}
 <main id="main" class="inner-page container">
-  <a class="back-link" href="{$paths['default']}"> {_'messages.navigation.home'}</a>
+  <a class="back-link" href="{$paths['default']}">← {_'messages.navigation.home'}</a>
   <p class="eyebrow inner-eyebrow">Maringotka na Závadke</p>
   {if $locale === 'en'}
     <h1>Reservation request</h1>
@@ -40,7 +40,7 @@
     aria-label="{if $locale === 'en'}Availability calendar{else}Kalendár dostupnosti{/if}">
     <h2>{if $locale === 'en'}Available dates{else}Dostupné termíny{/if}</h2>
     <p class="booking-calendar-intro">
-      {if $locale === 'en'}Choose check-in and check-out on the calendar. Occupied terms are marked.{else}Vyberte príchod a odchod v kalendári. Obsadené dni sú vyznačené.{/if}
+      {if $locale === 'en'}Choose check-in and check-out on the calendar. Occupied nights are marked; check-out on the next guest's arrival date is allowed.{else}Vyberte príchod a odchod v kalendári. Obsadené noci sú vyznačené; odchod v deň príchodu ďalšieho hosťa je možný.{/if}
     </p>
     <div class="booking-calendar-intervals" hidden>
       {foreach $blockedIntervals as $interval}
@@ -71,6 +71,35 @@
         {label departure_date /}
         {input departure_date}
       </div>
+      <section class="booking-quote" data-booking-quote
+        data-first-night="{$bookingPrices['first_night']}"
+        data-additional-night="{$bookingPrices['additional_night']}"
+        data-wellness="{$bookingPrices['wellness']}"
+        data-breakfast="{$bookingPrices['breakfast']}"
+        data-romance="{$bookingPrices['romance']}"
+        data-frizzante="1000"
+        data-canvas-bag="500"
+        data-min-nights="{$minimumNights}"
+        data-max-nights="{$maxNights}"
+        data-locale="{$locale}">
+        <h2>{if $locale === 'en'}Your stay and extras{else}Pobyt a doplnkové služby{/if}</h2>
+        <p class="booking-quote__intro">{if $locale === 'en'}Basic stay. Optional services are added to the accommodation price.{else}Základný pobyt. Doplnkové služby sa pripočítajú k cene ubytovania.{/if}</p>
+        <div class="booking-quote__options">
+          <div class="booking-quote__option">{input wellness}{label wellness /}<span>{if $locale === 'en'}€{$bookingPrices['wellness'] / 100} / night{else}{$bookingPrices['wellness'] / 100} € / noc{/if}</span></div>
+          <div class="booking-quote__option">{input breakfast}{label breakfast /}<span>{if $locale === 'en'}€{$bookingPrices['breakfast'] / 100} / night{else}{$bookingPrices['breakfast'] / 100} € / noc{/if}</span></div>
+          <div class="booking-quote__option">{input romance}{label romance /}<span>{if $locale === 'en'}€{$bookingPrices['romance'] / 100} / stay{else}{$bookingPrices['romance'] / 100} € / pobyt{/if}</span></div>
+          <div class="booking-quote__quantity">{label frizzante /}{input frizzante}<span>10 € / {if $locale === 'en'}bottle{else}fľaša{/if}</span></div>
+          <div class="booking-quote__quantity">{label canvas_bag /}{input canvas_bag}<span>5 € / {if $locale === 'en'}item{else}kus{/if}</span></div>
+        </div>
+        <p class="booking-quote__unavailable">{if $locale === 'en'}Bicycle rental – coming spring 2027.{else}Požičanie bicyklov – pripravujeme na jar 2027.{/if}</p>
+        <div class="booking-quote__summary" role="status" aria-live="polite">
+          <div><span>{if $locale === 'en'}Nights{else}Počet nocí{/if}</span><strong data-quote-nights>–</strong></div>
+          <div><span>{if $locale === 'en'}Accommodation{else}Ubytovanie{/if}</span><strong data-quote-accommodation>–</strong></div>
+          <div><span>{if $locale === 'en'}Extras{else}Doplnky{/if}</span><strong data-quote-extras>–</strong></div>
+          <div class="booking-quote__total"><span>{if $locale === 'en'}Estimated total{else}Orientačná cena spolu{/if}</span><strong data-quote-total>–</strong></div>
+        </div>
+        <p class="booking-quote__notice">{if $locale === 'en'}The amount is indicative. The request is not a confirmed reservation.{else}Cena je orientačná. Žiadosť nie je potvrdená rezervácia.{/if}</p>
+      </section>
       <div class="booking-field">
         {label guest_name /}
         {input guest_name}
@@ -96,4 +125,5 @@
 </main>
   <link rel="stylesheet" href="/assets/css/booking-calendar.css">
   <script src="/assets/js/booking-calendar.js" defer></script>
+  <script src="/assets/js/booking-quote.js" defer></script>
 {/block}
