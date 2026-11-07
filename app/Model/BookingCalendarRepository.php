@@ -6,6 +6,7 @@ namespace App\Model;
 
 use App\Infrastructure\Database\ConnectionFactory;
 use DateTimeInterface;
+use InvalidArgumentException;
 use Nette\Database\Explorer;
 use RuntimeException;
 
@@ -16,12 +17,15 @@ final class BookingCalendarRepository
 {
   private readonly Explorer $database;
 
+  private readonly BookingQuoteView $quoteView;
+
   /**
    * @param ConnectionFactory $connections Application database connection.
    */
   public function __construct(ConnectionFactory $connections)
   {
     $this->database = $connections->createExplorer();
+    $this->quoteView = new BookingQuoteView();
   }
 
   /**
@@ -30,12 +34,12 @@ final class BookingCalendarRepository
    *
    * @param string $monthStart First day of the month, in Y-m-d format.
    * @param string $nextMonthStart First day of the following month, in Y-m-d format.
-   * @return list<array{id: int, guest: string, email: string, phone: string, note: string, start: string, end: string, status: string}>
+   * @return list<array{id: int, guest: string, email: string, phone: string, note: string, start: string, end: string, status: string, quoteExtras: list<string>, quoteTotal: string|null, quoteState: string}>
    */
   public function activeForMonth(string $monthStart, string $nextMonthStart): array
   {
     $rows = $this->database->query(
-      'SELECT id, guest_name, guest_email, guest_phone, guest_note, arrival_date, departure_date, status'
+      'SELECT id, guest_name, guest_email, guest_phone, guest_note, arrival_date, departure_date, status, price_quote, price_total_cents'
       . ' FROM booking_requests'
       . ' WHERE status IN (?, ?) AND arrival_date < ? AND departure_date > ?'
       . ' ORDER BY arrival_date ASC, id ASC',
@@ -57,6 +61,24 @@ final class BookingCalendarRepository
         throw new RuntimeException('Neočakávaný stav rezervácie.');
       }
 
+      $extras = [];
+      $total = null;
+      $quoteState = 'legacy';
+      try {
+        $quote = $this->quoteView->parse($row['price_quote'], $row['price_total_cents']);
+        if ($quote !== null) {
+          $quoteState = 'available';
+          $total = BookingQuoteView::euros($quote['total_cents']);
+          foreach ($quote['lines'] as $line) {
+            if ($line['extra']) {
+              $extras[] = $line['symbol'] . ' ' . $line['label'] . ' · ' . $line['quantity'] . ' × ' . BookingQuoteView::euros($line['unit_price_cents']);
+            }
+          }
+        }
+      } catch (InvalidArgumentException) {
+        $quoteState = 'invalid';
+      }
+
       $result[] = [
         'id' => (int) $row['id'],
         'guest' => (string) $row['guest_name'],
@@ -66,6 +88,9 @@ final class BookingCalendarRepository
         'start' => $start,
         'end' => $end,
         'status' => $status,
+        'quoteExtras' => $extras,
+        'quoteTotal' => $total,
+        'quoteState' => $quoteState,
       ];
     }
 

@@ -89,6 +89,22 @@
       <div><dt>E-mail</dt><dd><a href="mailto:{$item['email']}">{$item['email']}</a></dd></div>
       {if $item['phone'] !== ''}<div><dt>Telefón</dt><dd><a href="tel:{$item['phone']}">{$item['phone']}</a></dd></div>{/if}
       {if $item['note'] !== ''}<div><dt>Poznámka</dt><dd>{$item['note']}</dd></div>{/if}
+      {if $item['quoteState'] === 'invalid'}
+        <div><dt>Cena</dt><dd>Cenový rozpis je neplatný. Skontroluj údaje rezervácie.</dd></div>
+      {elseif $item['quoteState'] === 'legacy'}
+        <div><dt>Cena</dt><dd>Staršia rezervácia bez uloženého cenového rozpisu</dd></div>
+      {else}
+        <div><dt>Objednané doplnky</dt><dd>
+          {if $item['quoteExtras'] === []}
+            Bez doplnkov
+          {else}
+            <ul class="booking-calendar-admin__extras">
+              <li n:foreach="$item['quoteExtras'] as $extra">{$extra}</li>
+            </ul>
+          {/if}
+        </dd></div>
+        <div><dt>Orientačná cena</dt><dd><strong>{$item['quoteTotal']}</strong></dd></div>
+      {/if}
     </dl>
     <a class="button button-small" href="/admin/bookings/{$item['id']}">Otvoriť detail a akcie</a>
   </div>
