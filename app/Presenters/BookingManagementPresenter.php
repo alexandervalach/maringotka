@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
+use App\Components\BookingQuoteControl;
 use App\Forms\BookingDecisionFormFactory;
 use App\Model\BookingManagementRepository;
 use DomainException;
@@ -136,5 +137,15 @@ final class BookingManagementPresenter extends BasePresenter
         : '/admin/bookings');
     };
     return $form;
+  }
+
+  /**
+   * Creates the quote display component for authenticated booking pages.
+   *
+   * @return BookingQuoteControl
+   */
+  protected function createComponentBookingQuote(): BookingQuoteControl
+  {
+    return new BookingQuoteControl();
   }
 }

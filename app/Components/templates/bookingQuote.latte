@@ -1,0 +1,47 @@
+{if $compact}
+  {if $quoteError}
+    <span class="booking-quote-mini booking-quote-mini--error" title="{$quoteError}">!</span>
+  {elseif $quote === null}
+    <span class="booking-quote-mini booking-quote-mini--empty" title="Rezervácia vznikla pred zavedením cenového rozpisu">—</span>
+  {else}
+    <span class="booking-quote-mini" aria-label="Objednané doplnkové služby">
+      {var $hasExtras = false}
+      {foreach $quote['lines'] as $line}
+        {if $line['extra']}
+          {do $hasExtras = true}
+          <span class="booking-quote-mini__item" title="{$line['label']}: {$line['quantity']} × {= App\Model\BookingQuoteView::euros($line['unit_price_cents'])}">
+            <span aria-hidden="true">{$line['symbol']}</span><span class="booking-quote-mini__quantity">{$line['quantity']}</span>
+          </span>
+        {/if}
+      {/foreach}
+      {if !$hasExtras}<span class="booking-quote-mini__none">Bez doplnkov</span>{/if}
+    </span>
+  {/if}
+{else}
+  <section class="info-card booking-quote" aria-label="Objednané služby a cenový rozpis">
+    <h2>Objednané služby a cena</h2>
+    {if $quoteError}
+      <p class="booking-quote__error" role="alert">Cenový rozpis nie je možné zobraziť: {$quoteError}</p>
+    {elseif $quote === null}
+      <p>Táto rezervácia vznikla pred zavedením cenového rozpisu. Objednané služby a pôvodná cena nie sú uložené.</p>
+    {else}
+      <p class="booking-quote__intro">Pôvodná orientačná cena pri odoslaní žiadosti · {$quote['nights']} nocí</p>
+      <div class="booking-quote__scroll">
+        <table class="booking-quote__table">
+          <thead>
+            <tr><th scope="col">Položka</th><th scope="col">Množstvo</th><th scope="col">Jednotková cena</th><th scope="col">Spolu</th></tr>
+          </thead>
+          <tbody>
+            <tr n:foreach="$quote['lines'] as $line">
+              <th scope="row"><span class="booking-quote__icon" aria-hidden="true">{$line['symbol']}</span>{$line['label']}</th>
+              <td>{$line['quantity']}</td>
+              <td>{= App\Model\BookingQuoteView::euros($line['unit_price_cents'])}</td>
+              <td>{= App\Model\BookingQuoteView::euros($line['total_cents'])}</td>
+            </tr>
+          </tbody>
+          <tfoot><tr><th scope="row" colspan="3">Celková orientačná cena</th><td><strong>{= App\Model\BookingQuoteView::euros($quote['total_cents'])}</strong></td></tr></tfoot>
+        </table>
+      </div>
+    {/if}
+  </section>
+{/if}

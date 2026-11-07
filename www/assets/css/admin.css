@@ -760,3 +760,20 @@
 .booking-calendar-admin__day:hover,
 .booking-calendar-admin__day:focus-within { z-index: 5; }
 
+.booking-quote { margin-top: 1.5rem; min-width: 0; }
+.booking-quote h2 { margin-top: 0; }
+.booking-quote__intro { color: var(--muted, #627166); margin: 0 0 1rem; }
+.booking-quote__scroll { width: 100%; overflow-x: auto; }
+.booking-quote__table { width: 100%; min-width: 36rem; border-collapse: collapse; }
+.booking-quote__table th, .booking-quote__table td { padding: .75rem .85rem; text-align: left; border-bottom: 1px solid var(--line, #dedbd3); }
+.booking-quote__table td:last-child { text-align: right; white-space: nowrap; }
+.booking-quote__table thead { background: #f1efe9; }
+.booking-quote__table tfoot { background: #f4f1e8; }
+.booking-quote__table tfoot th, .booking-quote__table tfoot td { border-bottom: 0; }
+.booking-quote__icon { display: inline-grid; place-items: center; width: 1.8rem; height: 1.8rem; margin-right: .6rem; border-radius: .4rem; background: #f0e6d5; color: #805a38; font-size: 1.05rem; }
+.booking-quote__error { color: #a13f40; }
+.booking-quote-mini { display: inline-flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+.booking-quote-mini__item { display: inline-flex; align-items: center; gap: .15rem; padding: .18rem .35rem; border: 1px solid #dedbd3; border-radius: .4rem; color: #405e48; background: #faf8f2; white-space: nowrap; }
+.booking-quote-mini__quantity { font-size: .78rem; font-weight: 700; }
+.booking-quote-mini__none, .booking-quote-mini--empty { color: var(--muted, #627166); font-size: .85rem; }
+.booking-quote-mini--error { color: #a13f40; font-weight: 700; }

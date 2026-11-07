@@ -82,7 +82,7 @@ final class BookingManagementRepository extends Repository
     $order = $after === null ? 'DESC' : 'ASC';
     // One additional row is fetched to allow detection of the end of a page.
     $rows = $this->database->query(
-      'SELECT id, created_at, arrival_date, departure_date, status, guest_name, guest_email, guest_phone, guest_note, decided_at, decision_reason'
+      'SELECT id, created_at, arrival_date, departure_date, status, guest_name, guest_email, guest_phone, guest_note, decided_at, decision_reason, price_quote, price_total_cents'
       . ' FROM booking_requests' . $whereSql . ' ORDER BY id ' . $order . ' LIMIT 26',
       ...$values,
     )->fetchAll();
