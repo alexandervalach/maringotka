@@ -92,9 +92,8 @@ final class BookingPresenter extends BasePresenter
       $minimum = $this->pricing->getPrices()['minimum_nights'];
       try {
         BookingRepository::validateStay($arrival, $departure, $minimum);
-        // Never trust the browser's displayed total; compute from current DB rates.
-        // A price snapshot will be persisted in Commit 43, not in this commit.
-        (new BookingPriceCalculator())->calculate($arrival, $departure, $this->pricing->getPrices(), [
+        // The browser total is display-only. Recalculate and snapshot server-side.
+        $quote = (new BookingPriceCalculator())->calculate($arrival, $departure, $this->pricing->getPrices(), [
           'wellness' => (bool) $values['wellness'],
           'breakfast' => (bool) $values['breakfast'],
           'romance' => (bool) $values['romance'],
@@ -112,7 +111,7 @@ final class BookingPresenter extends BasePresenter
           'guest_email' => (string) $values['guest_email'],
           'guest_phone' => (string) $values['guest_phone'],
           'guest_note' => (string) $values['guest_note'],
-        ], $minimum);
+        ], $minimum, $quote);
       } catch (BookingUnavailableException $error) {
         $form->addError('Zvolený termín bol medzičasom obsadený.');
         return;

@@ -108,20 +108,46 @@ final class BookingRepository extends Repository
    *
    * @param array{arrival_date: string, departure_date: string, guest_name: string, guest_email: string, guest_phone: string, guest_note: string} $values Validated guest input.
    * @param int $minimumNights Minimum stay from current prices.
+   * @param array{arrival: string, departure: string, nights: int, items: list<array{code: string, quantity: int, unit_price_cents: int, total_cents: int, unit: string}>, accommodation_cents: int, extras_cents: int, total_cents: int} $quote Price snapshot calculated on the server from current rates.
    * @return string One-time cancellation token; only its hash is persisted.
    */
-  public function request(array $values, int $minimumNights): string
+  public function request(array $values, int $minimumNights, array $quote): string
   {
     self::validateStay($values['arrival_date'], $values['departure_date'], $minimumNights);
+   
+    if ($quote['arrival'] !== $values['arrival_date'] || $quote['departure'] !== $values['departure_date']
+      || $quote['total_cents'] < 0
+      || $quote['accommodation_cents'] + $quote['extras_cents'] !== $quote['total_cents']) {
+      throw new InvalidArgumentException('Neplatný cenový rozpis rezervácie.');
+    }
+
+    $computedItemsTotal = 0;
+
+    foreach ($quote['items'] as $item) {
+      if ($item['quantity'] < 1 || $item['unit_price_cents'] < 0
+        || $item['total_cents'] !== $item['quantity'] * $item['unit_price_cents']) {
+        throw new InvalidArgumentException('Neplatná položka cenového rozpisu.');
+      }
+      $computedItemsTotal += $item['total_cents'];
+    }
+
+    if ($computedItemsTotal !== $quote['total_cents']) {
+      throw new InvalidArgumentException('Nesúhlasí celková cena rezervácie.');
+    }
+
+    $quoteJson = json_encode($quote, JSON_THROW_ON_ERROR);
     $name = trim($values['guest_name']);
     $email = trim($values['guest_email']);
     $phone = trim($values['guest_phone']);
     $note = trim($values['guest_note']);
+
     if ($name === '' || strlen($name) > 200 || !filter_var($email, FILTER_VALIDATE_EMAIL)
       || strlen($email) > 254 || strlen($phone) > 60 || strlen($note) > 5000) {
       throw new InvalidArgumentException('Skontrolujte kontaktné údaje.');
     }
+
     $token = bin2hex(random_bytes(32));
+    
     try {
       $this->getTable()->insert([
         'arrival_date' => $values['arrival_date'],
@@ -132,6 +158,8 @@ final class BookingRepository extends Repository
         'guest_note' => $note,
         'status' => 'pending',
         'cancellation_token_hash' => hash('sha256', $token),
+        'price_quote' => $quoteJson,
+        'price_total_cents' => $quote['total_cents'],
       ]);
     } catch (DriverException $error) {
       // SQLSTATE 23P01: exclusion violation; the database prevents racing requests.
