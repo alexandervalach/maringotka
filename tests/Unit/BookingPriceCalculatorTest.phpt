@@ -61,3 +61,10 @@ $minTwo = $rates;
 $minTwo['minimum_nights'] = 2;
 Assert::exception(static fn () => $calculator->calculate('2030-05-10', '2030-05-11', $minTwo), InvalidArgumentException::class);
 Assert::same(23000, $calculator->calculate('2030-05-10', '2030-05-12', $minTwo)['total_cents']);
+
+// A full 30-night stay is allowed, but 31 nights is rejected.
+Assert::same(30, $calculator->calculate('2030-05-01', '2030-05-31', $rates)['nights']);
+Assert::exception(static fn () => $calculator->calculate('2030-05-01', '2030-06-01', $rates), InvalidArgumentException::class);
+$invalidMinimum = $rates;
+$invalidMinimum['minimum_nights'] = 31;
+Assert::exception(static fn () => $calculator->calculate('2030-05-01', '2030-05-31', $invalidMinimum), InvalidArgumentException::class);
