@@ -23,6 +23,79 @@ function bookingMailEnv(string $name): string
 }
 
 /**
+ * Formats a price in integer eurocents for booking notification emails.
+ *
+ * @param int $cents Exact price in eurocents.
+ * @return string Human-readable euro amount.
+ */
+function bookingMailEuros(int $cents): string
+{
+  return number_format($cents / 100, 2, ',', ' ') . ' €';
+}
+
+/**
+ * Renders only the immutable booking quote persisted at request time.
+ * Older bookings intentionally have no quote, and are not re-priced.
+ *
+ * @param mixed $storedQuote JSONB value returned by PDO (usually a JSON string).
+ * @param mixed $storedTotal Total amount in cents returned by PDO.
+ * @return list<string> Quote lines; empty for legacy bookings without a snapshot.
+ */
+function bookingMailQuoteLines(mixed $storedQuote, mixed $storedTotal): array
+{
+  if ($storedQuote === null && $storedTotal === null) {
+    return [];
+  }
+  if (!is_string($storedQuote) || (!is_int($storedTotal) && !is_string($storedTotal))) {
+    throw new RuntimeException('Invalid booking price snapshot.');
+  }
+  $quote = json_decode($storedQuote, true, 512, JSON_THROW_ON_ERROR);
+  if (!is_array($quote) || !isset($quote['items']) || !is_array($quote['items'])
+    || !isset($quote['total_cents']) || !is_int($quote['total_cents'])
+    || !is_numeric($storedTotal) || (string) (int) $storedTotal !== (string) $storedTotal
+    || (int) $storedTotal !== $quote['total_cents']) {
+    throw new RuntimeException('Inconsistent booking price snapshot.');
+  }
+
+  $labels = [
+    'first_night' => 'Prvá noc',
+    'additional_night' => 'Ďalšie noci',
+    'wellness' => 'Wellness (sauna a kúpacia kaďa)',
+    'breakfast' => 'Raňajkový kôš pre 2 osoby',
+    'romance' => 'Romantické prekvapenie',
+    'frizzante' => 'Tokajské Frizzante',
+    'canvas_bag' => 'Plátená taška',
+  ];
+  $lines = ['Cenový rozpis (orientačná cena pri odoslaní žiadosti):'];
+  $sum = 0;
+  foreach ($quote['items'] as $item) {
+    if (!is_array($item)
+      || !isset($item['code'], $item['quantity'], $item['unit_price_cents'], $item['total_cents'])
+      || !is_string($item['code']) || !isset($labels[$item['code']])
+      || !is_int($item['quantity']) || $item['quantity'] < 1
+      || !is_int($item['unit_price_cents']) || $item['unit_price_cents'] < 0
+      || !is_int($item['total_cents']) || $item['total_cents'] < 0
+      || $item['quantity'] * $item['unit_price_cents'] !== $item['total_cents']) {
+      throw new RuntimeException('Invalid booking quote line item.');
+    }
+    $sum += $item['total_cents'];
+    $lines[] = sprintf(
+      '- %s: %d × %s = %s',
+      $labels[$item['code']],
+      $item['quantity'],
+      bookingMailEuros($item['unit_price_cents']),
+      bookingMailEuros($item['total_cents']),
+    );
+  }
+  if ($sum !== $quote['total_cents']) {
+    throw new RuntimeException('Booking quote total does not match its items.');
+  }
+  $lines[] = 'Spolu: ' . bookingMailEuros((int) $storedTotal);
+  $lines[] = 'Žiadosť ešte neznamená potvrdenie rezervácie ani vykonanie platby.';
+  return $lines;
+}
+
+/**
  * Formats one e-mail without disclosing cancellation credentials.
  *
  * @param array<string, mixed> $row Outbox event and reservation data.
@@ -60,11 +133,9 @@ function bookingMailContent(array $row, string $contactAddress = '', string $con
   if ($event === 'received') {
     $lines[] = 'Žiadosť čaká na schválenie; pobyt zatiaľ nie je potvrdený.';
   }
-  
   if (in_array($event, ['rejected', 'cancelled'], true) && trim((string) ($row['decision_reason'] ?? '')) !== '') {
     $lines[] = 'Dôvod ' . ($event === 'cancelled' ? 'zrušenia' : 'zamietnutia') . ': ' . trim((string) $row['decision_reason']);
   }
-
   if (!$admin) {
     if ($event === 'received' || $event === 'confirmed') {
       $lines[] = 'Ak potrebujete rezerváciu zrušiť, kontaktujte prevádzkovateľa. Zrušenie vybaví manuálne.';
@@ -76,7 +147,9 @@ function bookingMailContent(array $row, string $contactAddress = '', string $con
       $lines[] = 'Telefón prevádzkovateľa: ' . $contactPhone;
     }
   }
-
+  foreach (bookingMailQuoteLines($row['price_quote'] ?? null, $row['price_total_cents'] ?? null) as $quoteLine) {
+    $lines[] = $quoteLine;
+  }
   if ($admin) {
     $lines[] = 'Kontakt: ' . (string) $row['guest_email'];
     if ($row['guest_phone'] !== null && (string) $row['guest_phone'] !== '') {
@@ -86,7 +159,6 @@ function bookingMailContent(array $row, string $contactAddress = '', string $con
       $lines[] = 'Poznámka: ' . (string) $row['guest_note'];
     }
   }
-  
   return ['subject' => $subject, 'body' => implode("\n", $lines) . "\n"];
 }
 
@@ -110,7 +182,8 @@ function bookingMailDrain(PDO $pdo, SmtpMailer $mailer, string $from, string $ad
       $stmt = $pdo->query(<<<'SQL'
 SELECT o.id AS outbox_id, o.booking_id, o.event_type, o.recipient_type,
        b.guest_name, b.guest_email, b.guest_phone, b.guest_note,
-       b.arrival_date, b.departure_date, b.decision_reason
+       b.arrival_date, b.departure_date, b.decision_reason,
+       b.price_quote, b.price_total_cents
 FROM booking_mail_outbox o
 JOIN booking_requests b ON b.id = o.booking_id
 WHERE o.sent_at IS NULL AND o.next_attempt_at <= now() AND o.attempts < 10
