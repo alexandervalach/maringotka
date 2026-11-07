@@ -80,32 +80,68 @@
 {/block}
 
 {define reservationPreview $item}
-  <div class="booking-calendar-admin__popup">
-    <strong>Rezervácia č. {$item['id']}</strong>
-    <dl>
-      <div><dt>Hosť</dt><dd>{$item['guest']}</dd></div>
-      <div><dt>Stav</dt><dd>{$item['status'] === 'pending' ? 'Čaká na potvrdenie' : 'Potvrdená'}</dd></div>
-      <div><dt>Termín</dt><dd>{$item['start']|date:'d. m. Y'} – {$item['end']|date:'d. m. Y'}</dd></div>
-      <div><dt>E-mail</dt><dd><a href="mailto:{$item['email']}">{$item['email']}</a></dd></div>
-      {if $item['phone'] !== ''}<div><dt>Telefón</dt><dd><a href="tel:{$item['phone']}">{$item['phone']}</a></dd></div>{/if}
-      {if $item['note'] !== ''}<div><dt>Poznámka</dt><dd>{$item['note']}</dd></div>{/if}
-      {if $item['quoteState'] === 'invalid'}
-        <div><dt>Cena</dt><dd>Cenový rozpis je neplatný. Skontroluj údaje rezervácie.</dd></div>
-      {elseif $item['quoteState'] === 'legacy'}
-        <div><dt>Cena</dt><dd>Staršia rezervácia bez uloženého cenového rozpisu</dd></div>
-      {else}
-        <div><dt>Objednané doplnky</dt><dd>
-          {if $item['quoteExtras'] === []}
-            Bez doplnkov
-          {else}
-            <ul class="booking-calendar-admin__extras">
-              <li n:foreach="$item['quoteExtras'] as $extra">{$extra}</li>
-            </ul>
-          {/if}
-        </dd></div>
-        <div><dt>Orientačná cena</dt><dd><strong>{$item['quoteTotal']}</strong></dd></div>
-      {/if}
+  <div class="booking-calendar-admin__popup" role="group" aria-label="Náhľad rezervácie číslo {$item['id']}">
+    <div class="booking-calendar-admin__popup-heading">
+      <strong>Rezervácia č. {$item['id']}</strong>
+      <div class="booking-calendar-admin__popup-stay">
+        <span>{$item['start']|date:'d. m. Y'} – {$item['end']|date:'d. m. Y'}</span>
+        <span class="booking-calendar-admin__nights">{$item['nights']} {if $item['nights'] === 1}noc{elseif $item['nights'] >= 2 && $item['nights'] <= 4}noci{else}nocí{/if}</span>
+      </div>
+    </div>
+
+    <dl class="booking-calendar-admin__popup-fields">
+      <div class="booking-calendar-admin__field"><dt>Hosť</dt><dd>{$item['guest']}</dd></div>
+      {if $item['email'] !== ''}<div class="booking-calendar-admin__field"><dt>E-mail</dt><dd><a href="mailto:{$item['email']}">{$item['email']}</a></dd></div>{/if}
+      {if $item['phone'] !== ''}<div class="booking-calendar-admin__field"><dt>Telefón</dt><dd><a href="tel:{$item['phone']}">{$item['phone']}</a></dd></div>{/if}
     </dl>
-    <a class="button button-small" href="/admin/bookings/{$item['id']}">Otvoriť detail a akcie</a>
+
+    {if $item['note'] !== ''}
+      <div class="booking-calendar-admin__preview-note">
+        <span class="booking-calendar-admin__section-label">Poznámka hosťa</span>
+        <p>{$item['note']}</p>
+      </div>
+    {/if}
+
+    <div class="booking-calendar-admin__extras-section">
+      <span class="booking-calendar-admin__section-label">Objednané doplnky</span>
+      {if $item['quoteState'] === 'available'}
+        {if $item['quoteExtras'] === []}
+          <p class="booking-calendar-admin__empty">Bez doplnkov</p>
+        {else}
+          <div class="booking-calendar-admin__extras-list">
+            {foreach $item['quoteExtras'] as $extra}
+              <div class="booking-calendar-admin__extra">
+                <span class="booking-calendar-admin__extra-icon" aria-hidden="true">
+                  {if $extra['code'] === 'wellness'}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0"/><path d="M4 21c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0"/><path d="M8 13c-3-3 3-4 0-7M14 13c-3-3 3-4 0-7M20 13c-3-3 3-4 0-7"/></svg>
+                  {elseif $extra['code'] === 'breakfast'}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13v6a6.5 6.5 0 0 1-13 0V9Z"/><path d="M17 10h2a3 3 0 0 1 0 6h-2M4 21h15"/><path d="M8 3v3M13 3v3"/></svg>
+                  {elseif $extra['code'] === 'romance'}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+                  {elseif $extra['code'] === 'frizzante'}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-1.2 8a5 5 0 0 1-9.6 0L6 3ZM12 16v5M7 21h10M8 8h8"/></svg>
+                  {elseif $extra['code'] === 'canvas_bag'}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16l-1 13H5L4 8ZM8 9V6a4 4 0 0 1 8 0v3"/></svg>
+                  {else}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg>
+                  {/if}
+                </span>
+                <span class="booking-calendar-admin__extra-name">{$extra['label']}</span>
+                <span class="booking-calendar-admin__extra-count">× {$extra['quantity']}</span>
+              </div>
+            {/foreach}
+          </div>
+        {/if}
+        <div class="booking-calendar-admin__popup-total">
+          <span>Orientačná cena</span>
+          <strong>{$item['quoteTotal']}</strong>
+        </div>
+      {elseif $item['quoteState'] === 'invalid'}
+        <p class="booking-calendar-admin__empty">Cenový rozpis nie je platný. Skontroluj detail rezervácie.</p>
+      {else}
+        <p class="booking-calendar-admin__empty">Staršia rezervácia bez cenového rozpisu.</p>
+      {/if}
+    </div>
+    <a class="button button-small booking-calendar-admin__detail-link" href="/admin/bookings/{$item['id']}">Otvoriť detail a akcie</a>
   </div>
 {/define}

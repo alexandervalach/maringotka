@@ -13,7 +13,10 @@ $calendar = BookingCalendarMonth::build(new DateTimeImmutable('2026-11-01'), [[
   'start' => '2026-11-12',
   'end' => '2026-11-14',
   'status' => 'confirmed',
-  'quoteExtras' => ['♨ Wellness · 2 × 20,00 €', '◇ Tokajské Frizzante · 1 × 10,00 €'],
+  'quoteExtras' => [
+    ['code' => 'wellness', 'label' => 'Wellness', 'quantity' => 2],
+    ['code' => 'frizzante', 'label' => 'Tokajské Frizzante', 'quantity' => 1],
+  ],
   'quoteTotal' => '280,00 €',
   'quoteState' => 'available',
 ]]);
@@ -29,6 +32,8 @@ Assert::true($arrival !== null);
 Assert::same('available', $arrival['quoteState']);
 Assert::same('280,00 €', $arrival['quoteTotal']);
 Assert::count(2, $arrival['quoteExtras']);
+Assert::same(2, $arrival['nights']);
+Assert::same(['code' => 'wellness', 'label' => 'Wellness', 'quantity' => 2], $arrival['quoteExtras'][0]);
 Assert::true($arrival['arrival']);
 
 $legacy = BookingCalendarMonth::build(new DateTimeImmutable('2026-11-01'), [[
@@ -43,5 +48,6 @@ foreach ($legacy['days'] as $day) {
     Assert::same('legacy', $day['items'][0]['quoteState']);
     Assert::same(null, $day['items'][0]['quoteTotal']);
     Assert::same([], $day['items'][0]['quoteExtras']);
+    Assert::same(1, $day['items'][0]['nights']);
   }
 }

@@ -34,7 +34,7 @@ final class BookingCalendarRepository
    *
    * @param string $monthStart First day of the month, in Y-m-d format.
    * @param string $nextMonthStart First day of the following month, in Y-m-d format.
-   * @return list<array{id: int, guest: string, email: string, phone: string, note: string, start: string, end: string, status: string, quoteExtras: list<string>, quoteTotal: string|null, quoteState: string}>
+   * @return list<array{id: int, guest: string, email: string, phone: string, note: string, start: string, end: string, status: string, quoteExtras: list<array{code: string, label: string, quantity: int}>, quoteTotal: string|null, quoteState: string}>
    */
   public function activeForMonth(string $monthStart, string $nextMonthStart): array
   {
@@ -71,7 +71,11 @@ final class BookingCalendarRepository
           $total = BookingQuoteView::euros($quote['total_cents']);
           foreach ($quote['lines'] as $line) {
             if ($line['extra']) {
-              $extras[] = $line['symbol'] . ' ' . $line['label'] . ' · ' . $line['quantity'] . ' × ' . BookingQuoteView::euros($line['unit_price_cents']);
+              $extras[] = [
+                'code' => $line['code'],
+                'label' => $line['label'],
+                'quantity' => $line['quantity'],
+              ];
             }
           }
         }
