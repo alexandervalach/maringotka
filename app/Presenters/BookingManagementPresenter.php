@@ -9,6 +9,7 @@ use App\Components\BookingQuoteControl;
 use App\Model\BookingManagementRepository;
 use App\Model\BookingPaymentRepository;
 use App\Model\BookingPaymentDetails;
+use App\Model\BookingPaymentInstructionMailer;
 use App\Model\BookingPaymentQr;
 use DomainException;
 use InvalidArgumentException;
@@ -118,6 +119,7 @@ final class BookingManagementPresenter extends BasePresenter
     $this->template->paymentQrConfigured = trim((string) getenv('BYSQUARE_API_KEY')) !== '';
     $this->template->paymentQrAvailable = false;
     $this->template->paymentEmailUrl = null;
+    $this->template->paymentEmailConfigured = BookingPaymentInstructionMailer::configured();
     if ($request['status'] === 'confirmed'
       && $payment !== null
       && $payment['total_cents'] !== null
@@ -208,6 +210,58 @@ final class BookingManagementPresenter extends BasePresenter
         return;
       }
       $this->flashMessage('PAY by square QR kód bol pripravený.', 'success');
+      $this->redirect('this');
+    };
+    return $form;
+  }
+
+  /**
+   * Sends payment instructions only after an explicit, CSRF-protected admin action.
+   * An existing QR may be attached; this never spends an API credit.
+   *
+   * @return Form Protected payment-email form.
+   */
+  protected function createComponentPaymentEmailForm(): Form
+  {
+    $form = new Form();
+    $form->addProtection('Platnosť formulára vypršala. Obnovte stránku.');
+    $form->addSubmit('send', 'Odoslať platobné údaje hosťovi')
+      ->setHtmlAttribute('class', 'admin-save-button');
+    $form->onSuccess[] = function (Form $form): void {
+      $request = $this->bookings->requestById($this->editingId);
+      $payment = $this->payments->forBooking($this->editingId);
+      $account = $this->payments->settings();
+      if ($request === null || $request['status'] !== 'confirmed'
+        || $payment === null || $payment['total_cents'] === null || $payment['total_cents'] <= 0
+        || $account['iban'] === null || $account['account_holder'] === null
+        || filter_var((string) $request['guest_email'], FILTER_VALIDATE_EMAIL) === false) {
+        $form->addError('Platobné údaje nie je možné odoslať pre túto rezerváciu.');
+        return;
+      }
+      try {
+        $document = BookingPaymentQr::document(
+          $account['iban'],
+          $account['account_holder'],
+          $payment['total_cents'],
+          $payment['variable_symbol'],
+        );
+        $png = (new BookingPaymentQr(dirname(__DIR__, 2) . '/var/temp/payment-qr'))->cached($document);
+        (new BookingPaymentInstructionMailer())->send(
+          $this->editingId,
+          (string) $request['guest_email'],
+          $account['account_holder'],
+          $account['iban'],
+          $account['bic'],
+          $payment['total_cents'],
+          $payment['variable_symbol'],
+          $png,
+        );
+      } catch (\Throwable $error) {
+        error_log('Payment instruction mail failed (' . get_class($error) . ').');
+        $form->addError('Nepodarilo sa odoslať e-mail. Skontrolujte SMTP a skúste to znovu.');
+        return;
+      }
+      $this->flashMessage('Platobné údaje boli odoslané SMTP serveru.', 'success');
       $this->redirect('this');
     };
     return $form;
