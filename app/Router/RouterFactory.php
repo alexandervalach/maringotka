@@ -20,6 +20,8 @@ final class RouterFactory
     $router->addRoute('admin/gallery', ['presenter' => 'Gallery', 'action' => 'manage']);
     $router->addRoute('admin/bookings/<id \d+>', ['presenter' => 'BookingManagement', 'action' => 'edit']);
     $router->addRoute('admin/bookings', ['presenter' => 'BookingManagement', 'action' => 'default']);
+    $router->addRoute('admin/payment-settings', 'PaymentSettings:default');
+    
     $router->addRoute('admin/booking-calendar', [
       'presenter' => 'BookingCalendar',
       'action' => 'default',

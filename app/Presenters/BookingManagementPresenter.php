@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
-use App\Components\BookingQuoteControl;
 use App\Forms\BookingDecisionFormFactory;
+use App\Components\BookingQuoteControl;
 use App\Model\BookingManagementRepository;
+use App\Model\BookingPaymentRepository;
 use DomainException;
 use InvalidArgumentException;
 use Nette\Application\BadRequestException;
@@ -26,6 +27,7 @@ final class BookingManagementPresenter extends BasePresenter
   public function __construct(
     private readonly BookingManagementRepository $bookings,
     private readonly BookingDecisionFormFactory $forms,
+    private readonly BookingPaymentRepository $payments,
   ) {
     parent::__construct();
   }
@@ -103,11 +105,57 @@ final class BookingManagementPresenter extends BasePresenter
     }
     $this->template->add('request', $request);
     $this->template->add('statusHistory', $this->bookings->statusHistory($id));
+    $payment = $this->payments->forBooking($id);
+    $this->template->add('payment', $payment);
+    $this->template->add('paymentAccount', $this->payments->settings());
+    $this->template->add('paymentAmount', $payment !== null && $payment['total_cents'] !== null
+      ? number_format($payment['total_cents'] / 100, 2, ',', ' ') . ' €'
+      : null);
     $view = $this->getSession('booking-admin-view');
     $month = $view->get('month');
     $this->template->add('bookingBackUrl', $view->get('mode') === 'calendar'
       ? '/admin/booking-calendar' . (is_string($month) && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $month) ? '?month=' . $month : '')
       : '/admin/bookings');
+  }
+
+  /**
+   * Creates a price quote component for administrator booking views.
+   *
+   * @return BookingQuoteControl
+   */
+  protected function createComponentBookingQuote(): BookingQuoteControl
+  {
+    return new BookingQuoteControl();
+  }
+
+
+  /**
+   * Creates the CSRF-protected manual-payment form for an existing booking.
+   *
+   * @return Form Form for administrator-verified bank transfers.
+   */
+  protected function createComponentPaymentForm(): Form
+  {
+    $form = new Form();
+    $form->addProtection('Platnosť formulára vypršala. Obnovte stránku.');
+    $form->addRadioList('status', 'Stav úhrady', [
+      'unpaid' => 'Nezaplatená',
+      'paid' => 'Zaplatená',
+    ])->setRequired('Vyberte stav úhrady.');
+    $form->addSubmit('save', 'Uložiť stav úhrady')
+      ->setHtmlAttribute('class', 'admin-save-button');
+    $form->onSuccess[] = function (Form $form): void {
+      $values = $form->getValues('array');
+      try {
+        $this->payments->setPaid($this->editingId, $values['status'] === 'paid');
+      } catch (DomainException | InvalidArgumentException $error) {
+        $form->addError($error->getMessage());
+        return;
+      }
+      $this->flashMessage('Stav úhrady bol uložený.', 'success');
+      $this->redirect('this');
+    };
+    return $form;
   }
 
   /**
@@ -137,15 +185,5 @@ final class BookingManagementPresenter extends BasePresenter
         : '/admin/bookings');
     };
     return $form;
-  }
-
-  /**
-   * Creates the quote display component for authenticated booking pages.
-   *
-   * @return BookingQuoteControl
-   */
-  protected function createComponentBookingQuote(): BookingQuoteControl
-  {
-    return new BookingQuoteControl();
   }
 }

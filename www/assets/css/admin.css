@@ -843,3 +843,69 @@
   .booking-calendar-admin__popup .booking-calendar-admin__popup-fields > .booking-calendar-admin__field:first-child { grid-column: auto; }
   .booking-calendar-admin__popup-stay { font-size: .87rem; }
 }
+
+.booking-payment { margin-top: 1.5rem; min-width: 0; }
+.booking-payment__heading { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .8rem 1.5rem; }
+.booking-payment__heading h2 { margin: 0 0 .3rem; }
+.booking-payment__hint { color: var(--muted, #657267); font-size: .92rem; line-height: 1.5; }
+.booking-payment__settings { color: #345d53; text-decoration: none; font-weight: 650; white-space: nowrap; }
+.booking-payment__settings:hover { text-decoration: underline; }
+.booking-payment__overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0; }
+.booking-payment__overview > div { display: grid; gap: .35rem; padding: 1rem; background: #f6f5f0; border: 1px solid #e4e2da; border-radius: .65rem; min-width: 0; }
+.booking-payment__overview span, .booking-payment__bank dt { color: #5e6c62; font-size: .83rem; }
+.booking-payment__overview strong { overflow-wrap: anywhere; font-size: 1.08rem; }
+.booking-payment__status--paid { color: #276747; }
+.booking-payment__status--unpaid { color: #446c88; }
+.booking-payment__bank { display: grid; gap: .65rem; margin: 1rem 0; }
+.booking-payment__bank > div { display: grid; grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr); gap: .6rem; }
+.booking-payment__bank dd { margin: 0; overflow-wrap: anywhere; }
+.booking-payment__bank code { font: inherit; font-weight: 650; }
+.booking-payment__warning { color: #8a5b21; padding: .7rem .85rem; background: #fff8e8; border-radius: .5rem; }
+.booking-payment__form { margin-top: 1.1rem; }
+.booking-payment__form fieldset { border: 1px solid #e4e2da; border-radius: .65rem; padding: .9rem 1rem; }
+.booking-payment__form legend { font-weight: 650; }
+.booking-payment__form fieldset label { display: inline-flex; align-items: center; gap: .4rem; margin: .45rem 1.2rem .45rem 0; cursor: pointer; }
+.booking-payment-settings__form { max-width: 39rem; }
+.booking-payment-settings__form input[type=text] { width: 100%; max-width: 100%; }
+.booking-payment__notice { padding: .7rem 1rem; border-radius: .5rem; background: #eaf2ea; color: #295b3c; }
+@media (max-width: 640px) {
+  .booking-payment__overview { grid-template-columns: 1fr; }
+  .booking-payment__bank > div { grid-template-columns: 1fr; gap: .15rem; }
+}
+
+.admin-save-button {
+  display: inline-flex;
+  margin-top: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid #203b2e;
+  border-radius: 10px;
+  background: #203b2e;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.admin-save-button:hover {
+  background: #345747;
+  border-color: #345747;
+}
+
+.admin-save-button:focus-visible {
+  outline: 2px solid #c5a668;
+  outline-offset: 3px;
+}
+
+.admin-save-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

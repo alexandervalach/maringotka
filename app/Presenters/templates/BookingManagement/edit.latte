@@ -4,7 +4,7 @@
 
 {block content}
 <main class="container inner-page cms-editor">
-  <nav aria-label="Administrácia"><a class="back-link" href="{$bookingBackUrl}">Späť na prehľad rezervácií</a></nav>
+  <nav aria-label="Administrácia"><a class="back-link" href="{$bookingBackUrl}">← Späť na prehľad rezervácií</a></nav>
   <section class="info-card">
     <h1>Rezervácia č. {$request['id']}</h1>
     <p><strong>Termín:</strong> {$request['arrival_date']|date:'d. m. Y'} – {$request['departure_date']|date:'d. m. Y'}</p>
@@ -48,6 +48,56 @@
     {else}
       <p>Túto rezerváciu už nemožno ďalej meniť.</p>
       {if $request['decision_reason']}<p><strong>Dôvod rozhodnutia:</strong> {$request['decision_reason']}</p>{/if}
+    {/if}
+  </section>
+
+  <section class="info-card booking-payment" aria-labelledby="booking-payment-heading">
+    <div class="booking-payment__heading">
+      <div>
+        <h2 id="booking-payment-heading">Platba za pobyt</h2>
+        <p class="booking-payment__hint">Úhrada sa kontroluje manuálne podľa bankového účtu. Stav úhrady nie je stav rezervácie.</p>
+      </div>
+      <a class="booking-payment__settings" href="/admin/payment-settings">Nastavenie účtu</a>
+    </div>
+    {if $payment === null}
+      <p>Platobné údaje rezervácie nie sú dostupné.</p>
+    {else}
+      <div class="booking-payment__overview">
+        <div><span>Suma</span><strong>{$paymentAmount ?? 'Cena nie je dostupná'}</strong></div>
+        <div><span>Variabilný symbol</span><strong>{$payment['variable_symbol']}</strong></div>
+        <div><span>Stav úhrady</span><strong class="booking-payment__status booking-payment__status--{$payment['status']}">{if $payment['status'] === 'paid'}Zaplatená{else}Nezaplatená{/if}</strong></div>
+      </div>
+      {if $payment['paid_at'] !== null}
+        <p class="booking-payment__hint">Dátum posledného označenia platby za uhradenú: {$payment['paid_at']|date:'d. m. Y H:i'}</p>
+      {/if}
+      {if $paymentAccount['iban'] !== null && $paymentAccount['account_holder'] !== null}
+        <dl class="booking-payment__bank">
+          <div><dt>Príjemca</dt><dd>{$paymentAccount['account_holder']}</dd></div>
+          <div><dt>IBAN</dt><dd><code>{$paymentAccount['iban']}</code></dd></div>
+          {if $paymentAccount['bic'] !== null}<div><dt>BIC</dt><dd>{$paymentAccount['bic']}</dd></div>{/if}
+        </dl>
+      {else}
+        <p class="booking-payment__warning">Bankový účet ešte nie je nastavený. Platobné pokyny zákazníkovi zatiaľ neposielajte.</p>
+      {/if}
+      {if $request['status'] === 'confirmed' && $payment['total_cents'] !== null}
+        <div class="booking-payment__form cms-form">
+          {form paymentForm}
+            <ul class="cms-form-errors" n:if="$form->hasErrors()">
+              <li n:foreach="$form->getErrors() as $error">{$error}</li>
+            </ul>
+            <fieldset>
+              <legend>Manuálne označenie úhrady</legend>
+              <label n:name="status:unpaid"><input n:name="status:unpaid" checked={$payment['status'] === 'unpaid'}> Nezaplatená</label>
+              <label n:name="status:paid"><input n:name="status:paid" checked={$payment['status'] === 'paid'}> Zaplatená</label>
+            </fieldset>
+            {input save}
+          {/form}
+        </div>
+      {elseif $payment['total_cents'] === null}
+        <p class="booking-payment__hint">Táto staršia rezervácia nemá uloženú cenu, preto nemožno evidovať jej úhradu.</p>
+      {else}
+        <p class="booking-payment__hint">Stav úhrady možno meniť len pri potvrdenej rezervácii so známou cenou.</p>
+      {/if}
     {/if}
   </section>
 
