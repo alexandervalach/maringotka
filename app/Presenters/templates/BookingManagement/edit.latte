@@ -71,13 +71,53 @@
         <p class="booking-payment__hint">Dátum posledného označenia platby za uhradenú: {$payment['paid_at']|date:'d. m. Y H:i'}</p>
       {/if}
       {if $paymentAccount['iban'] !== null && $paymentAccount['account_holder'] !== null}
+        <h3 class="booking-payment__bank-heading">Údaje na bankový prevod</h3>
         <dl class="booking-payment__bank">
           <div><dt>Príjemca</dt><dd>{$paymentAccount['account_holder']}</dd></div>
           <div><dt>IBAN</dt><dd><code>{$paymentAccount['iban']}</code></dd></div>
-          {if $paymentAccount['bic'] !== null}<div><dt>BIC</dt><dd>{$paymentAccount['bic']}</dd></div>{/if}
+          {if $paymentAccount['bic'] !== null}<div><dt>BIC / SWIFT</dt><dd>{$paymentAccount['bic']}</dd></div>{/if}
+          {if $payment['total_cents'] !== null}<div><dt>Suma v EUR</dt><dd><strong>{$paymentAmount}</strong></dd></div>{/if}
+          <div><dt>Variabilný symbol</dt><dd><strong>{$payment['variable_symbol']}</strong></dd></div>
+          <div><dt>Správa pre príjemcu</dt><dd>Rezervácia {$request['id']}, VS {$payment['variable_symbol']}</dd></div>
         </dl>
+        <p class="booking-payment__hint">Pri manuálnom prevode uveďte variabilný symbol, aby sa úhrada dala priradiť k rezervácii. Číslo faktúry sa vedie samostatne.</p>
       {else}
         <p class="booking-payment__warning">Bankový účet ešte nie je nastavený. Platobné pokyny zákazníkovi zatiaľ neposielajte.</p>
+      {/if}
+      {if $paymentQrAvailable && $paymentQrDataUri === null}
+        <div class="booking-payment__qr">
+          {if $paymentQrConfigured}
+            <div class="cms-form">
+              <h3>PAY by square – slovenský platobný QR kód</h3>
+              <p class="booking-payment__hint">QR vygenerujete jednorazovo na vyžiadanie. Pri opätovnom otvorení stránky sa už používa uložený obrázok.</p>
+              {form qrForm}
+                <ul class="cms-form-errors" n:if="$form->hasErrors()">
+                  <li n:foreach="$form->getErrors() as $error">{$error}</li>
+                </ul>
+                {input generate}
+              {/form}
+            </div>
+          {else}
+            <p class="booking-payment__hint">PAY by square nie je aktivovaný. Nastavte BYSQUARE_API_KEY v serverovej konfigurácii. Bežné bankové údaje sú dostupné vyššie.</p>
+          {/if}
+        </div>
+      {/if}
+      {if $paymentQrDataUri !== null}
+        <div class="booking-payment__qr">
+          <div>
+            <h3>PAY by square – platba QR kódom</h3>
+            <p class="booking-payment__hint">QR kód pre slovenské bankové aplikácie. Pri platbe overte príjemcu, sumu a variabilný symbol. Pre zahraničných hostí sú vyššie dostupné údaje na SEPA prevod.</p>
+            <div class="booking-payment__actions">
+              <a class="admin-save-button booking-payment__action" href="{$paymentQrDataUri|nocheck}" download="rezervacia-{$request['id']}-pay-by-square.png">Stiahnuť PAY by square QR</a>
+            </div>
+            <p class="booking-payment__hint">E-mail sa otvorí ako návrh v poštovom programe; neodosiela sa automaticky. QR kód sa neprikladá automaticky.</p>
+          </div>
+          <img class="booking-payment__qr-image" src="{$paymentQrDataUri|nocheck}" width="200" height="200" alt="PAY by square QR kód pre platbu za rezerváciu č. {$request['id']}">
+        </div>
+      {/if}
+      {if $paymentEmailUrl !== null}
+        <p><a class="admin-save-button booking-payment__action" href="{$paymentEmailUrl}">Pripraviť e-mail hosťovi</a></p>
+        <p class="booking-payment__hint">E-mail sa iba pripraví v poštovom programe. QR obrázok je potrebné priložiť ručne.</p>
       {/if}
       {if $request['status'] === 'confirmed' && $payment['total_cents'] !== null}
         <div class="booking-payment__form cms-form">

@@ -911,3 +911,13 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.booking-payment__qr { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem 2rem; margin: 1.25rem 0; padding: 1rem; border: 1px solid #e4e2da; border-radius: .65rem; }
+.booking-payment__qr > div { flex: 1 1 17rem; min-width: 0; }
+.booking-payment__qr h3 { margin: 0 0 .5rem; }
+.booking-payment__qr-image { width: 200px; height: 200px; max-width: 100%; background: #fff; padding: .45rem; border: 1px solid #e4e2da; border-radius: .5rem; }
+.booking-payment__actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: .8rem 0; }
+.booking-payment__action { margin-top: 0; text-decoration: none; text-align: center; }
+.booking-payment__action:hover { color: #fff; text-decoration: none; }
+
+.booking-payment__bank-heading { margin: 1.3rem 0 .5rem; font-size: 1.08rem; }

@@ -43,17 +43,19 @@ final class BookingPaymentDetails
   }
 
   /**
-   * Creates a stable, unique variable symbol from the booking ID.
+   * Creates a stable payment reference from creation year and booking ID.
+   * IDs are globally unique and never reissued after cancellation.
    *
-   * @param int $bookingId Database booking identifier.
-   * @return string Variable symbol with ten digits.
+   * @param int $bookingId Globally unique database identifier.
+   * @param int $createdYear Year the booking was created, in local time.
+   * @return string Ten-digit variable symbol.
    */
-  public static function variableSymbol(int $bookingId): string
+  public static function variableSymbol(int $bookingId, int $createdYear): string
   {
-    if ($bookingId < 1 || $bookingId > 9999999999) {
-      throw new InvalidArgumentException('Číslo rezervácie nie je možné previesť na variabilný symbol.');
+    if ($bookingId < 1 || $bookingId > 999999 || $createdYear < 2000 || $createdYear > 9999) {
+      throw new InvalidArgumentException('Nie je možné vytvoriť desaťmiestny variabilný symbol.');
     }
-    return str_pad((string) $bookingId, 10, '0', STR_PAD_LEFT);
+    return (string) $createdYear . str_pad((string) $bookingId, 6, '0', STR_PAD_LEFT);
   }
 
   /**

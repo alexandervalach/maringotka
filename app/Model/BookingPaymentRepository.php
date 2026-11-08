@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Model;
 
 use App\Infrastructure\Database\ConnectionFactory;
+use DateTimeImmutable;
+use DateTimeInterface;
+use DateTimeZone;
 use DomainException;
 use InvalidArgumentException;
 use Nette\Database\Explorer;
@@ -82,9 +85,8 @@ final class BookingPaymentRepository
    */
   public function forBooking(int $bookingId): ?array
   {
-    $variableSymbol = BookingPaymentDetails::variableSymbol($bookingId);
     $row = $this->database->query(
-      'SELECT b.price_total_cents, p.status, p.paid_at'
+      'SELECT b.created_at, b.price_total_cents, p.status, p.paid_at'
       . ' FROM booking_requests b LEFT JOIN booking_payments p ON p.booking_id = b.id'
       . ' WHERE b.id = ?',
       $bookingId,
@@ -92,6 +94,14 @@ final class BookingPaymentRepository
     if ($row === null) {
       return null;
     }
+    $createdAt = $row['created_at'];
+    if ($createdAt instanceof DateTimeInterface) {
+      $created = DateTimeImmutable::createFromInterface($createdAt);
+    } else {
+      $created = new DateTimeImmutable((string) $createdAt);
+    }
+    $createdYear = (int) $created->setTimezone(new DateTimeZone('Europe/Bratislava'))->format('Y');
+    $variableSymbol = BookingPaymentDetails::variableSymbol($bookingId, $createdYear);
     $paidAt = $row['paid_at'];
     return [
       'status' => $row['status'] === null ? 'unpaid' : (string) $row['status'],
@@ -112,7 +122,9 @@ final class BookingPaymentRepository
    */
   public function setPaid(int $bookingId, bool $paid): void
   {
-    BookingPaymentDetails::variableSymbol($bookingId);
+    if ($bookingId < 1) {
+      throw new InvalidArgumentException('Neplatné ID rezervácie.');
+    }
     $status = $paid ? 'paid' : 'unpaid';
     // Atomic conditional write: never create payment state for an unapproved stay.
     $written = $this->database->query(

@@ -5,6 +5,7 @@ RUNTIME_DIR="/var/www/html/var"
 
 mkdir -p \
     "$RUNTIME_DIR/temp" \
+    "$RUNTIME_DIR/temp/payment-qr" \
     "$RUNTIME_DIR/log" \
     "$RUNTIME_DIR/monitoring"
 

@@ -8,8 +8,11 @@ use App\Forms\BookingDecisionFormFactory;
 use App\Components\BookingQuoteControl;
 use App\Model\BookingManagementRepository;
 use App\Model\BookingPaymentRepository;
+use App\Model\BookingPaymentDetails;
+use App\Model\BookingPaymentQr;
 use DomainException;
 use InvalidArgumentException;
+use RuntimeException;
 use Nette\Application\BadRequestException;
 use Nette\Application\UI\Form;
 
@@ -56,11 +59,11 @@ final class BookingManagementPresenter extends BasePresenter
     } catch (InvalidArgumentException $error) {
       throw new BadRequestException($error->getMessage(), 400);
     }
-    $this->template->add('requests', $page['requests']);
-    $this->template->add('olderCursor', $page['older']);
-    $this->template->add('newerCursor', $page['newer']);
-    $this->template->add('statusFilter', $status);
-    $this->template->add('searchTerm', $search);
+    $this->template->requests = $page['requests'];
+    $this->template->olderCursor = $page['older'];
+    $this->template->newerCursor = $page['newer'];
+    $this->template->statusFilter = $status;
+    $this->template->searchTerm = $search;
   }
 
   /**
@@ -103,19 +106,59 @@ final class BookingManagementPresenter extends BasePresenter
     if ($request === null) {
       $this->error('Rezervácia neexistuje.', 404);
     }
-    $this->template->add('request', $request);
-    $this->template->add('statusHistory', $this->bookings->statusHistory($id));
+    $this->template->request = $request;
+    $this->template->statusHistory = $this->bookings->statusHistory($id);
     $payment = $this->payments->forBooking($id);
-    $this->template->add('payment', $payment);
-    $this->template->add('paymentAccount', $this->payments->settings());
-    $this->template->add('paymentAmount', $payment !== null && $payment['total_cents'] !== null
+    $this->template->payment = $payment;
+    $this->template->paymentAccount = $this->payments->settings();
+    $this->template->paymentAmount = $payment !== null && $payment['total_cents'] !== null
       ? number_format($payment['total_cents'] / 100, 2, ',', ' ') . ' €'
-      : null);
+      : null;
+    $this->template->paymentQrDataUri = null;
+    $this->template->paymentQrConfigured = trim((string) getenv('BYSQUARE_API_KEY')) !== '';
+    $this->template->paymentQrAvailable = false;
+    $this->template->paymentEmailUrl = null;
+    if ($request['status'] === 'confirmed'
+      && $payment !== null
+      && $payment['total_cents'] !== null
+      && $payment['total_cents'] > 0) {
+      $account = $this->payments->settings();
+      if ($account['iban'] !== null && $account['account_holder'] !== null
+        && mb_strlen($account['account_holder']) <= 70) {
+        $amount = BookingPaymentDetails::amount($payment['total_cents']);
+        $document = BookingPaymentQr::document(
+          $account['iban'],
+          $account['account_holder'],
+          $payment['total_cents'],
+          $payment['variable_symbol'],
+        );
+        $qr = new BookingPaymentQr(dirname(__DIR__, 2) . '/var/temp/payment-qr');
+        $cachedPng = $qr->cached($document);
+        $this->template->paymentQrAvailable = true;
+        if ($cachedPng !== null) {
+          $this->template->paymentQrDataUri = 'data:image/png;base64,' . base64_encode($cachedPng);
+        }
+        $email = (string) $request['guest_email'];
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
+          $subject = 'Platobné údaje k rezervácii č. ' . $id;
+          $body = "Dobrý deň,\n\nzasielame platobné údaje k potvrdenej rezervácii č. " . $id
+            . "\nPríjemca: " . $account['account_holder']
+            . "\nIBAN: " . $account['iban']
+            . ($account['bic'] !== null ? "\nBIC: " . $account['bic'] : '')
+            . "\nSuma: " . $amount . " EUR"
+            . "\nVariabilný symbol: " . $payment['variable_symbol']
+            . "\nSpráva pre príjemcu: Rezervacia VS " . $payment['variable_symbol']
+            . "\n\nPri platbe skontrolujte sumu, IBAN a variabilný symbol.\n\nĎakujeme.";
+          $this->template->paymentEmailUrl = 'mailto:' . rawurlencode($email)
+            . '?subject=' . rawurlencode($subject) . '&body=' . rawurlencode($body);
+        }
+      }
+    }
     $view = $this->getSession('booking-admin-view');
     $month = $view->get('month');
-    $this->template->add('bookingBackUrl', $view->get('mode') === 'calendar'
+    $this->template->bookingBackUrl = $view->get('mode') === 'calendar'
       ? '/admin/booking-calendar' . (is_string($month) && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $month) ? '?month=' . $month : '')
-      : '/admin/bookings');
+      : '/admin/bookings';
   }
 
   /**
@@ -128,6 +171,47 @@ final class BookingManagementPresenter extends BasePresenter
     return new BookingQuoteControl();
   }
 
+
+  /**
+   * Creates a QR only after an authenticated administrator explicitly requests it.
+   * Repeated requests reuse the private cached image without consuming credit.
+   *
+   * @return Form CSRF-protected QR generation form.
+   */
+  protected function createComponentQrForm(): Form
+  {
+    $form = new Form();
+    $form->addProtection('Platnosť formulára vypršala. Obnovte stránku.');
+    $form->addSubmit('generate', 'Vygenerovať PAY by square QR')
+      ->setHtmlAttribute('class', 'admin-save-button');
+    $form->onSuccess[] = function (Form $form): void {
+      $booking = $this->bookings->requestById($this->editingId);
+      $payment = $this->payments->forBooking($this->editingId);
+      $account = $this->payments->settings();
+      if ($booking === null || $booking['status'] !== 'confirmed'
+        || $payment === null || $payment['total_cents'] === null || $payment['total_cents'] <= 0
+        || $account['iban'] === null || $account['account_holder'] === null) {
+        $form->addError('Pre túto rezerváciu nemožno vygenerovať platobný QR kód.');
+        return;
+      }
+      try {
+        $document = BookingPaymentQr::document(
+          $account['iban'],
+          $account['account_holder'],
+          $payment['total_cents'],
+          $payment['variable_symbol'],
+        );
+        (new BookingPaymentQr(dirname(__DIR__, 2) . '/var/temp/payment-qr'))
+          ->generate($document, (string) getenv('BYSQUARE_API_KEY'));
+      } catch (InvalidArgumentException | RuntimeException $error) {
+        $form->addError($error->getMessage());
+        return;
+      }
+      $this->flashMessage('PAY by square QR kód bol pripravený.', 'success');
+      $this->redirect('this');
+    };
+    return $form;
+  }
 
   /**
    * Creates the CSRF-protected manual-payment form for an existing booking.

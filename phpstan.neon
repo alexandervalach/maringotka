@@ -6,3 +6,5 @@ parameters:
         - tests
     excludePaths:
         - var
+    universalObjectCratesClasses:
+        - Nette\Bridges\ApplicationLatte\DefaultTemplate
