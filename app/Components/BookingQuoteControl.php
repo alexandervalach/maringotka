@@ -29,10 +29,20 @@ final class BookingQuoteControl extends Control
       $error = $exception->getMessage();
     }
 
-    $this->template->add('quote', $quote);
-    $this->template->add('quoteError', $error);
-    $this->template->add('compact', $compact);
-    $this->template->setFile(__DIR__ . '/templates/bookingQuote.latte');
-    $this->template->render();
+    $template = $this->createTemplate();
+
+    $template = $this->createTemplate();
+
+    if (!$template instanceof \Nette\Bridges\ApplicationLatte\Template) {
+      throw new \LogicException('Expected a Latte template.');
+    }
+
+    $template->setFile(__DIR__ . '/templates/bookingQuote.latte');
+
+    $template->render(null, [
+      'quote' => $quote,
+      'quoteError' => $error,
+      'compact' => $compact,
+    ]);
   }
 }
