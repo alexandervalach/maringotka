@@ -28,7 +28,8 @@
 
     <div class="booking-calendar-admin__legend" aria-label="Význam farieb">
       <span><i class="booking-calendar-admin__swatch booking-calendar-admin__swatch--pending" aria-hidden="true"></i> Čaká na potvrdenie ({$pendingCount})</span>
-      <span><i class="booking-calendar-admin__swatch booking-calendar-admin__swatch--confirmed" aria-hidden="true"></i> Potvrdená ({$confirmedCount})</span>
+      <span><i class="booking-calendar-admin__swatch booking-calendar-admin__swatch--confirmed" aria-hidden="true"></i> Potvrdená · zaplatená</span>
+      <span><i class="booking-calendar-admin__swatch booking-calendar-admin__swatch--unpaid" aria-hidden="true"></i> Potvrdená · nezaplatená</span>
       <span class="booking-calendar-admin__legend-note">Odchodový deň je voľný, ak v ňom nezačína iný pobyt.</span>
     </div>
 
@@ -42,7 +43,7 @@
             <span class="booking-calendar-admin__date">{$day['day']}</span>
             {foreach $day['items'] as $item}
               <details class="booking-calendar-admin__preview booking-calendar-admin__preview--{$item['status']}">
-                <summary class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status']}" aria-label="Náhľad rezervácie číslo {$item['id']}">
+                <summary class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status'] === 'pending' ? 'pending' : ($item['paymentStatus'] === 'paid' ? 'confirmed' : 'unpaid')}" aria-label="Náhľad rezervácie číslo {$item['id']}">
                   {if $item['arrival']}<strong>Príchod · </strong>{/if}
                   #{$item['id']} {$item['guest']}
                 </summary>
@@ -63,7 +64,7 @@
             <strong>{$day['day']}. {$monthTitle}</strong>
             {foreach $day['items'] as $item}
               <details class="booking-calendar-admin__preview booking-calendar-admin__preview--{$item['status']}">
-                <summary class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status']}" aria-label="Náhľad rezervácie číslo {$item['id']}">
+                <summary class="booking-calendar-admin__event booking-calendar-admin__event--{$item['status'] === 'pending' ? 'pending' : ($item['paymentStatus'] === 'paid' ? 'confirmed' : 'unpaid')}" aria-label="Náhľad rezervácie číslo {$item['id']}">
                   {if $item['arrival']}<strong>Príchod · </strong>{/if}
                   #{$item['id']} {$item['guest']}
                 </summary>
@@ -91,6 +92,7 @@
 
     <dl class="booking-calendar-admin__popup-fields">
       <div class="booking-calendar-admin__field"><dt>Hosť</dt><dd>{$item['guest']}</dd></div>
+      {if $item['status'] === 'confirmed'}<div class="booking-calendar-admin__field"><dt>Úhrada</dt><dd>{if $item['paymentStatus'] === 'paid'}Zaplatená{else}Nezaplatená{/if}</dd></div>{/if}
       {if $item['email'] !== ''}<div class="booking-calendar-admin__field"><dt>E-mail</dt><dd><a href="mailto:{$item['email']}">{$item['email']}</a></dd></div>{/if}
       {if $item['phone'] !== ''}<div class="booking-calendar-admin__field"><dt>Telefón</dt><dd><a href="tel:{$item['phone']}">{$item['phone']}</a></dd></div>{/if}
     </dl>

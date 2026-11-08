@@ -34,15 +34,18 @@ final class BookingCalendarRepository
    *
    * @param string $monthStart First day of the month, in Y-m-d format.
    * @param string $nextMonthStart First day of the following month, in Y-m-d format.
-   * @return list<array{id: int, guest: string, email: string, phone: string, note: string, start: string, end: string, status: string, quoteExtras: list<array{code: string, label: string, quantity: int}>, quoteTotal: string|null, quoteState: string}>
+   * @return list<array{id: int, guest: string, email: string, phone: string, note: string, start: string, end: string, status: string, paymentStatus: string, quoteExtras: list<array{code: string, label: string, quantity: int}>, quoteTotal: string|null, quoteState: string}>
    */
   public function activeForMonth(string $monthStart, string $nextMonthStart): array
   {
     $rows = $this->database->query(
-      'SELECT id, guest_name, guest_email, guest_phone, guest_note, arrival_date, departure_date, status, price_quote, price_total_cents'
-      . ' FROM booking_requests'
-      . ' WHERE status IN (?, ?) AND arrival_date < ? AND departure_date > ?'
-      . ' ORDER BY arrival_date ASC, id ASC',
+      'SELECT b.id, b.guest_name, b.guest_email, b.guest_phone, b.guest_note,'
+      . ' b.arrival_date, b.departure_date, b.status, b.price_quote, b.price_total_cents,'
+      . ' p.status AS payment_status'
+      . ' FROM booking_requests b'
+      . ' LEFT JOIN booking_payments p ON p.booking_id = b.id'
+      . ' WHERE b.status IN (?, ?) AND b.arrival_date < ? AND b.departure_date > ?'
+      . ' ORDER BY b.arrival_date ASC, b.id ASC',
       'pending',
       'confirmed',
       $nextMonthStart,
@@ -92,6 +95,7 @@ final class BookingCalendarRepository
         'start' => $start,
         'end' => $end,
         'status' => $status,
+        'paymentStatus' => $status === 'confirmed' && $row['payment_status'] === 'paid' ? 'paid' : 'unpaid',
         'quoteExtras' => $extras,
         'quoteTotal' => $total,
         'quoteState' => $quoteState,
