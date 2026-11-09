@@ -6,7 +6,6 @@ namespace App\Presenters;
 
 use App\Infrastructure\Database\ConnectionFactory;
 use App\Localization\SupportedLocales;
-use App\Router\PublicRoutes;
 use Contributte\Translation\Translator;
 
 /**
@@ -44,16 +43,7 @@ final class SurroundingsPresenter extends BasePresenter
   protected function beforeRender(): void
   {
     parent::beforeRender();
-    $locale = $this->getParameter('locale');
-    if (!is_string($locale) || !SupportedLocales::isSupported($locale)) {
-      $this->error('Unknown language.', 404);
-    }
-
-    $this->translator->setLocale($locale);
-    $this->template->setTranslator($this->translator, $locale);
-    $this->template->add('locale', $locale);
-    $this->template->add('paths', PublicRoutes::forLocale($locale));
-    $this->template->add('languageUrls', PublicRoutes::languageUrlsFor('surroundings'));
+    $this->configurePublicTemplate($this->translator, $this->getParameter('locale'), 'surroundings');
     $this->template->add('title', $this->translator->translate('messages.navigation.surroundings'));
   }
 

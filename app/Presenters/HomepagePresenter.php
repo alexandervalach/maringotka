@@ -7,7 +7,6 @@ namespace App\Presenters;
 use App\Forms\HomepageFormFactory;
 use App\Localization\SupportedLocales;
 use App\Model\HomepageRepository;
-use App\Router\PublicRoutes;
 use Contributte\Translation\Translator;
 use Nette\Application\UI\Form;
 
@@ -98,16 +97,8 @@ final class HomepagePresenter extends BasePresenter
       return;
     }
 
-    $locale = $this->getParameter('locale');
-    if (!is_string($locale) || !SupportedLocales::isSupported($locale)) {
-      $this->error('Unknown language.', 404);
-    }
-    $this->translator->setLocale($locale);
-    $this->template->setTranslator($this->translator, $locale);
-    $this->template->add('locale', $locale);
-    $this->template->add('paths', PublicRoutes::forLocale($locale));
     $action = $this->getAction();
-    $this->template->add('languageUrls', PublicRoutes::languageUrlsFor($action));
+    $locale = $this->configurePublicTemplate($this->translator, $this->getParameter('locale'), $action);
     $titleKey = $action === 'default' ? 'hero.headline' : 'navigation.' . $action;
     $published = $action === 'default' ? $this->home->findPublished($locale) : null;
     $this->template->add('homeTitle', $published['title'] ?? null);

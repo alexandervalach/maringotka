@@ -10,7 +10,6 @@ use App\Model\BookingRepository;
 use App\Model\BookingPriceCalculator;
 use App\Model\BookingUnavailableException;
 use App\Model\PricingRepository;
-use App\Router\PublicRoutes;
 use Contributte\Translation\Translator;
 use InvalidArgumentException;
 use Nette\Application\UI\Form;
@@ -53,15 +52,7 @@ final class BookingPresenter extends BasePresenter
   protected function beforeRender(): void
   {
     parent::beforeRender();
-    $locale = $this->getParameter('locale');
-    if (!is_string($locale) || !SupportedLocales::isSupported($locale)) {
-      $this->error('Unknown language.', 404);
-    }
-    $this->translator->setLocale($locale);
-    $this->template->setTranslator($this->translator, $locale);
-    $this->template->add('locale', $locale);
-    $this->template->add('paths', PublicRoutes::forLocale($locale));
-    $this->template->add('languageUrls', PublicRoutes::languageUrlsFor('booking'));
+    $locale = $this->configurePublicTemplate($this->translator, $this->getParameter('locale'), 'booking');
     $this->template->add('title', $locale === 'en' ? 'Reservation request' : 'Žiadosť o rezerváciu');
     $this->template->add('minimumNights', $this->pricing->getPrices()['minimum_nights']);
     $this->template->add('bookingPrices', $this->pricing->getPrices());

@@ -7,7 +7,6 @@ namespace App\Presenters;
 use App\Forms\PricingFormFactory;
 use App\Localization\SupportedLocales;
 use App\Model\PricingRepository;
-use App\Router\PublicRoutes;
 use Contributte\Translation\Translator;
 use Nette\Application\UI\Form;
 
@@ -65,15 +64,7 @@ final class PricingPresenter extends BasePresenter
     if ($this->getAction() !== 'default') {
       return;
     }
-    $locale = $this->getParameter('locale');
-    if (!is_string($locale) || !SupportedLocales::isSupported($locale)) {
-      $this->error('Unknown language.', 404);
-    }
-    $this->translator->setLocale($locale);
-    $this->template->setTranslator($this->translator, $locale);
-    $this->template->add('locale', $locale);
-    $this->template->add('paths', PublicRoutes::forLocale($locale));
-    $this->template->add('languageUrls', PublicRoutes::languageUrlsFor('pricing'));
+    $this->configurePublicTemplate($this->translator, $this->getParameter('locale'), 'pricing');
     $this->template->add('title', $this->translator->translate('messages.navigation.pricing'));
   }
 
