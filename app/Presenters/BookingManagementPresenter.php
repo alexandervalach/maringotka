@@ -111,7 +111,8 @@ final class BookingManagementPresenter extends BasePresenter
     $this->template->statusHistory = $this->bookings->statusHistory($id);
     $payment = $this->payments->forBooking($id);
     $this->template->payment = $payment;
-    $this->template->paymentAccount = $this->payments->settings();
+    $account = $this->payments->settings();
+    $this->template->paymentAccount = $account;
     $this->template->paymentAmount = $payment !== null && $payment['total_cents'] !== null
       ? number_format($payment['total_cents'] / 100, 2, ',', ' ') . ' €'
       : null;
@@ -120,35 +121,36 @@ final class BookingManagementPresenter extends BasePresenter
     $this->template->paymentQrAvailable = false;
     $this->template->paymentEmailUrl = null;
     $this->template->paymentEmailConfigured = BookingPaymentInstructionMailer::configured();
-    if ($request['status'] === 'confirmed'
-      && $payment !== null
-      && $payment['total_cents'] !== null
-      && $payment['total_cents'] > 0) {
-      $account = $this->payments->settings();
-      if ($account['iban'] !== null && $account['account_holder'] !== null
-        && mb_strlen($account['account_holder']) <= 70) {
-        $amount = BookingPaymentDetails::amount($payment['total_cents']);
-        $document = $this->paymentQrDocument($account, $payment);
-        $qr = $this->paymentQr();
-        $cachedPng = $qr->cached($document);
-        $this->template->paymentQrAvailable = true;
-        if ($cachedPng !== null) {
-          $this->template->paymentQrDataUri = 'data:image/png;base64,' . base64_encode($cachedPng);
-        }
-        $email = (string) $request['guest_email'];
-        if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
-          $subject = 'Platobné údaje k rezervácii č. ' . $id;
-          $body = "Dobrý deň,\n\nzasielame platobné údaje k potvrdenej rezervácii č. " . $id
-            . "\nPríjemca: " . $account['account_holder']
-            . "\nIBAN: " . $account['iban']
-            . ($account['bic'] !== null ? "\nBIC: " . $account['bic'] : '')
-            . "\nSuma: " . $amount . " EUR"
-            . "\nVariabilný symbol: " . $payment['variable_symbol']
-            . "\nSpráva pre príjemcu: Rezervacia VS " . $payment['variable_symbol']
-            . "\n\nPri platbe skontrolujte sumu, IBAN a variabilný symbol.\n\nĎakujeme.";
-          $this->template->paymentEmailUrl = 'mailto:' . rawurlencode($email)
-            . '?subject=' . rawurlencode($subject) . '&body=' . rawurlencode($body);
-        }
+    if ($payment !== null
+      && $account['account_holder'] !== null
+      && $this->hasPaymentInstructions(
+        $request['status'],
+        $payment['total_cents'],
+        $account['iban'],
+        $account['account_holder'],
+      )
+      && mb_strlen($account['account_holder']) <= 70) {
+      $amount = BookingPaymentDetails::amount((int) $payment['total_cents']);
+      $document = $this->paymentQrDocument($account, $payment);
+      $qr = $this->paymentQr();
+      $cachedPng = $qr->cached($document);
+      $this->template->paymentQrAvailable = true;
+      if ($cachedPng !== null) {
+        $this->template->paymentQrDataUri = 'data:image/png;base64,' . base64_encode($cachedPng);
+      }
+      $email = (string) $request['guest_email'];
+      if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
+        $subject = 'Platobné údaje k rezervácii č. ' . $id;
+        $body = "Dobrý deň,\n\nzasielame platobné údaje k potvrdenej rezervácii č. " . $id
+          . "\nPríjemca: " . $account['account_holder']
+          . "\nIBAN: " . $account['iban']
+          . ($account['bic'] !== null ? "\nBIC: " . $account['bic'] : '')
+          . "\nSuma: " . $amount . " EUR"
+          . "\nVariabilný symbol: " . $payment['variable_symbol']
+          . "\nSpráva pre príjemcu: Rezervacia VS " . $payment['variable_symbol']
+          . "\n\nPri platbe skontrolujte sumu, IBAN a variabilný symbol.\n\nĎakujeme.";
+        $this->template->paymentEmailUrl = 'mailto:' . rawurlencode($email)
+          . '?subject=' . rawurlencode($subject) . '&body=' . rawurlencode($body);
       }
     }
     $view = $this->getSession('booking-admin-view');
@@ -187,6 +189,29 @@ final class BookingManagementPresenter extends BasePresenter
   }
 
   /**
+   * Common conditions for providing payment instructions.
+   * Callers separately check the presence of booking/payment rows and email validity.
+   *
+   * @param string $bookingStatus Current booking status.
+   * @param int|null $totalCents Snapshotted booking price.
+   * @param string|null $iban Recipient IBAN.
+   * @param string|null $holder Recipient account holder.
+   * @return bool
+   */
+  private function hasPaymentInstructions(
+    string $bookingStatus,
+    ?int $totalCents,
+    ?string $iban,
+    ?string $holder,
+  ): bool {
+    return $bookingStatus === 'confirmed'
+      && $totalCents !== null
+      && $totalCents > 0
+      && $iban !== null
+      && $holder !== null;
+  }
+
+  /**
    * Creates a price quote component for administrator booking views.
    *
    * @return BookingQuoteControl
@@ -213,9 +238,13 @@ final class BookingManagementPresenter extends BasePresenter
       $booking = $this->bookings->requestById($this->editingId);
       $payment = $this->payments->forBooking($this->editingId);
       $account = $this->payments->settings();
-      if ($booking === null || $booking['status'] !== 'confirmed'
-        || $payment === null || $payment['total_cents'] === null || $payment['total_cents'] <= 0
-        || $account['iban'] === null || $account['account_holder'] === null) {
+      if ($booking === null || $payment === null
+        || !$this->hasPaymentInstructions(
+          $booking['status'],
+          $payment['total_cents'],
+          $account['iban'],
+          $account['account_holder'],
+        )) {
         $form->addError('Pre túto rezerváciu nemožno vygenerovať platobný QR kód.');
         return;
       }
@@ -248,9 +277,13 @@ final class BookingManagementPresenter extends BasePresenter
       $request = $this->bookings->requestById($this->editingId);
       $payment = $this->payments->forBooking($this->editingId);
       $account = $this->payments->settings();
-      if ($request === null || $request['status'] !== 'confirmed'
-        || $payment === null || $payment['total_cents'] === null || $payment['total_cents'] <= 0
-        || $account['iban'] === null || $account['account_holder'] === null
+      if ($request === null || $payment === null
+        || !$this->hasPaymentInstructions(
+          $request['status'],
+          $payment['total_cents'],
+          $account['iban'],
+          $account['account_holder'],
+        )
         || filter_var((string) $request['guest_email'], FILTER_VALIDATE_EMAIL) === false) {
         $form->addError('Platobné údaje nie je možné odoslať pre túto rezerváciu.');
         return;
@@ -261,10 +294,10 @@ final class BookingManagementPresenter extends BasePresenter
         (new BookingPaymentInstructionMailer())->send(
           $this->editingId,
           (string) $request['guest_email'],
-          $account['account_holder'],
-          $account['iban'],
+          (string) $account['account_holder'],
+          (string) $account['iban'],
           $account['bic'],
-          $payment['total_cents'],
+          (int) $payment['total_cents'],
           $payment['variable_symbol'],
           $png,
         );
