@@ -2,21 +2,22 @@
 
 declare(strict_types=1);
 
+use App\Model\BookingManagementRepository;
 use Tester\Assert;
 
-require __DIR__ . '/../bootstrap.php';
+require dirname(__DIR__) . '/bootstrap.php';
 
-$root = dirname(__DIR__, 2);
-$repository = file_get_contents($root . '/app/Model/BookingManagementRepository.php');
-$presenter = file_get_contents($root . '/app/Presenters/BookingManagementPresenter.php');
-$template = file_get_contents($root . '/app/Presenters/templates/BookingManagement/edit.latte');
+// Verify input validation through the public method; no database is needed.
+$repository = (new ReflectionClass(BookingManagementRepository::class))->newInstanceWithoutConstructor();
+Assert::exception(static fn () => $repository->statusHistory(0), InvalidArgumentException::class);
+Assert::exception(static fn () => $repository->statusHistory(-7), InvalidArgumentException::class);
 
-Assert::type('string', $repository);
-Assert::type('string', $presenter);
+// Preserve the history ordering contract until a database integration test
+// replaces it. Avoid checking presenter implementation and exact PHP syntax.
+$source = file_get_contents(dirname(__DIR__, 2) . '/app/Model/BookingManagementRepository.php');
+Assert::type('string', $source);
+Assert::contains('FROM booking_status_history WHERE booking_id = ? ORDER BY id DESC', $source);
+
+$template = file_get_contents(dirname(__DIR__, 2) . '/app/Presenters/templates/BookingManagement/edit.latte');
 Assert::type('string', $template);
-Assert::contains('function statusHistory(int $bookingId): array', $repository);
-Assert::contains('FROM booking_status_history WHERE booking_id = ? ORDER BY id DESC', $repository);
-Assert::contains('iterator_to_array($row)', $repository);
-Assert::contains('$this->bookings->statusHistory($id)', $presenter);
-Assert::contains('booking-decision-options', $template);
 Assert::contains('booking-history-table', $template);

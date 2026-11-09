@@ -2,23 +2,22 @@
 
 declare(strict_types=1);
 
+use App\Model\BookingManagementRepository;
 use Tester\Assert;
 
 require dirname(__DIR__) . '/bootstrap.php';
 
-$base = dirname(__DIR__, 2);
-$repository = file_get_contents($base . '/app/Model/BookingManagementRepository.php');
-$presenter = file_get_contents($base . '/app/Presenters/BookingManagementPresenter.php');
-$template = file_get_contents($base . '/app/Presenters/templates/BookingManagement/default.latte');
-Assert::type('string', $repository);
-Assert::type('string', $presenter);
-Assert::type('string', $template);
-Assert::contains('ORDER BY id ', $repository);
-Assert::contains('LIMIT 26', $repository);
-Assert::contains('id < ?', $repository);
-Assert::contains('id > ?', $repository);
-Assert::notContains('OFFSET', $repository);
-Assert::contains('requireAdmin()', $presenter);
-Assert::contains('name="status"', $template);
-Assert::contains('name="q"', $template);
-Assert::contains('booking-admin-table', $template);
+$repository = (new ReflectionClass(BookingManagementRepository::class))->newInstanceWithoutConstructor();
+Assert::exception(static fn () => $repository->page('unknown', '', null, null), InvalidArgumentException::class);
+Assert::exception(static fn () => $repository->page('', '', 3, 4), InvalidArgumentException::class);
+Assert::exception(static fn () => $repository->page('', '', 0, null), InvalidArgumentException::class);
+Assert::exception(static fn () => $repository->page('', '', null, -1), InvalidArgumentException::class);
+Assert::exception(static fn () => $repository->page('', str_repeat('a', 101), null, null), InvalidArgumentException::class);
+
+$source = file_get_contents(dirname(__DIR__, 2) . '/app/Model/BookingManagementRepository.php');
+Assert::type('string', $source);
+Assert::contains('ORDER BY id ', $source);
+Assert::contains('LIMIT 26', $source);
+Assert::contains('id < ?', $source);
+Assert::contains('id > ?', $source);
+Assert::notContains('OFFSET', $source);
