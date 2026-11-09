@@ -130,7 +130,6 @@ final class BookingManagementPresenter extends BasePresenter
         $account['account_holder'],
       )
       && mb_strlen($account['account_holder']) <= 70) {
-      $amount = BookingPaymentDetails::amount((int) $payment['total_cents']);
       $document = $this->paymentQrDocument($account, $payment);
       $qr = $this->paymentQr();
       $cachedPng = $qr->cached($document);
@@ -141,14 +140,14 @@ final class BookingManagementPresenter extends BasePresenter
       $email = (string) $request['guest_email'];
       if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
         $subject = 'Platobné údaje k rezervácii č. ' . $id;
-        $body = "Dobrý deň,\n\nzasielame platobné údaje k potvrdenej rezervácii č. " . $id
-          . "\nPríjemca: " . $account['account_holder']
-          . "\nIBAN: " . $account['iban']
-          . ($account['bic'] !== null ? "\nBIC: " . $account['bic'] : '')
-          . "\nSuma: " . $amount . " EUR"
-          . "\nVariabilný symbol: " . $payment['variable_symbol']
-          . "\nSpráva pre príjemcu: Rezervacia VS " . $payment['variable_symbol']
-          . "\n\nPri platbe skontrolujte sumu, IBAN a variabilný symbol.\n\nĎakujeme.";
+        $body = BookingPaymentInstructionMailer::body(
+          $id,
+          (string) $account['account_holder'],
+          (string) $account['iban'],
+          $account['bic'],
+          (int) $payment['total_cents'],
+          (string) $payment['variable_symbol'],
+        );
         $this->template->paymentEmailUrl = 'mailto:' . rawurlencode($email)
           . '?subject=' . rawurlencode($subject) . '&body=' . rawurlencode($body);
       }
