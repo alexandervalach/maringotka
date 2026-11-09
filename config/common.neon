@@ -18,8 +18,6 @@ services:
   - App\Presenters\GalleryPresenter
   - App\Model\GalleryRepository
   - App\Forms\GalleryFormFactory
-  - App\Forms\GalleryOrderFormFactory
-  - App\Forms\GalleryUploadFormFactory
   - App\Infrastructure\Media\GalleryImageProcessor
   - App\Presenters\BookingPresenter
   - App\Model\BookingRepository

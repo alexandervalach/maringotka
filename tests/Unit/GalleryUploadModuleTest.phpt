@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/bootstrap.php';
 
-use App\Forms\GalleryUploadFormFactory;
+use App\Forms\GalleryFormFactory;
 use App\Infrastructure\Media\GalleryImageProcessor;
 use App\Model\GalleryRepository;
 use Nette\Application\UI\Form;
 use Tester\Assert;
 
-$form = (new GalleryUploadFormFactory())->create();
+$form = (new GalleryFormFactory())->createUpload();
 Assert::type(Form::class, $form);
 Assert::true(isset($form['photo']));
 Assert::true(isset($form['save']));

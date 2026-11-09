@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Forms\GalleryFormFactory;
-use App\Forms\GalleryOrderFormFactory;
-use App\Forms\GalleryUploadFormFactory;
 use App\Infrastructure\Media\GalleryImageProcessor;
 use App\Localization\SupportedLocales;
 use App\Model\GalleryRepository;
@@ -25,14 +23,11 @@ final class GalleryPresenter extends BasePresenter
    * @param Translator $translator Existing UI translator.
    * @param GalleryRepository $gallery Existing gallery photos and metadata.
    * @param GalleryFormFactory $forms Gallery item editor.
-   * @param GalleryOrderFormFactory $orderForms Gallery order form.
    */
   public function __construct(
     private readonly Translator $translator,
     private readonly GalleryRepository $gallery,
     private readonly GalleryFormFactory $forms,
-    private readonly GalleryOrderFormFactory $orderForms,
-    private readonly GalleryUploadFormFactory $uploadForms,
     private readonly GalleryImageProcessor $imageProcessor,
   ) {
     parent::__construct();
@@ -132,7 +127,7 @@ final class GalleryPresenter extends BasePresenter
    */
   protected function createComponentGalleryOrderForm(): Form
   {
-    $form = $this->orderForms->create();
+    $form = $this->forms->createOrder();
     $form->onSuccess[] = function (Form $form): void {
       $values = $form->getValues('array');
       $raw = (string) $values['ordered_ids'];
@@ -181,7 +176,7 @@ final class GalleryPresenter extends BasePresenter
    */
   protected function createComponentGalleryUploadForm(): Form
   {
-    $form = $this->uploadForms->create();
+    $form = $this->forms->createUpload();
     $form->onSuccess[] = function (Form $form): void {
       $values = $form->getValues('array');
       $upload = $values['photo'];
