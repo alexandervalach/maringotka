@@ -128,13 +128,8 @@ final class BookingManagementPresenter extends BasePresenter
       if ($account['iban'] !== null && $account['account_holder'] !== null
         && mb_strlen($account['account_holder']) <= 70) {
         $amount = BookingPaymentDetails::amount($payment['total_cents']);
-        $document = BookingPaymentQr::document(
-          $account['iban'],
-          $account['account_holder'],
-          $payment['total_cents'],
-          $payment['variable_symbol'],
-        );
-        $qr = new BookingPaymentQr(dirname(__DIR__, 2) . '/var/temp/payment-qr');
+        $document = $this->paymentQrDocument($account, $payment);
+        $qr = $this->paymentQr();
         $cachedPng = $qr->cached($document);
         $this->template->paymentQrAvailable = true;
         if ($cachedPng !== null) {
@@ -161,6 +156,34 @@ final class BookingManagementPresenter extends BasePresenter
     $this->template->bookingBackUrl = $view->get('mode') === 'calendar'
       ? '/admin/booking-calendar' . (is_string($month) && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $month) ? '?month=' . $month : '')
       : '/admin/bookings';
+  }
+
+  /**
+   * Creates the private QR cache client used by viewing, generation and email.
+   *
+   * @return BookingPaymentQr QR cache and API client.
+   */
+  private function paymentQr(): BookingPaymentQr
+  {
+    return new BookingPaymentQr(dirname(__DIR__, 2) . '/var/temp/payment-qr');
+  }
+
+  /**
+   * Builds the same validated payment document for all QR-related actions.
+   * Callers check eligibility before calling this method.
+   *
+   * @param array<string, mixed> $account Payment account settings.
+   * @param array<string, mixed> $payment Booking payment snapshot.
+   * @return array{payments: list<array<string, mixed>>} PAY by square request body.
+   */
+  private function paymentQrDocument(array $account, array $payment): array
+  {
+    return BookingPaymentQr::document(
+      (string) $account['iban'],
+      (string) $account['account_holder'],
+      (int) $payment['total_cents'],
+      (string) $payment['variable_symbol'],
+    );
   }
 
   /**
@@ -197,14 +220,8 @@ final class BookingManagementPresenter extends BasePresenter
         return;
       }
       try {
-        $document = BookingPaymentQr::document(
-          $account['iban'],
-          $account['account_holder'],
-          $payment['total_cents'],
-          $payment['variable_symbol'],
-        );
-        (new BookingPaymentQr(dirname(__DIR__, 2) . '/var/temp/payment-qr'))
-          ->generate($document, (string) getenv('BYSQUARE_API_KEY'));
+        $document = $this->paymentQrDocument($account, $payment);
+        $this->paymentQr()->generate($document, (string) getenv('BYSQUARE_API_KEY'));
       } catch (InvalidArgumentException | RuntimeException $error) {
         $form->addError($error->getMessage());
         return;
@@ -239,13 +256,8 @@ final class BookingManagementPresenter extends BasePresenter
         return;
       }
       try {
-        $document = BookingPaymentQr::document(
-          $account['iban'],
-          $account['account_holder'],
-          $payment['total_cents'],
-          $payment['variable_symbol'],
-        );
-        $png = (new BookingPaymentQr(dirname(__DIR__, 2) . '/var/temp/payment-qr'))->cached($document);
+        $document = $this->paymentQrDocument($account, $payment);
+        $png = $this->paymentQr()->cached($document);
         (new BookingPaymentInstructionMailer())->send(
           $this->editingId,
           (string) $request['guest_email'],
