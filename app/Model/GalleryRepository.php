@@ -8,7 +8,6 @@ use App\Infrastructure\Database\ConnectionFactory;
 use App\Localization\SupportedLocales;
 use InvalidArgumentException;
 use RuntimeException;
-use Throwable;
 
 /** 
  * Ordering, visibility and localized alt text for the existing gallery media. 
@@ -114,9 +113,8 @@ final class GalleryRepository extends Repository
   public function importExisting(): int
   {
     $root = dirname(__DIR__, 2) . '/www/assets/images/media/';
-    $created = 0;
-    $this->database->beginTransaction();
-    try {
+    return $this->transaction(function () use ($root): int {
+      $created = 0;
       foreach (GalleryCatalog::items() as $index => $item) {
         $file = $root . $item['fallback'];
         $image = is_file($file) ? getimagesize($file) : false;
@@ -142,12 +140,8 @@ final class GalleryRepository extends Repository
           $created++;
         }
       }
-      $this->database->commit();
-    } catch (Throwable $exception) {
-      $this->database->rollBack();
-      throw $exception;
-    }
-    return $created;
+      return $created;
+    });
   }
 
   /**
@@ -167,8 +161,7 @@ final class GalleryRepository extends Repository
       }
     }
 
-    $this->database->beginTransaction();
-    try {
+    $this->transaction(function () use ($ids): void {
       // Lock the complete item set, so concurrent reorder requests cannot interleave.
       $rows = $this->database->query('SELECT id FROM cms_gallery_items ORDER BY id FOR UPDATE')->fetchAll();
       $existing = array_map(static fn ($row): int => (int) $row->id, $rows);
@@ -181,11 +174,7 @@ final class GalleryRepository extends Repository
       foreach ($ids as $position => $id) {
         $this->database->query('UPDATE cms_gallery_items SET position = ? WHERE id = ?', $position + 1, $id);
       }
-      $this->database->commit();
-    } catch (Throwable $exception) {
-      $this->database->rollBack();
-      throw $exception;
-    }
+    });
   }
 
   /**
@@ -200,8 +189,7 @@ final class GalleryRepository extends Repository
     if ($id < 1 || $position < 1 || $position > 10000 || mb_strlen($altSk) > 300 || mb_strlen($altEn) > 300) {
       throw new InvalidArgumentException('Invalid gallery values.');
     }
-    $this->database->beginTransaction();
-    try {
+    $this->transaction(function () use ($id, $position, $visible, $altSk, $altEn): void {
       $row = $this->getTable()->get($id);
       if ($row === null) {
         throw new InvalidArgumentException('Gallery photo not found.');
@@ -214,11 +202,7 @@ final class GalleryRepository extends Repository
           (int) $row['media_id'], $locale, $alt,
         );
       }
-      $this->database->commit();
-    } catch (Throwable $exception) {
-      $this->database->rollBack();
-      throw $exception;
-    }
+    });
   }
 
   /**
@@ -229,8 +213,7 @@ final class GalleryRepository extends Repository
    */
   public function addUploaded(array $image): void
   {
-    $this->database->beginTransaction();
-    try {
+    $this->transaction(function () use ($image): void {
       $this->database->query('LOCK TABLE cms_gallery_items IN SHARE ROW EXCLUSIVE MODE');
       $this->database->query(
         'INSERT INTO cms_media (storage_key, mime_type, byte_size, width, height, sha256) VALUES (?, ?, ?, ?, ?, ?)',
@@ -249,11 +232,7 @@ final class GalleryRepository extends Repository
         'position' => (int) $positionRow->next_position,
         'is_visible' => true,
       ]);
-      $this->database->commit();
-    } catch (Throwable $exception) {
-      $this->database->rollBack();
-      throw $exception;
-    }
+    });
   }
 
   /** 

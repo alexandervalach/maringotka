@@ -24,6 +24,26 @@ abstract class Repository
   }
 
   /**
+   * Run a database operation atomically and roll back on failure.
+   *
+   * @template T
+   * @param callable(): T $operation
+   * @return T
+   */
+  protected function transaction(callable $operation): mixed
+  {
+    $this->database->beginTransaction();
+    try {
+      $result = $operation();
+      $this->database->commit();
+      return $result;
+    } catch (\Throwable $exception) {
+      $this->database->rollBack();
+      throw $exception;
+    }
+  }
+
+  /**
    * Query for the repository's table.
    * @return Selection<ActiveRow> 
    * */

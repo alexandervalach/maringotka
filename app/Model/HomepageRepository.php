@@ -8,7 +8,6 @@ use App\Infrastructure\Database\ConnectionFactory;
 use App\Localization\SupportedLocales;
 use InvalidArgumentException;
 use Nette\Database\Table\ActiveRow;
-use Throwable;
 
 /** 
  * Persists homepage translations; saving makes the updated text public. 
@@ -87,8 +86,7 @@ final class HomepageRepository extends Repository
       throw new InvalidArgumentException('Homepage summary exceeds 4000 characters.');
     }
 
-    $this->database->beginTransaction();
-    try {
+    $this->transaction(function () use ($locale, $title, $summary): void {
       $this->database->query(
         'INSERT INTO cms_pages (slug) VALUES (?) ON CONFLICT (slug) DO NOTHING',
         self::SLUG,
@@ -109,11 +107,7 @@ final class HomepageRepository extends Repository
         '',
       );
       $page->update(['is_published' => true, 'updated_at' => new \DateTimeImmutable()]);
-      $this->database->commit();
-    } catch (Throwable $exception) {
-      $this->database->rollBack();
-      throw $exception;
-    }
+    });
   }
 
   /** 

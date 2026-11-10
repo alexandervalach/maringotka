@@ -6,7 +6,6 @@ namespace App\Model;
 
 use App\Infrastructure\Database\ConnectionFactory;
 use InvalidArgumentException;
-use Throwable;
 
 /** Public, non-secret contact details shared by all site languages. */
 final class ContactRepository extends Repository
@@ -78,8 +77,7 @@ final class ContactRepository extends Repository
   public function save(array $details): void
   {
     $normalized = self::validateAndNormalize($details);
-    $this->database->beginTransaction();
-    try {
+    $this->transaction(function () use ($normalized): void {
       foreach (self::SETTING_KEYS as $field => $key) {
         $this->database->query(
           'INSERT INTO public_settings (key, value) VALUES (?, ?) '
@@ -88,11 +86,7 @@ final class ContactRepository extends Repository
           $normalized[$field],
         );
       }
-      $this->database->commit();
-    } catch (Throwable $exception) {
-      $this->database->rollBack();
-      throw $exception;
-    }
+    });
   }
 
   /**

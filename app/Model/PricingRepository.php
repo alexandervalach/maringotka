@@ -6,7 +6,6 @@ namespace App\Model;
 
 use App\Infrastructure\Database\ConnectionFactory;
 use InvalidArgumentException;
-use Throwable;
 
 /** 
  * Rates for one accommodation, shared by all language versions. 
@@ -110,8 +109,7 @@ final class PricingRepository extends Repository
       throw new InvalidArgumentException('Minimum stay must be between 1 and 365 nights.');
     }
 
-    $this->database->beginTransaction();
-    try {
+    $this->transaction(function () use ($amounts, $minimum): void {
       $this->database->query(
         'INSERT INTO pricing_settings (singleton_id, first_night_price_cents, additional_night_price_cents, minimum_nights) '
         . 'VALUES (1, ?, ?, ?) ON CONFLICT (singleton_id) DO UPDATE SET '
@@ -132,11 +130,7 @@ final class PricingRepository extends Repository
           $amounts[$field],
         );
       }
-      $this->database->commit();
-    } catch (Throwable $exception) {
-      $this->database->rollBack();
-      throw $exception;
-    }
+    });
   }
 
   /**
