@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Nette\Mail\Message;
 use Nette\Mail\SmtpMailer;
+use App\Model\SmtpTransportFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -236,22 +237,12 @@ if (realpath((string) ($_SERVER['SCRIPT_FILENAME'] ?? '')) === __FILE__) {
     if (!class_exists(SmtpMailer::class)) {
       throw new RuntimeException('Missing dependency nette/mail. Run composer require nette/mail.');
     }
-    $host = bookingMailEnv('SMTP_HOST');
-    $username = bookingMailEnv('SMTP_USER');
-    $password = bookingMailEnv('SMTP_PASSWORD');
     $from = bookingMailEnv('MAIL_FROM');
     $adminAddress = bookingMailEnv('BOOKING_ADMIN_EMAIL');
     if (!filter_var($from, FILTER_VALIDATE_EMAIL) || !filter_var($adminAddress, FILTER_VALIDATE_EMAIL)) {
       throw new RuntimeException('Invalid sender or administrator email address.');
     }
-    $encryption = bookingMailEnv('SMTP_ENCRYPTION');
-    if (!in_array($encryption, ['ssl', 'tls'], true)) {
-      throw new RuntimeException('SMTP_ENCRYPTION must be ssl or tls.');
-    }
-    $port = filter_var(bookingMailEnv('SMTP_PORT'), FILTER_VALIDATE_INT);
-    if (!is_int($port) || $port < 1 || $port > 65535) {
-      throw new RuntimeException('Invalid SMTP_PORT.');
-    }
+    $mailer = SmtpTransportFactory::create();
     $dsn = sprintf(
       'pgsql:host=%s;port=%s;dbname=%s',
       bookingMailEnv('DB_HOST'),
@@ -261,13 +252,6 @@ if (realpath((string) ($_SERVER['SCRIPT_FILENAME'] ?? '')) === __FILE__) {
     $pdo = new PDO($dsn, bookingMailEnv('DB_USER'), bookingMailEnv('DB_PASSWORD'), [
       PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
-    $mailer = new SmtpMailer(
-      host: $host,
-      username: $username,
-      password: $password,
-      port: $port,
-      encryption: $encryption,
-    );
     $result = bookingMailDrain($pdo, $mailer, $from, $adminAddress, 25);
     echo sprintf("Sent: %d; failed: %d\n", $result['sent'], $result['failed']);
     exit($result['failed'] === 0 ? 0 : 1);

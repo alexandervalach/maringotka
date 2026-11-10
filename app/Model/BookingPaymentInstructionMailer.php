@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Model;
 
 use Nette\Mail\Message;
-use Nette\Mail\SmtpMailer;
 use RuntimeException;
 
 /**
@@ -19,13 +18,7 @@ final class BookingPaymentInstructionMailer
    */
   public static function configured(): bool
   {
-    foreach (['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD', 'SMTP_ENCRYPTION', 'MAIL_FROM'] as $key) {
-      $value = getenv($key);
-      if (!is_string($value) || trim($value) === '') {
-        return false;
-      }
-    }
-    return filter_var((string) getenv('MAIL_FROM'), FILTER_VALIDATE_EMAIL) !== false;
+    return SmtpTransportFactory::configured();
   }
 
   /**
@@ -61,11 +54,6 @@ final class BookingPaymentInstructionMailer
     if ($holder === '' || strpbrk($holder, "\r\n") !== false) {
       throw new RuntimeException('Neplatný príjemca platby.');
     }
-    $encrypted = (string) getenv('SMTP_ENCRYPTION');
-    $port = filter_var(getenv('SMTP_PORT'), FILTER_VALIDATE_INT);
-    if (!in_array($encrypted, ['ssl', 'tls'], true) || !is_int($port) || $port < 1 || $port > 65535) {
-      throw new RuntimeException('Neplatné nastavenie zabezpečeného SMTP.');
-    }
     $mail = new Message();
     $mail->setFrom((string) getenv('MAIL_FROM'))
       ->addTo($recipient)
@@ -74,14 +62,7 @@ final class BookingPaymentInstructionMailer
     if ($png !== null) {
       $mail->addAttachment('platba-' . $bookingId . '-pay-by-square.png', $png, 'image/png');
     }
-    $mailer = new SmtpMailer(
-      host: (string) getenv('SMTP_HOST'),
-      username: (string) getenv('SMTP_USER'),
-      password: (string) getenv('SMTP_PASSWORD'),
-      port: $port,
-      encryption: $encrypted,
-      timeout: 15,
-    );
+    $mailer = SmtpTransportFactory::create(15);
     $mailer->send($mail);
   }
 
