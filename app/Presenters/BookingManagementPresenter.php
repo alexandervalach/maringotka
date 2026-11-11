@@ -121,6 +121,7 @@ final class BookingManagementPresenter extends BasePresenter
     $this->template->paymentQrAvailable = false;
     $this->template->paymentEmailUrl = null;
     $this->template->paymentEmailConfigured = BookingPaymentInstructionMailer::configured();
+    $this->template->paymentEmailHistory = $this->payments->instructionMailHistory($id);
     if ($payment !== null
       && $account['account_holder'] !== null
       && $this->hasPaymentInstructions(
@@ -290,16 +291,21 @@ final class BookingManagementPresenter extends BasePresenter
       try {
         $document = $this->paymentQrDocument($account, $payment);
         $png = $this->paymentQr()->cached($document);
-        (new BookingPaymentInstructionMailer())->send(
-          $this->editingId,
-          (string) $request['guest_email'],
-          (string) $account['account_holder'],
-          (string) $account['iban'],
-          $account['bic'],
-          (int) $payment['total_cents'],
-          $payment['variable_symbol'],
-          $png,
-        );
+        $this->payments->sendInstructions($this->editingId, function () use ($request, $account, $payment, $png): void {
+          (new BookingPaymentInstructionMailer())->send(
+            $this->editingId,
+            (string) $request['guest_email'],
+            (string) $account['account_holder'],
+            (string) $account['iban'],
+            $account['bic'],
+            (int) $payment['total_cents'],
+            (string) $payment['variable_symbol'],
+            $png,
+          );
+        });
+      } catch (DomainException $error) {
+        $form->addError($error->getMessage());
+        return;
       } catch (\Throwable $error) {
         error_log('Payment instruction mail failed (' . get_class($error) . ').');
         $form->addError('Nepodarilo sa odoslať e-mail. Skontrolujte SMTP a skúste to znovu.');

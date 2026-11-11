@@ -142,4 +142,79 @@ final class BookingPaymentRepository
       throw new DomainException('Úhradu možno evidovať iba pri potvrdenej rezervácii so známou cenou.');
     }
   }
+
+  /**
+   * Returns an audit summary for successfully submitted payment instruction mail.
+   *
+   * @param int $bookingId Booking identifier.
+   * @return array{sent_at: string|null, count: int}
+   */
+  public function instructionMailHistory(int $bookingId): array
+  {
+    $row = $this->database->query(
+      'SELECT last_sent_at, send_count FROM booking_payment_mail_history WHERE booking_id = ?',
+      $bookingId,
+    )->fetch();
+    if ($row === null) {
+      return ['sent_at' => null, 'count' => 0];
+    }
+    $sent = $row['last_sent_at'];
+    return [
+      'sent_at' => $sent instanceof DateTimeInterface ? $sent->format('d.m.Y H:i') : (string) $sent,
+      'count' => (int) $row['send_count'],
+    ];
+  }
+
+  /**
+   * Serializes sends for the same reservation and prevents accidental resends.
+   * A resend is allowed after five minutes, when initiated by an administrator.
+   * No successful send is recorded if the mail transport throws.
+   *
+   * @param int $bookingId Booking identifier.
+   * @param callable(): void $send Already prepared SMTP action.
+   * @return void
+   */
+  public function sendInstructions(int $bookingId, callable $send): void
+  {
+    if ($bookingId < 1) {
+      throw new InvalidArgumentException('Neplatné ID rezervácie.');
+    }
+    $this->database->beginTransaction();
+    try {
+      // Row-level lock serializes competing requests, including a double click.
+      $booking = $this->database->query(
+        'SELECT b.id FROM booking_requests b'
+        . ' LEFT JOIN booking_payments p ON p.booking_id = b.id'
+        . ' WHERE b.id = ? AND b.status = ? AND b.price_total_cents > 0'
+        . ' AND (p.status IS NULL OR p.status = ?) FOR UPDATE OF b',
+        $bookingId,
+        'confirmed',
+        'unpaid',
+      )->fetch();
+      if ($booking === null) {
+        throw new DomainException('Platobné pokyny možno poslať len k potvrdenej nezaplatenej rezervácii.');
+      }
+      $recent = $this->database->query(
+        "SELECT last_sent_at > CURRENT_TIMESTAMP - INTERVAL '5 minutes' AS recent"
+        . ' FROM booking_payment_mail_history WHERE booking_id = ?',
+        $bookingId,
+      )->fetch();
+      if ($recent !== null && $recent['recent'] === true) {
+        throw new DomainException('Platobné pokyny už boli nedávno odoslané. Ďalší pokus je možný po piatich minútach.');
+      }
+      $send();
+      $this->database->query(
+        'INSERT INTO booking_payment_mail_history (booking_id, last_sent_at, send_count)'
+        . ' VALUES (?, CURRENT_TIMESTAMP, 1)'
+        . ' ON CONFLICT (booking_id) DO UPDATE SET'
+        . ' last_sent_at = EXCLUDED.last_sent_at,'
+        . ' send_count = booking_payment_mail_history.send_count + 1',
+        $bookingId,
+      );
+      $this->database->commit();
+    } catch (\Throwable $error) {
+      $this->database->rollBack();
+      throw $error;
+    }
+  }
 }

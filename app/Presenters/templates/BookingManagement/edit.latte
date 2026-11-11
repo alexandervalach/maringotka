@@ -119,11 +119,13 @@
         <p><a class="admin-save-button booking-payment__action" href="{$paymentEmailUrl}">Pripraviť e-mail hosťovi</a></p>
         <p class="booking-payment__hint">E-mail sa iba pripraví v poštovom programe. QR obrázok je potrebné priložiť ručne.</p>
       {/if}
-
       {if $paymentQrAvailable && $paymentEmailConfigured && $payment['status'] === 'unpaid'}
         <div class="booking-payment__form cms-form">
           <h3>Odoslať platobné pokyny hosťovi</h3>
-          <p class="booking-payment__hint">Odošle e-mail na adresu hosťa. Už uložený QR kód bude priložený, nový sa negeneruje. Kliknutie spôsobí skutočné odoslanie; pri opakovanom kliknutí sa odošle ďalší e-mail.</p>
+          <p class="booking-payment__hint">Odošle e-mail na adresu hosťa. Už uložený QR kód bude priložený, nový sa negeneruje. Po úspešnom odoslaní systém zaznamená čas a počet odoslaní. Náhodné opakované odoslanie do piatich minút zablokuje.</p>
+          {if $paymentEmailHistory['sent_at'] !== null}
+            <p class="booking-payment__hint">Naposledy odoslané: {$paymentEmailHistory['sent_at']} · Počet odoslaní: {$paymentEmailHistory['count']}.</p>
+          {/if}
           {form paymentEmailForm}
             <ul class="cms-form-errors" n:if="$form->hasErrors()">
               <li n:foreach="$form->getErrors() as $error">{$error}</li>
@@ -134,7 +136,6 @@
       {elseif $paymentQrAvailable && !$paymentEmailConfigured}
         <p class="booking-payment__hint">Serverové odosielanie e-mailov nie je nakonfigurované. Môžete použiť návrh e-mailu vyššie.</p>
       {/if}
-      
       {if $request['status'] === 'confirmed' && $payment['total_cents'] !== null}
         <div class="booking-payment__form cms-form">
           {form paymentForm}
