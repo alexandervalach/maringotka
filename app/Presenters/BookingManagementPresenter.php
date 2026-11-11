@@ -10,6 +10,7 @@ use App\Model\BookingManagementRepository;
 use App\Model\BookingPaymentRepository;
 use App\Model\BookingPaymentDetails;
 use App\Model\BookingPaymentInstructionMailer;
+use App\Helpers\PaymentEmailTemplate;
 use App\Model\BookingPaymentQr;
 use DomainException;
 use InvalidArgumentException;
@@ -140,17 +141,17 @@ final class BookingManagementPresenter extends BasePresenter
       }
       $email = (string) $request['guest_email'];
       if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
-        $subject = 'Platobné údaje k rezervácii č. ' . $id;
-        $body = BookingPaymentInstructionMailer::body(
+        $content = PaymentEmailTemplate::content(
           $id,
           (string) $account['account_holder'],
           (string) $account['iban'],
           $account['bic'],
           (int) $payment['total_cents'],
           (string) $payment['variable_symbol'],
+          $this->payments->emailTemplate(),
         );
         $this->template->paymentEmailUrl = 'mailto:' . rawurlencode($email)
-          . '?subject=' . rawurlencode($subject) . '&body=' . rawurlencode($body);
+          . '?subject=' . rawurlencode($content['subject']) . '&body=' . rawurlencode($content['body']);
       }
     }
     $view = $this->getSession('booking-admin-view');
@@ -301,6 +302,7 @@ final class BookingManagementPresenter extends BasePresenter
             (int) $payment['total_cents'],
             (string) $payment['variable_symbol'],
             $png,
+            $this->payments->emailTemplate(),
           );
         });
       } catch (DomainException $error) {

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use App\Helpers\PaymentEmailTemplate;
 use Nette\Mail\Message;
 use RuntimeException;
 
 /**
- * Sends bank transfer details via the project's existing SMTP credentials.
- * Never generates a QR or contacts the PAY by square API.
+ * Sends prepared payment instructions using the existing SMTP infrastructure.
  */
 final class BookingPaymentInstructionMailer
 {
   /**
-   * @return bool Whether outgoing mail has the required configuration.
+   * @return bool Whether SMTP is configured.
    */
   public static function configured(): bool
   {
@@ -23,13 +23,14 @@ final class BookingPaymentInstructionMailer
 
   /**
    * @param int $bookingId Permanent reservation identifier.
-   * @param string $recipient Validated guest email address.
-   * @param string $holder Bank account holder.
-   * @param string $iban Receiving IBAN.
+   * @param string $recipient Guest email.
+   * @param string $holder Account holder.
+   * @param string $iban Bank account.
    * @param string|null $bic Optional BIC.
-   * @param int $cents Total price in eurocents.
-   * @param string $variableSymbol Stable payment reference.
-   * @param string|null $png Cached PAY by square PNG; no API generation.
+   * @param int $cents Price in eurocents.
+   * @param string $variableSymbol Payment reference.
+   * @param string|null $png Cached QR attachment.
+   * @param array{subject: string, body: string, show_logo: bool}|null $template Saved template.
    * @return void
    */
   public function send(
@@ -41,6 +42,7 @@ final class BookingPaymentInstructionMailer
     int $cents,
     string $variableSymbol,
     ?string $png,
+    ?array $template = null,
   ): void {
     if (!self::configured()) {
       throw new RuntimeException('SMTP nie je nakonfigurované.');
@@ -54,40 +56,19 @@ final class BookingPaymentInstructionMailer
     if ($holder === '' || strpbrk($holder, "\r\n") !== false) {
       throw new RuntimeException('Neplatný príjemca platby.');
     }
+    $content = PaymentEmailTemplate::content($bookingId, $holder, $iban, $bic, $cents, $variableSymbol, $template);
+    $logoPath = dirname(__DIR__, 2) . '/www/assets/images/logo.png';
     $mail = new Message();
     $mail->setFrom((string) getenv('MAIL_FROM'))
       ->addTo($recipient)
-      ->setSubject('Platobné údaje k rezervácii č. ' . $bookingId)
-      ->setBody(self::body($bookingId, $holder, $iban, $bic, $cents, $variableSymbol));
+      ->setSubject($content['subject'])
+      ->setHtmlBody(
+        PaymentEmailTemplate::htmlDocument($content['html'], $content['show_logo'], is_file($logoPath)),
+        dirname($logoPath),
+      );
     if ($png !== null) {
       $mail->addAttachment('platba-' . $bookingId . '-pay-by-square.png', $png, 'image/png');
     }
-    $mailer = SmtpTransportFactory::create(15);
-    $mailer->send($mail);
-  }
-
-  /**
-   * Builds plain text without inserting user-supplied HTML.
-   *
-   * @return string Plain-text payment instructions.
-   */
-  public static function body(
-    int $bookingId,
-    string $holder,
-    string $iban,
-    ?string $bic,
-    int $cents,
-    string $variableSymbol,
-  ): string {
-    return "Dobrý deň,\n\nzasielame platobné údaje k potvrdenej rezervácii č. " . $bookingId
-      . "\nPríjemca: " . $holder
-      . "\nIBAN: " . $iban
-      . ($bic !== null && $bic !== '' ? "\nBIC: " . $bic : '')
-      . "\nSuma: " . BookingPaymentDetails::amount($cents) . " EUR"
-      . "\nVariabilný symbol: " . $variableSymbol
-      . "\nSpráva pre príjemcu: Rezervacia VS " . $variableSymbol
-      . "\n\nPlatbu odošlite bankovým prevodom na uvedený účet."
-      . "\nAk váš bankový klient podporuje PAY by square, môžete použiť priložený QR kód (ak je priložený)."
-      . "\nPred potvrdením platby skontrolujte údaje.\n\nĎakujeme.\n";
+    SmtpTransportFactory::create(15)->send($mail);
   }
 }

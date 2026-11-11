@@ -27,4 +27,5 @@ services:
   - App\Forms\BookingDecisionFormFactory
   - App\Model\BookingCalendarRepository
   - App\Model\BookingPaymentRepository
+  - App\Forms\PaymentSettingsFormFactory
   - App\Presenters\PaymentSettingsPresenter

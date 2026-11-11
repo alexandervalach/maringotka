@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Model;
 
 use App\Infrastructure\Database\ConnectionFactory;
+use App\Helpers\PaymentEmailTemplate;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
@@ -43,6 +44,57 @@ final class BookingPaymentRepository
       'account_holder' => $row === null ? null : ($row['account_holder'] === null ? null : (string) $row['account_holder']),
       'bic' => $row === null ? null : ($row['bic'] === null ? null : (string) $row['bic']),
     ];
+  }
+
+  /**
+   * Returns the optional administrator-defined payment email template.
+   * A missing row means the built-in template must be used.
+   *
+   * @return array{subject: string, body: string, show_logo: bool}|null
+   */
+  public function emailTemplate(): ?array
+  {
+    $row = $this->database->query(
+      'SELECT subject, body, show_logo FROM booking_payment_email_template WHERE id = 1',
+    )->fetch();
+    if ($row === null) {
+      return null;
+    }
+    return [
+      'subject' => (string) $row['subject'],
+      'body' => (string) $row['body'],
+      'show_logo' => in_array($row['show_logo'], [true, 1, '1', 't', 'true'], true),
+    ];
+  }
+
+  /**
+   * Saves a validated email template. The built-in version remains available
+   * when the administrator restores the defaults.
+   *
+   * @return void
+   */
+  public function saveEmailTemplate(string $subject, string $body, bool $showLogo): void
+  {
+    PaymentEmailTemplate::validateTemplate($subject, $body);
+    $this->database->query(
+      'INSERT INTO booking_payment_email_template (id, subject, body, show_logo, updated_at)'
+      . ' VALUES (1, ?, ?, ?, CURRENT_TIMESTAMP)'
+      . ' ON CONFLICT (id) DO UPDATE SET subject = EXCLUDED.subject, body = EXCLUDED.body,'
+      . ' show_logo = EXCLUDED.show_logo, updated_at = CURRENT_TIMESTAMP',
+      $subject,
+      $body,
+      $showLogo,
+    );
+  }
+
+  /**
+   * Restores the default text without copying it into the database.
+   *
+   * @return void
+   */
+  public function resetEmailTemplate(): void
+  {
+    $this->database->query('DELETE FROM booking_payment_email_template WHERE id = 1');
   }
 
   /**
