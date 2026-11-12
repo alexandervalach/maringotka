@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Nette\Mail\Message;
 use Nette\Mail\SmtpMailer;
 use App\Model\SmtpTransportFactory;
+use App\Helpers\BookingRequestEmailTemplate;
+use App\Helpers\PaymentEmailTemplate;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -102,9 +104,9 @@ function bookingMailQuoteLines(mixed $storedQuote, mixed $storedTotal): array
  * @param array<string, mixed> $row Outbox event and reservation data.
  * @param string $contactAddress Public contact e-mail for cancellation requests.
  * @param string $contactPhone Optional public contact phone number.
- * @return array{subject: string, body: string}
+ * @return array{subject: string, body: string, html?: string, show_logo?: bool}
  */
-function bookingMailContent(array $row, string $contactAddress = '', string $contactPhone = ''): array
+function bookingMailContent(array $row, string $contactAddress = '', string $contactPhone = '', ?array $receivedTemplate = null): array
 {
   $number = 'R-' . str_pad((string) $row['booking_id'], 6, '0', STR_PAD_LEFT);
   $guest = (string) $row['guest_name'];
@@ -112,6 +114,16 @@ function bookingMailContent(array $row, string $contactAddress = '', string $con
   $departure = (string) $row['departure_date'];
   $event = (string) $row['event_type'];
   $admin = $row['recipient_type'] === 'admin';
+
+  if (!$admin && $event === 'received') {
+    $rendered = BookingRequestEmailTemplate::content(
+      $row,
+      bookingMailQuoteLines($row['price_quote'] ?? null, $row['price_total_cents'] ?? null),
+      $contactAddress,
+      $receivedTemplate,
+    );
+    return $rendered;
+  }
 
   $headings = [
     'received' => 'Žiadosť bola prijatá',
@@ -197,13 +209,39 @@ SQL);
         break;
       }
       $contactPhone = getenv('BOOKING_CONTACT_PHONE');
-      $content = bookingMailContent($event, $adminAddress, is_string($contactPhone) ? trim($contactPhone) : '');
+      $receivedGuest = $event['event_type'] === 'received' && $event['recipient_type'] === 'guest';
+      $receivedTemplate = null;
+      if ($receivedGuest) {
+        $templateRow = $pdo->query(
+          "SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = 'received'"
+        )->fetch(PDO::FETCH_ASSOC);
+        if (is_array($templateRow)) {
+          $receivedTemplate = [
+            'subject' => (string) $templateRow['subject'],
+            'body' => (string) $templateRow['body'],
+            'show_logo' => (bool) $templateRow['show_logo'],
+          ];
+        }
+      }
+      $content = bookingMailContent(
+        $event,
+        $adminAddress,
+        is_string($contactPhone) ? trim($contactPhone) : '',
+        $receivedTemplate,
+      );
       $recipient = $event['recipient_type'] === 'admin' ? $adminAddress : (string) $event['guest_email'];
       $message = new Message();
       $message->setFrom($from)
         ->addTo($recipient)
         ->setSubject($content['subject'])
         ->setBody($content['body']);
+      if ($receivedGuest && isset($content['html'], $content['show_logo'])) {
+        $logoPath = dirname(__DIR__) . '/www/assets/images/logo.png';
+        $message->setHtmlBody(
+          PaymentEmailTemplate::htmlDocument($content['html'], $content['show_logo'], is_file($logoPath)),
+          dirname($logoPath),
+        );
+      }
       $mailer->send($message);
       $stmt = $pdo->prepare('UPDATE booking_mail_outbox SET sent_at = now(), attempts = attempts + 1 WHERE id = ?');
       $stmt->execute([(int) $event['outbox_id']]);

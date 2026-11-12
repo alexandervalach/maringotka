@@ -29,3 +29,5 @@ services:
   - App\Model\BookingPaymentRepository
   - App\Forms\PaymentSettingsFormFactory
   - App\Presenters\PaymentSettingsPresenter
+  - App\Model\MailTemplateRepository
+  - App\Forms\MailTemplateFormFactory

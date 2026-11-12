@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Model\BookingPaymentRepository;
+use App\Model\MailTemplateRepository;
+use App\Forms\MailTemplateFormFactory;
+use App\Helpers\BookingRequestEmailTemplate;
 use App\Forms\PaymentSettingsFormFactory;
 use App\Helpers\PaymentEmailTemplate;
 use InvalidArgumentException;
@@ -21,6 +24,8 @@ final class PaymentSettingsPresenter extends BasePresenter
   public function __construct(
     private readonly BookingPaymentRepository $payments,
     private readonly PaymentSettingsFormFactory $forms,
+    private readonly MailTemplateRepository $mailTemplates,
+    private readonly MailTemplateFormFactory $mailForms,
   )
   {
     parent::__construct();
@@ -63,6 +68,58 @@ final class PaymentSettingsPresenter extends BasePresenter
       true,
       '/assets/images/logo.png',
     );
+  }
+
+  /**
+   * Shows the received-request template editor with exclusively fictional preview data.
+   */
+  public function renderReceived(): void
+  {
+    $template = $this->mailTemplates->received();
+    $sample = BookingRequestEmailTemplate::content([
+      'booking_id' => 42,
+      'guest_name' => 'Testovaci host',
+      'arrival_date' => '2099-06-01',
+      'departure_date' => '2099-06-03',
+    ], [
+      '- Prva noc: 1 × 100,00 € = 100,00 €',
+      '- Doplnok: 1 × 15,00 € = 15,00 €',
+      'Spolu: 115,00 €',
+    ], 'kontakt@example.test', $template);
+    $this->template->emailPreviewSubject = $sample['subject'];
+    $this->template->emailPreviewHtml = PaymentEmailTemplate::htmlDocument(
+      $sample['html'], $sample['show_logo'], true, '/assets/images/logo.png',
+    );
+  }
+
+  /**
+   * Admin editor; form markup is owned by app/Forms.
+   */
+  protected function createComponentReceivedTemplateForm(): Form
+  {
+    $form = $this->mailForms->createTemplate($this->mailTemplates->received());
+    $form->onSuccess[] = function (Form $form): void {
+      $restore = $form->getComponent('restore');
+      if ($restore instanceof \Nette\Forms\Controls\SubmitButton && $restore->isSubmittedBy()) {
+        $this->mailTemplates->resetReceived();
+        $this->flashMessage('Predvolena sablona bola obnovena.', 'success');
+        $this->redirect('this');
+      }
+      $values = $form->getValues('array');
+      try {
+        $this->mailTemplates->saveReceived(
+          (string) $values['subject'],
+          (string) $values['body'],
+          (bool) $values['show_logo'],
+        );
+      } catch (InvalidArgumentException $error) {
+        $form->addError($error->getMessage());
+        return;
+      }
+      $this->flashMessage('Sablona bola ulozena.', 'success');
+      $this->redirect('this');
+    };
+    return $form;
   }
 
   /**

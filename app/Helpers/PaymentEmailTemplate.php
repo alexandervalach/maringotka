@@ -109,8 +109,8 @@ MARKDOWN;
     $body = strtr($bodyTemplate, $values);
     return [
       'subject' => $subject,
-      'body' => self::plain($body),
-      'html' => self::html($body),
+      'body' => self::plainText($body),
+      'html' => self::renderMarkdown($body),
       'show_logo' => $template['show_logo'],
     ];
   }
@@ -138,7 +138,7 @@ MARKDOWN;
    *
    * @return string
    */
-  private static function plain(string $text): string
+  public static function plainText(string $text): string
   {
     $text = preg_replace('/^# /m', '', $text) ?? $text;
     return str_replace(['**', '*'], '', $text);
@@ -150,7 +150,7 @@ MARKDOWN;
    *
    * @return string
    */
-  private static function html(string $text): string
+  public static function renderMarkdown(string $text): string
   {
     $safe = htmlspecialchars(str_replace(["\r\n", "\r"], "\n", $text), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $blocks = preg_split('/\n{2,}/', trim($safe)) ?: [];
