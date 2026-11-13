@@ -17,7 +17,8 @@ final class BookingFormFactory extends FormFactory
    */
   public function create(string $locale = 'sk'): Form
   {
-    $form = parent::create();
+    $form = new Form();
+
     $en = $locale === 'en';
     $form->addText('arrival_date', ($en ? 'Arrival' : 'Príchod'))
       ->setRequired('Vyberte dátum príchodu.')
