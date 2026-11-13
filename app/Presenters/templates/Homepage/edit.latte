@@ -1,44 +1,42 @@
 {layout '../@admin.latte'}
 
-{block pageTitle}Úprava hlavnej stránky{/block}
-
-{block extraHead}
-<style>
-    .cms-editor { max-width: 54rem; }
-    .cms-editor h1 { font-size: var(--text-h2); }
-    .cms-editor-form label { display: block; margin: var(--s4) 0 var(--s2); font-weight: 700; }
-    .cms-editor-form input[type="text"], .cms-editor-form textarea { display: block; width: 100%; padding: var(--s3); border: 1px solid var(--line); border-radius: .625rem; background: #fff; color: var(--ink); font: inherit; }
-    .cms-editor-form textarea { min-height: 11rem; resize: vertical; }
-    .cms-editor-form input:focus-visible, .cms-editor-form textarea:focus-visible { outline: 3px solid var(--sand); outline-offset: 2px; border-color: var(--forest); }
-    .cms-editor-form .button { margin-top: var(--s5); cursor: pointer; }
-    .cms-editor-errors { color: #a12828; }
-  </style>
-{/block}
+{block pageTitle}Hlavná stránka{/block}
 
 {block content}
 <main id="main" class="container inner-page cms-editor">
-  <nav aria-label="Administrácia">
-    <a class="back-link" href="/admin">← Administrácia</a>
-    <a class="back-link" href="/admin/home/sk">Slovenčina</a>
-    <a class="back-link" href="/admin/home/en">English</a>
-    <a class="back-link" href="/">Verejný web</a>
-  </nav>
   <section class="info-card">
-    <h1>Hlavná stránka – {$editingLocale|upper}</h1>
-    <p class="page-lead">Upravený nadpis a úvodný text sa po uložení zobrazia na verejnom webe.</p>
+    <h1>Hlavná stránka</h1>
+    <p class="page-lead">Vyberte jazyk obsahu, ktorý chcete upraviť.</p>
+
+    <nav class="mail-template-picker" aria-label="Jazyk hlavnej stránky">
+      <a class="mail-template-picker__item" href="/admin/home/sk" {if $editingLocale === 'sk'}aria-current="page"{/if}>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-3 3-3 15 0 18M12 3c3 3 3 15 0 18"/></svg>
+        <span><strong>Slovenčina (SK)</strong><small>Slovenská verzia hlavnej stránky</small></span>
+      </a>
+      <a class="mail-template-picker__item" href="/admin/home/en" {if $editingLocale === 'en'}aria-current="page"{/if}>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-3 3-3 15 0 18M12 3c3 3 3 15 0 18"/></svg>
+        <span><strong>English (EN)</strong><small>Anglická verzia hlavnej stránky</small></span>
+      </a>
+    </nav>
+  </section>
+
+  <section class="info-card">
+    <h2>Úprava obsahu – {$editingLocale|upper}</h2>
+    <p class="page-lead">Nadpis a úvodný text sa po uložení zobrazia na verejnom webe vo vybranom jazyku.</p>
 
     {include '../_adminFlashes.latte'}
-    <div class="cms-editor-form">
-    {form homepageForm}
-      <ul class="cms-editor-errors" n:if="$form->hasErrors()">
-        <li n:foreach="$form->getErrors() as $error">{$error}</li>
-      </ul>
-      {label title /}
-      {input title}
-      {label summary /}
-      {input summary}
-      {input save}
-    {/form}
+
+    <div class="cms-form">
+      {form homepageForm}
+        <ul class="cms-form-errors" n:if="$form->hasErrors()">
+          <li n:foreach="$form->getErrors() as $error">{$error}</li>
+        </ul>
+        {label title /}
+        {input title}
+        {label summary /}
+        {input summary}
+        {input save}
+      {/form}
     </div>
   </section>
 </main>

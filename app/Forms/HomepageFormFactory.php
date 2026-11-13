@@ -23,7 +23,7 @@ final class HomepageFormFactory extends FormFactory
     $form->addTextArea('summary', 'Úvodný text')
       ->setMaxLength(4000);
     $form->addSubmit('save', 'Uložiť zmeny')
-      ->setHtmlAttribute('class', 'button');
+      ->setHtmlAttribute('class', 'admin-save-button');
 
     return $form;
   }
