@@ -3,6 +3,7 @@
 {block pageTitle}Kalendár rezervácií{/block}
 
 {block content}
+{var $currentDate = date('Y-m-d')}
 <main class="container inner-page booking-calendar-admin">
   <nav aria-label="Administrácia">
     <a class="back-link" href="/admin">← Administrácia</a>
@@ -39,7 +40,7 @@
       </div>
       <div class="booking-calendar-admin__grid">
         {foreach $days as $day}
-          <div class="booking-calendar-admin__day {$day['inMonth'] ? '' : 'booking-calendar-admin__day--outside'} {$day['today'] ? 'booking-calendar-admin__day--today' : ''}">
+          <div class="booking-calendar-admin__day {$day['inMonth'] ? '' : 'booking-calendar-admin__day--outside'} {$day['today'] ? 'booking-calendar-admin__day--today' : ''} {$day['date'] < $currentDate ? 'booking-calendar-admin__day--past' : ''}">
             <span class="booking-calendar-admin__date">{$day['day']}</span>
             {foreach $day['items'] as $item}
               <details class="booking-calendar-admin__preview booking-calendar-admin__preview--{$item['status']}">
@@ -60,7 +61,7 @@
         <p>V tomto mesiaci nie sú žiadne čakajúce ani potvrdené pobyty.</p>
       {else}
         {foreach $agenda as $day}
-          <div class="booking-calendar-admin__agenda-day">
+          <div class="booking-calendar-admin__agenda-day {$day['date'] < $currentDate ? 'booking-calendar-admin__agenda-day--past' : ''}">
             <strong>{$day['day']}. {$monthTitle}</strong>
             {foreach $day['items'] as $item}
               <details class="booking-calendar-admin__preview booking-calendar-admin__preview--{$item['status']}">

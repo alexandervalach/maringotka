@@ -663,6 +663,13 @@
 .booking-calendar-admin__grid { border-top: 1px solid var(--line, #e1dfd3); border-left: 1px solid var(--line, #e1dfd3); }
 .booking-calendar-admin__day { min-height: 7.3rem; min-width: 0; padding: .5rem; border-right: 1px solid var(--line, #e1dfd3); border-bottom: 1px solid var(--line, #e1dfd3); background: #fff; }
 .booking-calendar-admin__day--outside { background: #f5f4ef; color: #9a9f96; }
+.booking-calendar-admin__day--past { background: #f6f5f1; }
+.booking-calendar-admin__day--past .booking-calendar-admin__date { color: #889088; }
+.booking-calendar-admin__day--past .booking-calendar-admin__event,
+.booking-calendar-admin__agenda-day--past .booking-calendar-admin__event { opacity: .72; filter: saturate(.65); }
+.booking-calendar-admin__agenda-day--past > strong { color: #889088; }
+.booking-calendar-admin__day--past .booking-calendar-admin__preview[open] > .booking-calendar-admin__event,
+.booking-calendar-admin__agenda-day--past .booking-calendar-admin__preview[open] > .booking-calendar-admin__event { opacity: 1; filter: none; }
 .booking-calendar-admin__day--today .booking-calendar-admin__date { display: inline-flex; justify-content: center; align-items: center; background: var(--deep, #22382b); color: #fff; border-radius: 50%; min-width: 1.65rem; height: 1.65rem; }
 .booking-calendar-admin__date { display: inline-block; margin-bottom: .35rem; font-size: .85rem; font-weight: 700; }
 .booking-calendar-admin__event { display: block; margin-bottom: .3rem; padding: .38rem .5rem; border-radius: .4rem; font-size: .75rem; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
