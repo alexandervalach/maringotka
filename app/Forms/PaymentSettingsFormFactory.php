@@ -51,7 +51,7 @@ final class PaymentSettingsFormFactory extends FormFactory
       ->setRequired('Zadajte text e-mailu.')
       ->setHtmlAttribute('rows', 15);
     $form->addCheckbox('show_logo', 'Priložiť logo Maringotky na Závadke');
-    $form->addSubmit('save', 'Uložiť e-mailovú šablónu')
+    $form->addSubmit('save', 'Uložiť šablónu')
       ->setHtmlAttribute('class', 'admin-save-button');
     $form->addSubmit('restore', 'Obnoviť predvolenú šablónu')
       ->setHtmlAttribute('class', 'button')
