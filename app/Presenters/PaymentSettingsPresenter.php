@@ -8,6 +8,7 @@ use App\Model\BookingPaymentRepository;
 use App\Model\MailTemplateRepository;
 use App\Forms\MailTemplateFormFactory;
 use App\Helpers\BookingRequestEmailTemplate;
+use App\Helpers\BookingConfirmationEmailTemplate;
 use App\Forms\PaymentSettingsFormFactory;
 use App\Helpers\PaymentEmailTemplate;
 use InvalidArgumentException;
@@ -90,6 +91,60 @@ final class PaymentSettingsPresenter extends BasePresenter
     $this->template->emailPreviewHtml = PaymentEmailTemplate::htmlDocument(
       $sample['html'], $sample['show_logo'], true, '/assets/images/logo.png',
     );
+  }
+
+  /**
+   * Shows the editable confirmation email using fictional preview data.
+   */
+  public function renderConfirmed(): void
+  {
+    $sample = BookingConfirmationEmailTemplate::content([
+      'booking_id' => 42,
+      'guest_name' => 'Testovaci host',
+      'arrival_date' => '2099-06-01',
+      'departure_date' => '2099-06-03',
+    ], [
+      '- Prvá noc: 1 × 100,00 € = 100,00 €',
+      '- Doplnok: 1 × 15,00 € = 15,00 €',
+      'Spolu: 115,00 €',
+    ], 'kontakt@example.test',
+      "Platbu možno vykonať po prijatí platobných údajov.\n\nPríjemca: Fiktivny prijemca\nIBAN: testovací údaj (neplatný)\nSuma: 115.00 EUR\nVS: 2099000042",
+      $this->mailTemplates->confirmed(),
+    );
+    $this->template->emailPreviewSubject = $sample['subject'];
+    $this->template->emailPreviewHtml = PaymentEmailTemplate::htmlDocument(
+      $sample['html'], $sample['show_logo'], true, '/assets/images/logo.png',
+    );
+  }
+
+  /**
+   * Saves or restores the administrator's confirmation email template.
+   */
+  protected function createComponentConfirmedTemplateForm(): Form
+  {
+    $form = $this->mailForms->createTemplate($this->mailTemplates->confirmed());
+    $form->onSuccess[] = function (Form $form): void {
+      $restore = $form->getComponent('restore');
+      if ($restore instanceof \Nette\Forms\Controls\SubmitButton && $restore->isSubmittedBy()) {
+        $this->mailTemplates->resetConfirmed();
+        $this->flashMessage('Predvolená šablóna potvrdenia bola obnovená.', 'success');
+        $this->redirect('this');
+      }
+      $values = $form->getValues('array');
+      try {
+        $this->mailTemplates->saveConfirmed(
+          (string) $values['subject'],
+          (string) $values['body'],
+          (bool) $values['show_logo'],
+        );
+      } catch (InvalidArgumentException $error) {
+        $form->addError($error->getMessage());
+        return;
+      }
+      $this->flashMessage('Šablóna potvrdenia rezervácie bola uložená.', 'success');
+      $this->redirect('this');
+    };
+    return $form;
   }
 
   /**

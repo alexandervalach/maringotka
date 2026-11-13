@@ -6,6 +6,8 @@ use Nette\Mail\Message;
 use Nette\Mail\SmtpMailer;
 use App\Model\SmtpTransportFactory;
 use App\Helpers\BookingRequestEmailTemplate;
+use App\Helpers\BookingConfirmationEmailTemplate;
+use App\Model\BookingPaymentDetails;
 use App\Helpers\PaymentEmailTemplate;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -104,9 +106,18 @@ function bookingMailQuoteLines(mixed $storedQuote, mixed $storedTotal): array
  * @param array<string, mixed> $row Outbox event and reservation data.
  * @param string $contactAddress Public contact e-mail for cancellation requests.
  * @param string $contactPhone Optional public contact phone number.
+ * @param array{subject: string, body: string, show_logo: bool}|null $receivedTemplate
+ * @param array{subject: string, body: string, show_logo: bool}|null $confirmedTemplate
  * @return array{subject: string, body: string, html?: string, show_logo?: bool}
  */
-function bookingMailContent(array $row, string $contactAddress = '', string $contactPhone = '', ?array $receivedTemplate = null): array
+function bookingMailContent(
+  array $row,
+  string $contactAddress = '',
+  string $contactPhone = '',
+  ?array $receivedTemplate = null,
+  ?array $confirmedTemplate = null,
+  ?string $paymentInstructions = null,
+): array
 {
   $number = 'R-' . str_pad((string) $row['booking_id'], 6, '0', STR_PAD_LEFT);
   $guest = (string) $row['guest_name'];
@@ -123,6 +134,22 @@ function bookingMailContent(array $row, string $contactAddress = '', string $con
       $receivedTemplate,
     );
     return $rendered;
+  }
+
+  if (!$admin && $event === 'confirmed') {
+    $quoteLines = bookingMailQuoteLines($row['price_quote'] ?? null, $row['price_total_cents'] ?? null);
+
+    if ($quoteLines !== [] && str_starts_with($quoteLines[count($quoteLines) - 1], 'Žiadosť ešte neznamená')) {
+      array_pop($quoteLines);
+    }
+    
+    return BookingConfirmationEmailTemplate::content(
+      $row,
+      $quoteLines,
+      $contactAddress,
+      $paymentInstructions ?? 'Platobné údaje vám zašleme samostatne. Zatiaľ platbu neposielajte.',
+      $confirmedTemplate,
+    );
   }
 
   $headings = [
@@ -193,24 +220,26 @@ function bookingMailDrain(PDO $pdo, SmtpMailer $mailer, string $from, string $ad
     $pdo->beginTransaction();
     try {
       $stmt = $pdo->query(<<<'SQL'
-SELECT o.id AS outbox_id, o.booking_id, o.event_type, o.recipient_type,
-       b.guest_name, b.guest_email, b.guest_phone, b.guest_note,
-       b.arrival_date, b.departure_date, b.decision_reason,
-       b.price_quote, b.price_total_cents
-FROM booking_mail_outbox o
-JOIN booking_requests b ON b.id = o.booking_id
-WHERE o.sent_at IS NULL AND o.next_attempt_at <= now() AND o.attempts < 10
-ORDER BY o.next_attempt_at, o.id
-LIMIT 1 FOR UPDATE OF o SKIP LOCKED
-SQL);
+      SELECT o.id AS outbox_id, o.booking_id, o.event_type, o.recipient_type,
+            b.guest_name, b.guest_email, b.guest_phone, b.guest_note,
+            b.arrival_date, b.departure_date, b.created_at, b.decision_reason,
+            b.price_quote, b.price_total_cents
+      FROM booking_mail_outbox o
+      JOIN booking_requests b ON b.id = o.booking_id
+      WHERE o.sent_at IS NULL AND o.next_attempt_at <= now() AND o.attempts < 10
+      ORDER BY o.next_attempt_at, o.id
+      LIMIT 1 FOR UPDATE OF o SKIP LOCKED
+      SQL);
       $event = $stmt->fetch(PDO::FETCH_ASSOC);
       if ($event === false) {
         $pdo->commit();
         break;
       }
+
       $contactPhone = getenv('BOOKING_CONTACT_PHONE');
       $receivedGuest = $event['event_type'] === 'received' && $event['recipient_type'] === 'guest';
       $receivedTemplate = null;
+
       if ($receivedGuest) {
         $templateRow = $pdo->query(
           "SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = 'received'"
@@ -223,11 +252,51 @@ SQL);
           ];
         }
       }
+
+      $confirmedGuest = $event['event_type'] === 'confirmed' && $event['recipient_type'] === 'guest';
+      $confirmedTemplate = null;
+      $paymentInstructions = null;
+
+      if ($confirmedGuest) {
+        $templateRow = $pdo->query(
+          "SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = 'confirmed'"
+        )->fetch(PDO::FETCH_ASSOC);
+
+        if (is_array($templateRow)) {
+          $confirmedTemplate = [
+            'subject' => (string) $templateRow['subject'],
+            'body' => (string) $templateRow['body'],
+            'show_logo' => (bool) $templateRow['show_logo'],
+          ];
+        }
+
+        $account = $pdo->query(
+          'SELECT iban, account_holder, bic FROM booking_payment_settings WHERE id = 1'
+        )->fetch(PDO::FETCH_ASSOC);
+
+        $settings = is_array($account) ? [
+          'iban' => $account['iban'] === null ? null : (string) $account['iban'],
+          'account_holder' => $account['account_holder'] === null ? null : (string) $account['account_holder'],
+          'bic' => $account['bic'] === null ? null : (string) $account['bic'],
+        ] : null;
+
+        $createdAt = new DateTimeImmutable((string) $event['created_at']);
+        $year = (int) $createdAt->setTimezone(new DateTimeZone('Europe/Bratislava'))->format('Y');
+        $variableSymbol = BookingPaymentDetails::variableSymbol((int) $event['booking_id'], $year);
+
+        $paymentInstructions = BookingConfirmationEmailTemplate::paymentInstructions(
+          $settings,
+          $event['price_total_cents'] === null ? null : (int) $event['price_total_cents'],
+          $variableSymbol,
+        );
+      }
       $content = bookingMailContent(
         $event,
         $adminAddress,
         is_string($contactPhone) ? trim($contactPhone) : '',
         $receivedTemplate,
+        $confirmedTemplate,
+        $paymentInstructions,
       );
       $recipient = $event['recipient_type'] === 'admin' ? $adminAddress : (string) $event['guest_email'];
       $message = new Message();
@@ -235,7 +304,7 @@ SQL);
         ->addTo($recipient)
         ->setSubject($content['subject'])
         ->setBody($content['body']);
-      if ($receivedGuest && isset($content['html'], $content['show_logo'])) {
+      if (($receivedGuest || $confirmedGuest) && isset($content['html'], $content['show_logo'])) {
         $logoPath = dirname(__DIR__) . '/www/assets/images/logo.png';
         $message->setHtmlBody(
           PaymentEmailTemplate::htmlDocument($content['html'], $content['show_logo'], is_file($logoPath)),

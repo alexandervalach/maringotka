@@ -1,0 +1,37 @@
+{layout '../@admin.latte'}
+{block pageTitle}Mailové šablóny{/block}
+{block content}
+<main class="container inner-page cms-editor booking-payment-settings">
+  <nav aria-label="Administrácia"><a class="back-link" href="/admin">← Späť do administrácie</a></nav>
+  <section class="info-card">
+    <h1>Mailové šablóny</h1>
+    <p class="page-lead">Vyberte šablónu na úpravu.</p>
+    <nav class="admin-dashboard__menu" aria-label="Výber mailovej šablóny">
+      <a href="/admin/mail-templates/received">Prijatie žiadosti o rezerváciu</a>
+      <a href="/admin/mail-templates/confirmed" aria-current="page">Potvrdenie rezervácie</a>
+      <a href="/admin/payment-settings#payment-email-heading">Platobné pokyny</a>
+    </nav>
+  </section>
+  <section class="info-card">
+    <h2>Potvrdenie rezervácie</h2>
+    <p class="booking-payment__hint">Tento e-mail sa odošle až po potvrdení rezervácie administrátorom. Platobné údaje sa uvádzajú len vtedy, keď sú nastavené.</p>
+    <p class="booking-payment__hint">Značky: <code>{= '{{booking_id}}'}</code>, <code>{= '{{guest_name}}'}</code>, <code>{= '{{arrival}}'}</code>, <code>{= '{{departure}}'}</code>, <code>{= '{{quote}}'}</code>, <code>{= '{{payment_instructions}}'}</code>, <code>{= '{{contact}}'}</code>. Značky pre cenový rozpis a platobné pokyny musia zostať zachované.</p>
+    {foreach $flashes as $flash}<p role="status" class="booking-payment__notice">{$flash->message}</p>{/foreach}
+    <div class="cms-form booking-payment-settings__form">
+      {form confirmedTemplateForm}
+        <ul class="cms-form-errors" n:if="$form->hasErrors()">
+          <li n:foreach="$form->getErrors() as $error">{$error}</li>
+        </ul>
+        {label subject /}{input subject}
+        {label body /}{input body}
+        <div>{input show_logo}{label show_logo /}</div>
+        <div>{input save} {input restore}</div>
+      {/form}
+    </div>
+    <h3>Náhľad uloženej šablóny (výhradne fiktívne údaje)</h3>
+    <p><strong>Predmet:</strong> {$emailPreviewSubject}</p>
+    <iframe title="Náhľad e-mailu o potvrdení rezervácie" sandbox="" srcdoc="{$emailPreviewHtml}" style="width:100%;min-height:540px;border:1px solid #ddd;border-radius:10px;background:#fff"></iframe>
+    <p class="booking-payment__hint">Náhľad sa aktualizuje po uložení. Reálne údaje sa načítajú z potvrdenej rezervácie. Náhľad obsahuje iba fiktívne platobné údaje.</p>
+  </section>
+</main>
+{/block}
