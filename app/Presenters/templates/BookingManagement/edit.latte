@@ -162,45 +162,62 @@
 
   <section class="info-card booking-history" aria-labelledby="booking-history-heading">
     <h2 id="booking-history-heading">História rezervácie</h2>
-    {if $statusHistory}
+    {if $bookingHistory}
       <div class="booking-history-scroll">
         <table class="booking-history-table">
           <thead>
             <tr>
               <th scope="col">Dátum a čas</th>
-              <th scope="col">Pôvodný stav</th>
-              <th scope="col">Nový stav</th>
-              <th scope="col">Dôvod</th>
+              <th scope="col">Udalosť</th>
+              <th scope="col">Podrobnosti</th>
             </tr>
           </thead>
           <tbody>
-            {foreach $statusHistory as $event}
+            {foreach $bookingHistory as $event}
               <tr>
-                <td>{$event['changed_at']|date:'d. m. Y H:i'}</td>
+                <td>{$event['occurred_at']|date:'d. m. Y H:i:s'}</td>
                 <td>
-                  {if $event['previous_status'] === null}—
-                  {elseif $event['previous_status'] === 'pending'}Čakajúca
-                  {elseif $event['previous_status'] === 'confirmed'}Potvrdená
-                  {elseif $event['previous_status'] === 'rejected'}Zamietnutá
-                  {elseif $event['previous_status'] === 'cancelled'}Zrušená
-                  {else}{$event['previous_status']}{/if}
+                  {if $event['event_type'] === 'status'}
+                    {if $event['previous_status'] === null}Zaznamenanie rezervácie
+                    {elseif $event['current_status'] === 'confirmed'}Rezervácia potvrdená
+                    {elseif $event['current_status'] === 'rejected'}Rezervácia zamietnutá
+                    {elseif $event['current_status'] === 'cancelled'}Rezervácia zrušená
+                    {else}Stav rezervácie zmenený{/if}
+                  {elseif $event['event_type'] === 'payment_paid'}Platba označená ako prijatá
+                  {elseif $event['event_type'] === 'payment_unpaid'}Platba označená ako nezaplatená
+                  {elseif $event['event_type'] === 'mail_sent'}E-mail odoslaný
+                  {elseif $event['event_type'] === 'qr_generated'}QR kód vygenerovaný
+                  {elseif $event['event_type'] === 'mail_summary'}Staršie odoslanie e-mailu
+                  {else}Udalosť rezervácie{/if}
                 </td>
                 <td>
-                  {if $event['current_status'] === 'pending'}Čakajúca
-                  {elseif $event['current_status'] === 'confirmed'}Potvrdená
-                  {elseif $event['current_status'] === 'rejected'}Zamietnutá
-                  {elseif $event['current_status'] === 'cancelled'}Zrušená
-                  {else}{$event['current_status']}{/if}
+                  {if $event['event_type'] === 'status'}
+                    {if $event['previous_status'] !== null}
+                      {if $event['previous_status'] === 'pending'}Čakajúca
+                      {elseif $event['previous_status'] === 'confirmed'}Potvrdená
+                      {elseif $event['previous_status'] === 'rejected'}Zamietnutá
+                      {elseif $event['previous_status'] === 'cancelled'}Zrušená
+                      {else}{$event['previous_status']}{/if}
+                      →
+                    {/if}
+                    {if $event['current_status'] === 'pending'}Čakajúca
+                    {elseif $event['current_status'] === 'confirmed'}Potvrdená
+                    {elseif $event['current_status'] === 'rejected'}Zamietnutá
+                    {elseif $event['current_status'] === 'cancelled'}Zrušená
+                    {else}{$event['current_status']}{/if}
+                    {if $event['detail']} – {$event['detail']}{/if}
+                  {else}
+                    {$event['detail'] ?: '—'}
+                  {/if}
                 </td>
-                <td>{$event['decision_reason'] ?: '—'}</td>
               </tr>
             {/foreach}
           </tbody>
         </table>
       </div>
-      <p class="booking-history-note">Pri udalostiach vytvorených migráciou je časom záznamu dátum migrácie, nie pôvodného rozhodnutia.</p>
+      <p class="booking-history-note">Staršie udalosti doplnené migráciou môžu mať dátum záznamu namiesto pôvodného času. Chýbajúce udalosti spätne nedopĺňame odhadom.</p>
     {else}
-      <p>Zatiaľ neexistuje žiadna zaznamenaná zmena stavu.</p>
+      <p>Zatiaľ nie sú dostupné zaznamenané udalosti rezervácie.</p>
     {/if}
   </section>
 </main>

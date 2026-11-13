@@ -34,12 +34,15 @@ final class BookingManagementRepository extends Repository
   public function page(string $status, string $search, ?int $before, ?int $after): array
   {
     $allowed = ['', 'pending', 'confirmed', 'rejected', 'cancelled'];
+
     if (!in_array($status, $allowed, true)) {
       throw new InvalidArgumentException('Neznámy stav rezervácie.');
     }
+    
     if ($before !== null && $after !== null) {
       throw new InvalidArgumentException('Neplatné stránkovanie.');
     }
+    
     if (($before !== null && $before < 1) || ($after !== null && $after < 1)) {
       throw new InvalidArgumentException('Neplatný kurzor.');
     }
@@ -51,10 +54,12 @@ final class BookingManagementRepository extends Repository
 
     $where = [];
     $values = [];
+    
     if ($status !== '') {
       $where[] = 'status = ?';
       $values[] = $status;
     }
+
     if ($search !== '') {
       // Treat % and _ as literal characters in a user-supplied search.
       $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search);
@@ -70,6 +75,7 @@ final class BookingManagementRepository extends Repository
 
     $baseWhere = $where;
     $baseValues = $values;
+
     if ($before !== null) {
       $where[] = 'id < ?';
       $values[] = $before;
@@ -86,12 +92,15 @@ final class BookingManagementRepository extends Repository
       . ' FROM booking_requests' . $whereSql . ' ORDER BY id ' . $order . ' LIMIT 26',
       ...$values,
     )->fetchAll();
+
     if (count($rows) > 25) {
       array_pop($rows);
     }
+
     if ($after !== null) {
       $rows = array_reverse($rows);
     }
+    
     if ($rows === []) {
       return ['requests' => [], 'older' => null, 'newer' => null];
     }
@@ -100,6 +109,7 @@ final class BookingManagementRepository extends Repository
     foreach ($rows as $row) {
       $requests[] = iterator_to_array($row);
     }
+
     $firstId = (int) $requests[0]['id'];
     $lastId = (int) $requests[count($requests) - 1]['id'];
     $baseSql = $baseWhere === [] ? '' : ' WHERE ' . implode(' AND ', $baseWhere) . ' AND ';
@@ -109,6 +119,7 @@ final class BookingManagementRepository extends Repository
       'SELECT id FROM booking_requests' . $prefix . 'id > ? ORDER BY id ASC LIMIT 1',
       ...[...$baseValues, $firstId],
     )->fetch() !== null;
+
     $hasOlder = $this->database->query(
       'SELECT id FROM booking_requests' . $prefix . 'id < ? ORDER BY id DESC LIMIT 1',
       ...[...$baseValues, $lastId],
@@ -132,29 +143,62 @@ final class BookingManagementRepository extends Repository
   }
 
   /**
-   * Returns the status-change history of a booking, newest first.
+   * Returns an ordered audit of status transitions and other recorded events.
+   * Historical migration entries retain their original recorded timestamps.
    *
    * @param int $bookingId Booking identifier.
-   * @return list<array<string, mixed>> Recorded status transitions.
+   * @return list<array<string, mixed>> Audit entries, newest first.
    */
-  public function statusHistory(int $bookingId): array
+  public function history(int $bookingId): array
   {
     if ($bookingId < 1) {
       throw new InvalidArgumentException('Neplatné číslo rezervácie.');
     }
 
     $rows = $this->database->query(
-      'SELECT id, previous_status, current_status, decision_reason, changed_at'
-      . ' FROM booking_status_history WHERE booking_id = ? ORDER BY id DESC',
+      <<<'SQL'
+      SELECT occurred_at, event_type, previous_status, current_status, detail
+      FROM (
+        SELECT id, changed_at AS occurred_at, 'status'::text AS event_type,
+              previous_status, current_status, decision_reason AS detail, 0 AS source_order
+        FROM booking_status_history WHERE booking_id = ?
+        UNION ALL
+        SELECT id, occurred_at, event_type, NULL::varchar AS previous_status,
+              NULL::varchar AS current_status, detail, 1 AS source_order
+        FROM booking_audit_events WHERE booking_id = ?
+      ) AS entries
+      ORDER BY occurred_at DESC, source_order DESC, id DESC
+      SQL,
+      $bookingId,
       $bookingId,
     )->fetchAll();
 
     $history = [];
+
     foreach ($rows as $row) {
       $history[] = iterator_to_array($row);
     }
 
     return $history;
+  }
+
+  /**
+   * Records a completed QR-generation action without storing QR or bank data.
+   *
+   * @param int $bookingId Booking identifier.
+   * @return void
+   */
+  public function recordQrGenerated(int $bookingId): void
+  {
+    if ($bookingId < 1) {
+      throw new InvalidArgumentException('Neplatné číslo rezervácie.');
+    }
+
+    $this->database->query(
+      "INSERT INTO booking_audit_events (booking_id, event_type, detail) VALUES (?, 'qr_generated', ?)",
+      $bookingId,
+      'PAY by square QR vygenerovaný administrátorom',
+    );
   }
 
   /**
@@ -174,9 +218,11 @@ final class BookingManagementRepository extends Repository
     }
 
     $reason = trim($reason);
+    
     if (in_array($decision, ['rejected', 'cancelled'], true) && $reason === '') {
       throw new InvalidArgumentException('Pri zamietnutí alebo zrušení zadajte dôvod.');
     }
+
     if (mb_strlen($reason) > 2000) {
       throw new InvalidArgumentException('Dôvod môže mať najviac 2000 znakov.');
     }
@@ -187,6 +233,7 @@ final class BookingManagementRepository extends Repository
         'SELECT id, status FROM booking_requests WHERE id = ? FOR UPDATE',
         $id,
       )->fetch();
+
       if ($row === null) {
         throw new DomainException('Rezervácia neexistuje.');
       }
@@ -197,6 +244,7 @@ final class BookingManagementRepository extends Repository
         'confirmed' => ['cancelled'],
         default => [],
       };
+      
       if (!in_array($decision, $allowed, true)) {
         throw new DomainException('Rezerváciu v tomto stave nemožno takto zmeniť.');
       }

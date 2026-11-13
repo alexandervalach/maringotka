@@ -138,11 +138,10 @@ function bookingMailContent(
 
   if (!$admin && $event === 'confirmed') {
     $quoteLines = bookingMailQuoteLines($row['price_quote'] ?? null, $row['price_total_cents'] ?? null);
-
+    // The common quote builder adds a warning intended only for pending requests.
     if ($quoteLines !== [] && str_starts_with($quoteLines[count($quoteLines) - 1], 'Žiadosť ešte neznamená')) {
       array_pop($quoteLines);
     }
-    
     return BookingConfirmationEmailTemplate::content(
       $row,
       $quoteLines,
@@ -220,26 +219,24 @@ function bookingMailDrain(PDO $pdo, SmtpMailer $mailer, string $from, string $ad
     $pdo->beginTransaction();
     try {
       $stmt = $pdo->query(<<<'SQL'
-      SELECT o.id AS outbox_id, o.booking_id, o.event_type, o.recipient_type,
-            b.guest_name, b.guest_email, b.guest_phone, b.guest_note,
-            b.arrival_date, b.departure_date, b.created_at, b.decision_reason,
-            b.price_quote, b.price_total_cents
-      FROM booking_mail_outbox o
-      JOIN booking_requests b ON b.id = o.booking_id
-      WHERE o.sent_at IS NULL AND o.next_attempt_at <= now() AND o.attempts < 10
-      ORDER BY o.next_attempt_at, o.id
-      LIMIT 1 FOR UPDATE OF o SKIP LOCKED
-      SQL);
+SELECT o.id AS outbox_id, o.booking_id, o.event_type, o.recipient_type,
+       b.guest_name, b.guest_email, b.guest_phone, b.guest_note,
+       b.arrival_date, b.departure_date, b.created_at, b.decision_reason,
+       b.price_quote, b.price_total_cents
+FROM booking_mail_outbox o
+JOIN booking_requests b ON b.id = o.booking_id
+WHERE o.sent_at IS NULL AND o.next_attempt_at <= now() AND o.attempts < 10
+ORDER BY o.next_attempt_at, o.id
+LIMIT 1 FOR UPDATE OF o SKIP LOCKED
+SQL);
       $event = $stmt->fetch(PDO::FETCH_ASSOC);
       if ($event === false) {
         $pdo->commit();
         break;
       }
-
       $contactPhone = getenv('BOOKING_CONTACT_PHONE');
       $receivedGuest = $event['event_type'] === 'received' && $event['recipient_type'] === 'guest';
       $receivedTemplate = null;
-
       if ($receivedGuest) {
         $templateRow = $pdo->query(
           "SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = 'received'"
@@ -252,16 +249,13 @@ function bookingMailDrain(PDO $pdo, SmtpMailer $mailer, string $from, string $ad
           ];
         }
       }
-
       $confirmedGuest = $event['event_type'] === 'confirmed' && $event['recipient_type'] === 'guest';
       $confirmedTemplate = null;
       $paymentInstructions = null;
-
       if ($confirmedGuest) {
         $templateRow = $pdo->query(
           "SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = 'confirmed'"
         )->fetch(PDO::FETCH_ASSOC);
-
         if (is_array($templateRow)) {
           $confirmedTemplate = [
             'subject' => (string) $templateRow['subject'],
@@ -269,21 +263,17 @@ function bookingMailDrain(PDO $pdo, SmtpMailer $mailer, string $from, string $ad
             'show_logo' => (bool) $templateRow['show_logo'],
           ];
         }
-
         $account = $pdo->query(
           'SELECT iban, account_holder, bic FROM booking_payment_settings WHERE id = 1'
         )->fetch(PDO::FETCH_ASSOC);
-
         $settings = is_array($account) ? [
           'iban' => $account['iban'] === null ? null : (string) $account['iban'],
           'account_holder' => $account['account_holder'] === null ? null : (string) $account['account_holder'],
           'bic' => $account['bic'] === null ? null : (string) $account['bic'],
         ] : null;
-
         $createdAt = new DateTimeImmutable((string) $event['created_at']);
         $year = (int) $createdAt->setTimezone(new DateTimeZone('Europe/Bratislava'))->format('Y');
         $variableSymbol = BookingPaymentDetails::variableSymbol((int) $event['booking_id'], $year);
-
         $paymentInstructions = BookingConfirmationEmailTemplate::paymentInstructions(
           $settings,
           $event['price_total_cents'] === null ? null : (int) $event['price_total_cents'],
@@ -314,6 +304,25 @@ function bookingMailDrain(PDO $pdo, SmtpMailer $mailer, string $from, string $ad
       $mailer->send($message);
       $stmt = $pdo->prepare('UPDATE booking_mail_outbox SET sent_at = now(), attempts = attempts + 1 WHERE id = ?');
       $stmt->execute([(int) $event['outbox_id']]);
+
+      $mailKind = match ((string) $event['event_type']) {
+        'received' => 'Potvrdenie prijatia žiadosti',
+        'confirmed' => 'Potvrdenie rezervácie',
+        'rejected' => 'Oznámenie o zamietnutí',
+        'cancelled' => 'Oznámenie o zrušení',
+        default => 'Oznámenie o rezervácii',
+      };
+      $recipientKind = $event['recipient_type'] === 'admin' ? 'administrátorovi' : 'hosťovi';
+      $audit = $pdo->prepare(
+        'INSERT INTO booking_audit_events (booking_id, event_type, detail, event_key)'
+        . " VALUES (?, 'mail_sent', ?, ?) ON CONFLICT (event_key) DO NOTHING"
+      );
+      $audit->execute([
+        (int) $event['booking_id'],
+        $mailKind . ' odoslané ' . $recipientKind,
+        'outbox:' . (string) $event['outbox_id'],
+      ]);
+
       $pdo->commit();
       $sent++;
     } catch (Throwable $error) {

@@ -109,7 +109,7 @@ final class BookingManagementPresenter extends BasePresenter
       $this->error('Rezervácia neexistuje.', 404);
     }
     $this->template->request = $request;
-    $this->template->statusHistory = $this->bookings->statusHistory($id);
+    $this->template->bookingHistory = $this->bookings->history($id);
     $payment = $this->payments->forBooking($id);
     $this->template->payment = $payment;
     $account = $this->payments->settings();
@@ -235,10 +235,12 @@ final class BookingManagementPresenter extends BasePresenter
     $form->addProtection('Platnosť formulára vypršala. Obnovte stránku.');
     $form->addSubmit('generate', 'Vygenerovať PAY by square QR')
       ->setHtmlAttribute('class', 'admin-save-button');
+
     $form->onSuccess[] = function (Form $form): void {
       $booking = $this->bookings->requestById($this->editingId);
       $payment = $this->payments->forBooking($this->editingId);
       $account = $this->payments->settings();
+
       if ($booking === null || $payment === null
         || !$this->hasPaymentInstructions(
           $booking['status'],
@@ -249,13 +251,22 @@ final class BookingManagementPresenter extends BasePresenter
         $form->addError('Pre túto rezerváciu nemožno vygenerovať platobný QR kód.');
         return;
       }
+
       try {
         $document = $this->paymentQrDocument($account, $payment);
-        $this->paymentQr()->generate($document, (string) getenv('BYSQUARE_API_KEY'));
+        $qr = $this->paymentQr();
+        $alreadyCached = $qr->cached($document) !== null;
+
+        $qr->generate($document, (string) getenv('BYSQUARE_API_KEY'));
+
+        if (!$alreadyCached) {
+          $this->bookings->recordQrGenerated($this->editingId);
+        }
       } catch (InvalidArgumentException | RuntimeException $error) {
         $form->addError($error->getMessage());
         return;
       }
+
       $this->flashMessage('PAY by square QR kód bol pripravený.', 'success');
       $this->redirect('this');
     };
@@ -336,12 +347,14 @@ final class BookingManagementPresenter extends BasePresenter
       ->setHtmlAttribute('class', 'admin-save-button');
     $form->onSuccess[] = function (Form $form): void {
       $values = $form->getValues('array');
+      
       try {
         $this->payments->setPaid($this->editingId, $values['status'] === 'paid');
       } catch (DomainException | InvalidArgumentException $error) {
         $form->addError($error->getMessage());
         return;
       }
+
       $this->flashMessage('Stav úhrady bol uložený.', 'success');
       $this->redirect('this');
     };

@@ -232,6 +232,7 @@ final class BookingPaymentRepository
       throw new InvalidArgumentException('Neplatné ID rezervácie.');
     }
     $this->database->beginTransaction();
+    
     try {
       // Row-level lock serializes competing requests, including a double click.
       $booking = $this->database->query(
@@ -243,18 +244,23 @@ final class BookingPaymentRepository
         'confirmed',
         'unpaid',
       )->fetch();
+
       if ($booking === null) {
         throw new DomainException('Platobné pokyny možno poslať len k potvrdenej nezaplatenej rezervácii.');
       }
+
       $recent = $this->database->query(
         "SELECT last_sent_at > CURRENT_TIMESTAMP - INTERVAL '5 minutes' AS recent"
         . ' FROM booking_payment_mail_history WHERE booking_id = ?',
         $bookingId,
       )->fetch();
+      
       if ($recent !== null && $recent['recent'] === true) {
         throw new DomainException('Platobné pokyny už boli nedávno odoslané. Ďalší pokus je možný po piatich minútach.');
       }
+      
       $send();
+
       $this->database->query(
         'INSERT INTO booking_payment_mail_history (booking_id, last_sent_at, send_count)'
         . ' VALUES (?, CURRENT_TIMESTAMP, 1)'
@@ -263,6 +269,13 @@ final class BookingPaymentRepository
         . ' send_count = booking_payment_mail_history.send_count + 1',
         $bookingId,
       );
+
+      $this->database->query(
+        "INSERT INTO booking_audit_events (booking_id, event_type, detail) VALUES (?, 'mail_sent', ?)",
+        $bookingId,
+        'Platobné pokyny odoslané hosťovi cez SMTP',
+      );
+
       $this->database->commit();
     } catch (\Throwable $error) {
       $this->database->rollBack();
