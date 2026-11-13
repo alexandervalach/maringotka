@@ -728,8 +728,25 @@
   box-shadow: 0 16px 35px rgb(34 56 43 / 18%);
   overflow-wrap: anywhere;
 }
-.booking-calendar-admin__preview[open] > .booking-calendar-admin__popup,
-.booking-calendar-admin__preview:hover > .booking-calendar-admin__popup { display: block; }
+.booking-calendar-admin__preview[open] > .booking-calendar-admin__popup { display: block; }
+.booking-calendar-admin__popup-close {
+  position: absolute;
+  top: .6rem;
+  right: .6rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--line, #dedbd3);
+  border-radius: .5rem;
+  background: #fff;
+  color: var(--ink, #26342b);
+  cursor: pointer;
+}
+.booking-calendar-admin__popup-close:hover { background: #f4f1e9; }
+.booking-calendar-admin__popup-close:focus-visible { outline: 2px solid var(--brown, #805a38); outline-offset: 2px; }
+.booking-calendar-admin__popup-heading { padding-right: 2.4rem; }
 .booking-calendar-admin__popup dl { margin: .75rem 0 1rem; }
 .booking-calendar-admin__popup dl > div { margin: .4rem 0; }
 .booking-calendar-admin__popup dt { color: var(--muted, #627166); font-size: .78rem; }
@@ -739,7 +756,7 @@
 
 @media (max-width: 850px) {
   .booking-calendar-admin__preview > .booking-calendar-admin__popup {
-    position: static;
+    position: relative;
     width: 100%;
     max-height: none;
     margin: .35rem 0 .5rem;
@@ -816,7 +833,7 @@
 .booking-calendar-admin__detail-link { display: inline-flex; justify-content: center; margin-top: .95rem; text-align: center; text-decoration: none; }
 @media (max-width: 850px) {
   .booking-calendar-admin__preview > .booking-calendar-admin__popup {
-    position: static;
+    position: relative;
     left: auto;
     right: auto;
     top: auto;

@@ -78,10 +78,14 @@
     <p class="booking-calendar-admin__note">Zamietnuté a zrušené rezervácie nie sú v kalendári zobrazené; nájdeš ich v tabuľkovom prehľade.</p>
   </section>
 </main>
+<script src="/assets/js/booking-calendar-admin.js" defer></script>
 {/block}
 
 {define reservationPreview $item}
   <div class="booking-calendar-admin__popup" role="group" aria-label="Náhľad rezervácie číslo {$item['id']}">
+    <button type="button" class="booking-calendar-admin__popup-close" aria-label="Zavrieť náhľad rezervácie" title="Zavrieť náhľad">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
     <div class="booking-calendar-admin__popup-heading">
       <strong>Rezervácia č. {$item['id']}</strong>
       <div class="booking-calendar-admin__popup-stay">
