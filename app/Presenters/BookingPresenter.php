@@ -7,6 +7,8 @@ namespace App\Presenters;
 use App\Forms\BookingFormFactory;
 use App\Localization\SupportedLocales;
 use App\Model\BookingRepository;
+use App\Model\BookingPaymentDetails;
+use App\Model\BookingQuoteView;
 use App\Model\BookingPriceCalculator;
 use App\Model\BookingUnavailableException;
 use App\Model\PricingRepository;
@@ -19,7 +21,11 @@ use Nette\Application\UI\Form;
  */
 final class BookingPresenter extends BasePresenter
 {
-  private bool $requestSubmitted = false;
+  /**
+   * @var array{reference: string, arrival: string, departure: string, quote: array<string, mixed>}|null
+   */
+  private ?array $requestReceipt = null;
+
   /**
    * @param Translator $translator Shared SK/EN translator.
    * @param BookingRepository $bookings Reservation storage.
@@ -44,6 +50,20 @@ final class BookingPresenter extends BasePresenter
     if (!SupportedLocales::isSupported($locale)) {
       $this->error('Unknown language.', 404);
     }
+
+    if (!$this->getHttpRequest()->isMethod('GET')) {
+      return;
+    }
+
+    $section = $this->getSession()->getSection('booking_request_receipt');
+    $receipt = $section->get('receipt');
+    $section->remove('receipt');
+
+    if (is_array($receipt)
+      && isset($receipt['reference'], $receipt['arrival'], $receipt['departure'], $receipt['quote'])) {
+      $this->requestReceipt = $receipt;
+      $this->getHttpResponse()->setHeader('Cache-Control', 'private, no-store');
+    }
   }
 
   /**
@@ -66,7 +86,8 @@ final class BookingPresenter extends BasePresenter
       $today->format('Y-m-d'),
       $calendarEnd->format('Y-m-d'),
     ));
-    $this->template->add('requestSubmitted', $this->requestSubmitted);
+    $this->template->add('requestSubmitted', $this->requestReceipt !== null);
+    $this->template->add('requestReceipt', $this->requestReceipt);
   }
 
   /**
@@ -95,7 +116,7 @@ final class BookingPresenter extends BasePresenter
           $form->addError('Zvolený termín je už obsadený alebo čaká na potvrdenie.');
           return;
         }
-        $this->bookings->request([
+        $created = $this->bookings->request([
           'arrival_date' => $arrival,
           'departure_date' => $departure,
           'guest_name' => (string) $values['guest_name'],
@@ -103,6 +124,19 @@ final class BookingPresenter extends BasePresenter
           'guest_phone' => (string) $values['guest_phone'],
           'guest_note' => (string) $values['guest_note'],
         ], $minimum, $quote);
+
+        $view = (new BookingQuoteView())->parse($quote, $quote['total_cents']);
+
+        if ($view === null) {
+          throw new \LogicException('Cenový rozpis novej rezervácie nie je dostupný.');
+        }
+
+        $this->getSession()->getSection('booking_request_receipt')->set('receipt', [
+          'reference' => BookingPaymentDetails::variableSymbol($created['id'], $created['created_year']),
+          'arrival' => $arrival,
+          'departure' => $departure,
+          'quote' => $view,
+        ]);
       } catch (BookingUnavailableException $error) {
         $form->addError('Zvolený termín bol medzičasom obsadený.');
         return;
@@ -110,8 +144,8 @@ final class BookingPresenter extends BasePresenter
         $form->addError($error->getMessage());
         return;
       }
-      // Display confirmation without exposing internal cancellation credentials.
-      $this->requestSubmitted = true;
+      // GET confirmation avoids accidental resubmission when the page is refreshed.
+      $this->redirect('this');
     };
     return $form;
   }

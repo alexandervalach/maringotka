@@ -6,8 +6,12 @@ namespace App\Model;
 
 use App\Infrastructure\Database\ConnectionFactory;
 use DateTimeImmutable;
+use DateTimeInterface;
+use DateTimeZone;
 use InvalidArgumentException;
 use Nette\Database\DriverException;
+use Nette\Database\Table\ActiveRow;
+use RuntimeException;
 
 /**
  * Creates reservation requests for the single accommodation.
@@ -109,9 +113,9 @@ final class BookingRepository extends Repository
    * @param array{arrival_date: string, departure_date: string, guest_name: string, guest_email: string, guest_phone: string, guest_note: string} $values Validated guest input.
    * @param int $minimumNights Minimum stay from current prices.
    * @param array{arrival: string, departure: string, nights: int, items: list<array{code: string, quantity: int, unit_price_cents: int, total_cents: int, unit: string}>, accommodation_cents: int, extras_cents: int, total_cents: int} $quote Price snapshot calculated on the server from current rates.
-   * @return string One-time cancellation token; only its hash is persisted.
+   * @return array{id: int, created_year: int} Public receipt details from the saved request.
    */
-  public function request(array $values, int $minimumNights, array $quote): string
+  public function request(array $values, int $minimumNights, array $quote): array
   {
     self::validateStay($values['arrival_date'], $values['departure_date'], $minimumNights);
    
@@ -149,7 +153,7 @@ final class BookingRepository extends Repository
     $token = bin2hex(random_bytes(32));
     
     try {
-      $this->getTable()->insert([
+      $inserted = $this->getTable()->insert([
         'arrival_date' => $values['arrival_date'],
         'departure_date' => $values['departure_date'],
         'guest_name' => $name,
@@ -168,6 +172,26 @@ final class BookingRepository extends Repository
       }
       throw $error;
     }
-    return $token;
+
+    if (!$inserted instanceof ActiveRow) {
+      throw new RuntimeException('Nepodarilo sa získať číslo uloženej rezervácie.');
+    }
+
+    $bookingId = (int) $inserted['id'];
+    $saved = $this->getTable()->get($bookingId);
+
+    if ($saved === null) {
+      throw new RuntimeException('Uloženú rezerváciu nie je možné načítať.');
+    }
+
+    $createdAt = $saved['created_at'];
+    $created = $createdAt instanceof DateTimeInterface
+      ? DateTimeImmutable::createFromInterface($createdAt)
+      : new DateTimeImmutable((string) $createdAt);
+
+    return [
+      'id' => $bookingId,
+      'created_year' => (int) $created->setTimezone(new DateTimeZone('Europe/Bratislava'))->format('Y'),
+    ];
   }
 }

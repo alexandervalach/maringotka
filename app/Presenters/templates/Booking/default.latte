@@ -21,6 +21,37 @@
         {/if}
       </div>
     </div>
+    {if $requestReceipt !== null}
+      <section class="booking-quote" aria-labelledby="booking-receipt-title">
+        <h2 id="booking-receipt-title">
+          {if $locale === 'en'}Request no. {$requestReceipt['reference']}{else}Žiadosť č. {$requestReceipt['reference']}{/if}
+        </h2>
+        <p class="booking-quote__intro">
+          {if $locale === 'en'}Keep this number if you need to ask about or change your request.{else}Toto číslo si odložte, ak sa budete chcieť na žiadosť informovať alebo ju zmeniť.{/if}
+        </p>
+        <p>
+          <strong>{if $locale === 'en'}Stay:{else}Termín:{/if}</strong>
+          {$requestReceipt['arrival']|date:'d. m. Y'} – {$requestReceipt['departure']|date:'d. m. Y'}
+          · {$requestReceipt['quote']['nights']} {if $locale === 'en'}nights{else}nocí{/if}
+        </p>
+        <h3>{if $locale === 'en'}Selected services and price{else}Vybrané služby a cena{/if}</h3>
+        <div class="booking-quote__summary">
+          {foreach $requestReceipt['quote']['lines'] as $line}
+            <div>
+              <span>{$line['label']} · {$line['quantity']} × {= App\Model\BookingQuoteView::euros($line['unit_price_cents'])}</span>
+              <strong>{= App\Model\BookingQuoteView::euros($line['total_cents'])}</strong>
+            </div>
+          {/foreach}
+          <div class="booking-quote__total">
+            <span>{if $locale === 'en'}Estimated total{else}Celková orientačná cena{/if}</span>
+            <strong>{= App\Model\BookingQuoteView::euros($requestReceipt['quote']['total_cents'])}</strong>
+          </div>
+        </div>
+        <p class="booking-quote__notice">
+          {if $locale === 'en'}The request awaits approval. No payment is due yet.{else}Žiadosť čaká na potvrdenie. Zatiaľ nič neplaťte.{/if}
+        </p>
+      </section>
+    {/if}
   {else}
   {if $flashes}
     <div class="booking-feedback" role="status" aria-live="polite">
