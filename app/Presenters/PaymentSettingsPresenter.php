@@ -51,6 +51,15 @@ final class PaymentSettingsPresenter extends BasePresenter
   public function renderDefault(): void
   {
     $this->template->paymentSettings = $this->payments->settings();
+  }
+
+  /**
+   * Shows the payment instruction email editor with fictional preview data.
+   *
+   * @return void
+   */
+  public function renderPaymentEmail(): void
+  {
     $template = $this->payments->emailTemplate() ?? PaymentEmailTemplate::defaults();
     $sample = PaymentEmailTemplate::content(
       1,

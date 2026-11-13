@@ -20,25 +20,6 @@
       {/form}
     </div>
   </section>
-  <section class="info-card" aria-labelledby="payment-email-heading">
-    <h2 id="payment-email-heading">E-mail s platobnými pokynmi</h2>
-    <p class="page-lead">Zmeňte text, ktorý dostane hosť po manuálnom odoslaní platobných pokynov. Formátovanie: <code>**tučné**</code>, <code>*kurzíva*</code>, nadpis <code># </code> a odseky. Vlastné HTML a odkazy nie sú povolené.</p>
-    <p class="booking-payment__hint">Dostupné značky: <code>{= '{{booking_id}}'}</code>, <code>{= '{{holder}}'}</code>, <code>{= '{{iban}}'}</code>, <code>{= '{{bic}}'}</code>, <code>{= '{{amount}}'}</code>, <code>{= '{{variable_symbol}}'}</code>. Príjemca, IBAN, suma a VS musia zostať v texte.</p>
-    <div class="cms-form booking-payment-settings__form">
-      {form emailTemplateForm}
-        <ul class="cms-form-errors" n:if="$form->hasErrors()">
-          <li n:foreach="$form->getErrors() as $error">{$error}</li>
-        </ul>
-        {label subject /}{input subject}
-        {label body /}{input body}
-        <div>{input show_logo}{label show_logo /}</div>
-        <div>{input save} {input restore}</div>
-      {/form}
-    </div>
-    <h3>Náhľad uloženého e-mailu (ilustračné údaje)</h3>
-    <p><strong>Predmet:</strong> {$emailPreviewSubject}</p>
-    <iframe title="Náhľad platobného e-mailu" sandbox="" srcdoc="{$emailPreviewHtml}" style="width:100%;min-height:450px;border:1px solid #ddd;border-radius:10px;background:#fff"></iframe>
-    <p class="booking-payment__hint">Náhľad sa aktualizuje po uložení.</p>
-  </section>
+
 </main>
 {/block}

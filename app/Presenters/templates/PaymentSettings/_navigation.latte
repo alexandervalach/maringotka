@@ -1,0 +1,14 @@
+<nav class="mail-template-picker" aria-label="Výber e-mailovej šablóny">
+  <a class="mail-template-picker__item" href="/admin/mail-templates/received" {if $current === 'received'}aria-current="page"{/if}>
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/><path d="m16 3 2 2 3-3"/></svg>
+    <span><strong>Prijatie žiadosti o rezerváciu</strong><small>Potvrdenie, že žiadosť bola prijatá</small></span>
+  </a>
+  <a class="mail-template-picker__item" href="/admin/mail-templates/confirmed" {if $current === 'confirmed'}aria-current="page"{/if}>
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/><path d="m8 15 2 2 5-5"/></svg>
+    <span><strong>Potvrdenie rezervácie</strong><small>Schválenie rezervácie a informácie o platbe</small></span>
+  </a>
+  <a class="mail-template-picker__item" href="/admin/mail-templates/payment" {if $current === 'payment'}aria-current="page"{/if}>
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
+    <span><strong>Platobné pokyny</strong><small>Údaje na bankový prevod a variabilný symbol</small></span>
+  </a>
+</nav>

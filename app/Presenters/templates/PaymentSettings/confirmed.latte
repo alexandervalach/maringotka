@@ -6,11 +6,7 @@
   <section class="info-card">
     <h1>Mailové šablóny</h1>
     <p class="page-lead">Vyberte šablónu na úpravu.</p>
-    <nav class="admin-dashboard__menu" aria-label="Výber mailovej šablóny">
-      <a href="/admin/mail-templates/received">Prijatie žiadosti o rezerváciu</a>
-      <a href="/admin/mail-templates/confirmed" aria-current="page">Potvrdenie rezervácie</a>
-      <a href="/admin/payment-settings#payment-email-heading">Platobné pokyny</a>
-    </nav>
+    {include '_navigation.latte', current: 'confirmed'}
   </section>
   <section class="info-card">
     <h2>Potvrdenie rezervácie</h2>
