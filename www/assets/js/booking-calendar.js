@@ -15,7 +15,6 @@
   const message = calendar.querySelector('.booking-calendar-message');
   const previous = calendar.querySelector('.booking-calendar-prev');
   const next = calendar.querySelector('.booking-calendar-next');
-  const reset = calendar.querySelector('.booking-calendar-reset');
   const isEnglish = calendar.dataset.locale === 'en';
   const minimum = Number(calendar.dataset.minNights) || 1;
   const today = calendar.dataset.today;
@@ -50,7 +49,6 @@
 
   function updateDates() {
     departure.min = arrival.value ? addDays(arrival.value, minimum) : addDays(today, minimum);
-    reset.hidden = !arrival.value && !departure.value;
     render();
   }
 
@@ -196,7 +194,6 @@
 
   previous.addEventListener('click', () => { monthIndex--; render(); });
   next.addEventListener('click', () => { monthIndex++; render(); });
-  reset.addEventListener('click', clearSelection);
 
   // The native date inputs remain usable when JavaScript is disabled.
   // On an enhanced page the calendar is the sole date selector.
