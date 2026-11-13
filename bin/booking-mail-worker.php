@@ -8,6 +8,7 @@ use App\Model\SmtpTransportFactory;
 use App\Helpers\BookingRequestEmailTemplate;
 use App\Helpers\BookingConfirmationEmailTemplate;
 use App\Model\BookingPaymentDetails;
+use App\Model\BookingPaymentQr;
 use App\Helpers\PaymentEmailTemplate;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -202,6 +203,46 @@ function bookingMailContent(
 }
 
 /**
+ * Reuses the QR cache or generates the code when a confirmed guest email is due.
+ * Missing payment settings do not prevent sending a booking confirmation.
+ *
+ * @param array{iban: string|null, account_holder: string|null, bic: string|null}|null $settings
+ * @param int|null $amountCents Stored booking amount in eurocents.
+ * @param string $variableSymbol Payment reference of this booking.
+ * @return string|null Cached or freshly generated PAY by square PNG bytes.
+ */
+function bookingMailConfirmedQr(
+  ?array $settings,
+  ?int $amountCents,
+  string $variableSymbol,
+): ?string {
+  if ($settings === null || $amountCents === null || $amountCents <= 0) {
+    return null;
+  }
+
+  $iban = trim((string) ($settings['iban'] ?? ''));
+  $holder = trim((string) ($settings['account_holder'] ?? ''));
+  if ($iban === '' || $holder === '' || mb_strlen($holder) > 70) {
+    return null;
+  }
+
+  // This is the same private directory used by the admin booking detail.
+  $qr = new BookingPaymentQr(dirname(__DIR__) . '/var/temp/payment-qr');
+  $document = BookingPaymentQr::document($iban, $holder, $amountCents, $variableSymbol);
+  $cached = $qr->cached($document);
+  if ($cached !== null) {
+    return $cached;
+  }
+
+  $apiKey = getenv('BYSQUARE_API_KEY');
+  if (!is_string($apiKey) || trim($apiKey) === '') {
+    return null;
+  }
+
+  return $qr->generate($document, $apiKey);
+}
+
+/**
  * Sends at most the requested number of due messages.
  *
  * @param PDO $pdo Database connection.
@@ -252,6 +293,7 @@ SQL);
       $confirmedGuest = $event['event_type'] === 'confirmed' && $event['recipient_type'] === 'guest';
       $confirmedTemplate = null;
       $paymentInstructions = null;
+      $paymentQrPng = null;
       if ($confirmedGuest) {
         $templateRow = $pdo->query(
           "SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = 'confirmed'"
@@ -274,11 +316,23 @@ SQL);
         $createdAt = new DateTimeImmutable((string) $event['created_at']);
         $year = (int) $createdAt->setTimezone(new DateTimeZone('Europe/Bratislava'))->format('Y');
         $variableSymbol = BookingPaymentDetails::variableSymbol((int) $event['booking_id'], $year);
+        $amountCents = $event['price_total_cents'] === null
+          ? null
+          : (int) $event['price_total_cents'];
+
         $paymentInstructions = BookingConfirmationEmailTemplate::paymentInstructions(
           $settings,
-          $event['price_total_cents'] === null ? null : (int) $event['price_total_cents'],
+          $amountCents,
           $variableSymbol,
         );
+
+        try {
+          $paymentQrPng = bookingMailConfirmedQr($settings, $amountCents, $variableSymbol);
+        } catch (Throwable $error) {
+          // A temporary API failure must not block a confirmed booking email.
+          // Do not log bank details, the API key, or the remote response.
+          error_log('PAY by square unavailable for booking confirmation (' . get_class($error) . ').');
+        }
       }
       $content = bookingMailContent(
         $event,
@@ -301,6 +355,15 @@ SQL);
           dirname($logoPath),
         );
       }
+
+      if ($confirmedGuest && $paymentQrPng !== null) {
+        $message->addAttachment(
+          'pay-by-square.png',
+          $paymentQrPng,
+          'image/png',
+        );
+      }
+
       $mailer->send($message);
       $stmt = $pdo->prepare('UPDATE booking_mail_outbox SET sent_at = now(), attempts = attempts + 1 WHERE id = ?');
       $stmt->execute([(int) $event['outbox_id']]);
