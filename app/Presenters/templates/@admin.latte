@@ -7,9 +7,38 @@
   <title>{block pageTitle}Administrácia{/block} – Maringotka na Závadke</title>
   <link rel="stylesheet" href="/assets/css/site.css">
   <link rel="stylesheet" href="/assets/css/admin.css">
+  <script defer src="/assets/js/admin-navigation.js"></script>
   {block extraHead}{/block}
 </head>
 <body>
-  {block content}{/block}
+  <div class="admin-layout">
+    <aside class="admin-sidebar" aria-label="Administrátorské menu">
+      <div class="admin-sidebar__header">
+        <a class="admin-sidebar__brand" href="/admin">Maringotka na Závadke <small>Administrácia</small></a>
+        <button class="admin-sidebar__toggle" type="button" aria-label="Zbaliť bočné menu" aria-controls="admin-sidebar-navigation" aria-expanded="true">
+          <span aria-hidden="true">‹</span>
+        </button>
+      </div>
+      <nav class="admin-sidebar__nav" id="admin-sidebar-navigation" aria-label="Navigácia administrácie">
+        <a href="/admin" data-short="P" title="Prehľad">Prehľad</a>
+        <span class="admin-sidebar__group">Rezervácie</span>
+        <a href="/admin/bookings" data-short="R" title="Všetky rezervácie">Všetky rezervácie</a>
+        <a href="/admin/booking-calendar" data-short="K" title="Kalendár">Kalendár</a>
+        <span class="admin-sidebar__group">Obsah webu</span>
+        <a href="/admin/home/sk" data-short="SK" title="Hlavná stránka – SK">Hlavná stránka – SK</a>
+        <a href="/admin/home/en" data-short="EN" title="Hlavná stránka – EN">Hlavná stránka – EN</a>
+        <a href="/admin/contact" data-short="@" title="Kontaktné údaje">Kontaktné údaje</a>
+        <a href="/admin/pricing" data-short="€" title="Cenník">Cenník</a>
+        <a href="/admin/gallery" data-short="G" title="Galéria">Galéria</a>
+        <span class="admin-sidebar__group">Nastavenia</span>
+        <a href="/admin/payment-settings" data-short="€" title="Platobné údaje">Platobné údaje</a>
+        <a href="/admin/mail-templates" data-short="M" title="Mailové šablóny">Mailové šablóny</a>
+        <a href="/admin/payment-settings#payment-email-heading" data-short="E" title="Šablóna platobného e-mailu">Šablóna platobného e-mailu</a>
+      </nav>
+    </aside>
+    <div class="admin-layout__content">
+      {block content}{/block}
+    </div>
+  </div>
 </body>
 </html>
