@@ -146,7 +146,8 @@ final class BookingRepository extends Repository
     $note = trim($values['guest_note']);
 
     if ($name === '' || strlen($name) > 200 || !filter_var($email, FILTER_VALIDATE_EMAIL)
-      || strlen($email) > 254 || strlen($phone) > 60 || strlen($note) > 5000) {
+      || strlen($email) > 254
+      || strlen($phone) > 60 || strlen($note) > 5000) {
       throw new InvalidArgumentException('Skontrolujte kontaktné údaje.');
     }
 

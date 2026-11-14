@@ -21,5 +21,23 @@
     </div>
   </section>
 
+  <section class="info-card" aria-labelledby="invoice-supplier-heading">
+    <h2 id="invoice-supplier-heading">Fakturačné údaje dodávateľa</h2>
+    <p class="booking-payment__hint">Uložia sa raz a automaticky sa použijú na budúce faktúry. Už vystavené faktúry sa nezmenia.</p>
+
+    <div class="cms-form booking-payment-settings__form">
+      {form supplierForm}
+        <ul class="cms-form-errors" n:if="$form->hasErrors()">
+          <li n:foreach="$form->getErrors() as $error">{$error}</li>
+        </ul>
+
+        {label supplier_name /}{input supplier_name}
+        {label supplier_address /}{input supplier_address}
+        {label supplier_ico /}{input supplier_ico}
+        {label supplier_dic /}{input supplier_dic}
+        {input save}
+      {/form}
+    </div>
+  </section>
 </main>
 {/block}

@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Model\BookingPaymentRepository;
+use App\Model\BookingInvoiceRepository;
+use App\Infrastructure\Database\ConnectionFactory;
+use App\Forms\BookingInvoiceFormFactory;
+use DomainException;
 use App\Model\MailTemplateRepository;
 use App\Forms\MailTemplateFormFactory;
 use App\Helpers\BookingRequestEmailTemplate;
@@ -19,6 +23,10 @@ use Nette\Application\UI\Form;
  */
 final class PaymentSettingsPresenter extends BasePresenter
 {
+  private readonly BookingInvoiceRepository $invoices;
+
+  private readonly BookingInvoiceFormFactory $invoiceForms;
+
   /**
    * @param BookingPaymentRepository $payments Payment configuration storage.
    */
@@ -27,9 +35,13 @@ final class PaymentSettingsPresenter extends BasePresenter
     private readonly PaymentSettingsFormFactory $forms,
     private readonly MailTemplateRepository $mailTemplates,
     private readonly MailTemplateFormFactory $mailForms,
+    ConnectionFactory $connections,
   )
   {
     parent::__construct();
+
+    $this->invoices = new BookingInvoiceRepository($connections);
+    $this->invoiceForms = new BookingInvoiceFormFactory();
   }
 
   /**
@@ -51,6 +63,28 @@ final class PaymentSettingsPresenter extends BasePresenter
   public function renderDefault(): void
   {
     $this->template->paymentSettings = $this->payments->settings();
+  }
+
+  /**
+   * Saves invoice supplier identity independently of the bank account form.
+   */
+  protected function createComponentSupplierForm(): Form
+  {
+    $form = $this->invoiceForms->createSupplierSettings($this->invoices->supplierSettings());
+
+    $form->onSuccess[] = function (Form $form): void {
+      try {
+        $this->invoices->saveSupplierSettings($form->getValues('array'));
+      } catch (InvalidArgumentException | DomainException $error) {
+        $form->addError($error->getMessage());
+        return;
+      }
+
+      $this->flashMessage('Fakturačné údaje dodávateľa boli uložené.', 'success');
+      $this->redirect('this');
+    };
+
+    return $form;
   }
 
   /**

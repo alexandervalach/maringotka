@@ -167,6 +167,52 @@
     {/if}
   </section>
 
+  {if $payment !== null && $payment['status'] === 'paid'}
+    <section class="info-card booking-payment" aria-labelledby="invoice-heading">
+      <h2 id="invoice-heading">Faktúra</h2>
+
+      {if $invoice !== null}
+        <p>Faktúra <strong>{$invoice['number']}</strong> je vystavená.</p>
+        <a class="button" href="{link downloadInvoice!}">Stiahnuť PDF faktúru</a>
+        <p class="booking-payment__hint">Už vystavený doklad zostáva nezmenený.</p>
+      {elseif $request['status'] === 'confirmed' && $payment['total_cents'] !== null}
+        {if !$invoiceSupplierReady}
+          <p>Fakturačné údaje dodávateľa ešte nie sú uložené. Doplňte ich v <a href="/admin/payment-settings">Platobných údajoch</a>.</p>
+        {else}
+          {if !$invoiceEdit}
+            <div class="cms-form booking-admin-form">
+              {form quickInvoiceForm}
+                <ul class="cms-form-errors" n:if="$form->hasErrors()">
+                  <li n:foreach="$form->getErrors() as $error">{$error}</li>
+                </ul>
+                {input issue}
+              {/form}
+            </div>
+            <p><a href="{link this, billing => 1}">Upraviť údaje odberateľa</a></p>
+          {else}
+            <p class="booking-payment__hint">Údaje odberateľa upravte iba vtedy, ak má byť faktúra vystavená na inú osobu alebo firmu. Fakturačná adresa je nepovinná.</p>
+            <p><a href="{link this, billing => null}">Späť bez úprav</a></p>
+            <div class="cms-form booking-admin-form">
+              {form invoiceForm}
+                <ul class="cms-form-errors" n:if="$form->hasErrors()">
+                  <li n:foreach="$form->getErrors() as $error">{$error}</li>
+                </ul>
+
+                {label customer_name /}{input customer_name}
+                {label customer_address /}{input customer_address}
+                {label customer_ico /}{input customer_ico}
+                {label customer_dic /}{input customer_dic}
+                {input issue}
+              {/form}
+            </div>
+          {/if}
+        {/if}
+      {else}
+        <p>Pre túto rezerváciu nie je možné vystaviť faktúru.</p>
+      {/if}
+    </section>
+  {/if}
+
   {control bookingQuote, $request}
 
   <section class="info-card booking-history" aria-labelledby="booking-history-heading">
@@ -197,6 +243,7 @@
                   {elseif $event['event_type'] === 'mail_sent'}E-mail odoslaný
                   {elseif $event['event_type'] === 'qr_generated'}QR kód vygenerovaný
                   {elseif $event['event_type'] === 'mail_summary'}Staršie odoslanie e-mailu
+                  {elseif $event['event_type'] === 'invoice_issued'}Faktúra vystavená
                   {else}Udalosť rezervácie{/if}
                 </td>
                 <td>

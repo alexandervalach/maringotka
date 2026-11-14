@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Forms\BookingDecisionFormFactory;
+use App\Forms\BookingInvoiceFormFactory;
+use App\Infrastructure\Database\ConnectionFactory;
+use App\Model\BookingInvoiceRepository;
+use App\Helpers\BookingInvoicePdf;
+use Nette\Application\Responses\CallbackResponse;
 use App\Components\BookingQuoteControl;
 use App\Model\BookingManagementRepository;
 use App\Model\BookingPaymentRepository;
@@ -24,6 +29,10 @@ final class BookingManagementPresenter extends BasePresenter
 {
   private int $editingId = 0;
 
+  private readonly BookingInvoiceRepository $invoices;
+
+  private readonly BookingInvoiceFormFactory $invoiceForms;
+
   /**
    * @param BookingManagementRepository $bookings Reservation management storage.
    * @param BookingDecisionFormFactory $forms Decision form factory.
@@ -32,8 +41,11 @@ final class BookingManagementPresenter extends BasePresenter
     private readonly BookingManagementRepository $bookings,
     private readonly BookingDecisionFormFactory $forms,
     private readonly BookingPaymentRepository $payments,
+    ConnectionFactory $connections,
   ) {
     parent::__construct();
+    $this->invoices = new BookingInvoiceRepository($connections);
+    $this->invoiceForms = new BookingInvoiceFormFactory();
   }
 
   /**
@@ -111,6 +123,10 @@ final class BookingManagementPresenter extends BasePresenter
     $this->template->bookingHistory = $this->bookings->history($id);
     $payment = $this->payments->forBooking($id);
     $this->template->payment = $payment;
+    $this->template->invoice = $this->invoices->forBooking($id);
+    $supplier = $this->invoices->supplierSettings();
+    $this->template->invoiceSupplierReady = $supplier !== [];
+    $this->template->invoiceEdit = $this->getParameter('billing') === '1';
     $account = $this->payments->settings();
     $this->template->paymentAccount = $account;
     $this->template->paymentAmount = $payment !== null && $payment['total_cents'] !== null
@@ -408,6 +424,84 @@ final class BookingManagementPresenter extends BasePresenter
 
       $this->redirect('this');
     };
+    return $form;
+  }
+
+  /**
+   * Downloads the already issued invoice without regenerating its contents.
+   */
+  public function handleDownloadInvoice(): void
+  {
+    if ($this->editingId < 1) {
+      $this->error('Faktúra neexistuje.', 404);
+    }
+
+    $invoice = $this->invoices->forBooking($this->editingId);
+
+    if ($invoice === null) {
+      $this->error('Faktúra ešte nebola vystavená.', 404);
+    }
+
+    $bytes = (new BookingInvoicePdf())->render($invoice['document']);
+    $fileName = 'faktura-' . $invoice['number'] . '.pdf';
+
+    $this->sendResponse(new CallbackResponse(
+      static function (\Nette\Http\IRequest $request, \Nette\Http\IResponse $response) use ($bytes, $fileName): void {
+        $response->setContentType('application/pdf');
+        $response->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+        $response->setHeader('Cache-Control', 'no-store, private');
+        $response->setHeader('X-Content-Type-Options', 'nosniff');
+        echo $bytes;
+      },
+    ));
+  }
+
+  /**
+   * Issues the invoice immediately using the guest name from the booking.
+   * A missing billing address does not block issuance.
+   */
+  protected function createComponentQuickInvoiceForm(): Form
+  {
+    $form = $this->invoiceForms->createQuickIssue();
+
+    $form->onSuccess[] = function (Form $form): void {
+      try {
+        $this->invoices->issue($this->editingId, []);
+      } catch (DomainException | InvalidArgumentException $error) {
+        $form->addError($error->getMessage());
+        return;
+      }
+
+      $this->handleDownloadInvoice();
+    };
+
+    return $form;
+  }
+
+  /**
+   * Optional prefilled customer billing form used before the first issue.
+   */
+  protected function createComponentInvoiceForm(): Form
+  {
+    $request = $this->editingId > 0 ? $this->bookings->requestById($this->editingId) : null;
+    $form = $this->invoiceForms->createCustomer([
+      'customer_name' => (string) ($request['guest_name'] ?? ''),
+      'customer_address' => (string) ($request['guest_billing_address'] ?? ''),
+      'customer_ico' => '',
+      'customer_dic' => '',
+    ]);
+
+    $form->onSuccess[] = function (Form $form): void {
+      try {
+        $this->invoices->issue($this->editingId, $form->getValues('array'));
+      } catch (DomainException | InvalidArgumentException $error) {
+        $form->addError($error->getMessage());
+        return;
+      }
+
+      $this->handleDownloadInvoice();
+    };
+
     return $form;
   }
 }
