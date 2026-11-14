@@ -23,6 +23,7 @@ final class PricingFormFactory extends FormFactory
       'wellness' => 'Wellness – deň (€)',
       'breakfast' => 'Raňajkový košík pre dvoch – deň (€)',
       'romance' => 'Romantický balíček – pobyt (€)',
+      'local_tax' => 'Miestna daň za osobu a noc (€) – zahrnutá v cene',
     ] as $field => $label) {
       $form->addText($field, $label)
         ->setRequired('Vyplňte cenu.')

@@ -8,6 +8,7 @@ use App\Forms\BookingDecisionFormFactory;
 use App\Forms\BookingInvoiceFormFactory;
 use App\Infrastructure\Database\ConnectionFactory;
 use App\Model\BookingInvoiceRepository;
+use App\Model\PricingRepository;
 use App\Components\Invoice\InvoicePdf;
 use Nette\Application\Responses\CallbackResponse;
 use App\Components\BookingQuoteControl;
@@ -42,9 +43,10 @@ final class BookingManagementPresenter extends BasePresenter
     private readonly BookingDecisionFormFactory $forms,
     private readonly BookingPaymentRepository $payments,
     ConnectionFactory $connections,
+    PricingRepository $pricing,
   ) {
     parent::__construct();
-    $this->invoices = new BookingInvoiceRepository($connections);
+    $this->invoices = new BookingInvoiceRepository($connections, $pricing);
     $this->invoiceForms = new BookingInvoiceFormFactory();
   }
 

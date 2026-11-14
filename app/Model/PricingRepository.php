@@ -6,6 +6,7 @@ namespace App\Model;
 
 use App\Infrastructure\Database\ConnectionFactory;
 use InvalidArgumentException;
+use Throwable;
 
 /** 
  * Rates for one accommodation, shared by all language versions. 
@@ -39,11 +40,11 @@ final class PricingRepository extends Repository
   /**
    * Read saved pricing and use current public prices until edited.
    *
-   * @return array{first_night: int, additional_night: int, wellness: int, breakfast: int, romance: int, minimum_nights: int}
+   * @return array{first_night: int, additional_night: int, wellness: int, breakfast: int, romance: int, minimum_nights: int, local_tax: int}
    */
   public function getPrices(): array
   {
-    $prices = [...self::DEFAULTS, 'minimum_nights' => 1];
+    $prices = [...self::DEFAULTS, 'minimum_nights' => 1, 'local_tax' => 200];
     $settings = $this->getTable()->get(1);
     if ($settings !== null) {
       if ($settings['first_night_price_cents'] !== null) {
@@ -53,6 +54,7 @@ final class PricingRepository extends Repository
         $prices['additional_night'] = (int) $settings['additional_night_price_cents'];
       }
       $prices['minimum_nights'] = (int) $settings['minimum_nights'];
+      $prices['local_tax'] = (int) $settings['local_tax_cents'];
     }
 
     foreach ($this->database->table('pricing_extras')->where('code', array_keys(self::EXTRAS)) as $extra) {
@@ -72,7 +74,10 @@ final class PricingRepository extends Repository
   public function getEditorValues(): array
   {
     $prices = $this->getPrices();
-    $values = ['minimum_nights' => $prices['minimum_nights']];
+    $values = [
+      'minimum_nights' => $prices['minimum_nights'],
+      'local_tax' => self::formatAmount($prices['local_tax']),
+    ];
     foreach (self::DEFAULTS as $field => $_) {
       $values[$field] = self::formatAmount($prices[$field]);
     }
@@ -104,21 +109,29 @@ final class PricingRepository extends Repository
   public function save(array $values): void
   {
     $amounts = self::normalize($values);
+    $localTax = self::parseAmount($values['local_tax'] ?? null, 'local_tax');
+    if ($localTax > 100_000) {
+      throw new InvalidArgumentException('Miestna daň musí byť najviac 1 000 €.');
+    }
+
     $minimum = $values['minimum_nights'] ?? null;
     if (!is_int($minimum) || $minimum < 1 || $minimum > 365) {
       throw new InvalidArgumentException('Minimum stay must be between 1 and 365 nights.');
     }
 
-    $this->transaction(function () use ($amounts, $minimum): void {
+    $this->database->beginTransaction();
+    try {
       $this->database->query(
-        'INSERT INTO pricing_settings (singleton_id, first_night_price_cents, additional_night_price_cents, minimum_nights) '
-        . 'VALUES (1, ?, ?, ?) ON CONFLICT (singleton_id) DO UPDATE SET '
+        'INSERT INTO pricing_settings (singleton_id, first_night_price_cents, additional_night_price_cents, minimum_nights, local_tax_cents) '
+        . 'VALUES (1, ?, ?, ?, ?) ON CONFLICT (singleton_id) DO UPDATE SET '
         . 'first_night_price_cents = EXCLUDED.first_night_price_cents, '
         . 'additional_night_price_cents = EXCLUDED.additional_night_price_cents, '
-        . 'minimum_nights = EXCLUDED.minimum_nights, updated_at = now()',
+        . 'minimum_nights = EXCLUDED.minimum_nights, '
+        . 'local_tax_cents = EXCLUDED.local_tax_cents, updated_at = now()',
         $amounts['first_night'],
         $amounts['additional_night'],
         $minimum,
+        $localTax,
       );
       foreach (self::EXTRAS as $field => $extra) {
         $this->database->query(
@@ -130,7 +143,11 @@ final class PricingRepository extends Repository
           $amounts[$field],
         );
       }
-    });
+      $this->database->commit();
+    } catch (Throwable $exception) {
+      $this->database->rollBack();
+      throw $exception;
+    }
   }
 
   /**
@@ -144,15 +161,21 @@ final class PricingRepository extends Repository
   {
     $amounts = [];
     foreach (self::DEFAULTS as $field => $_) {
-      $input = $values[$field] ?? null;
-      if (!is_string($input) || preg_match('/^([0-9]{1,5})(?:[.,]([0-9]{1,2}))?$/D', trim($input), $matches) !== 1) {
-        throw new InvalidArgumentException('Invalid price: ' . $field);
-      }
-      $euros = (int) $matches[1];
-      $cents = (int) str_pad($matches[2] ?? '', 2, '0');
-      $amounts[$field] = $euros * 100 + $cents;
+      $amounts[$field] = self::parseAmount($values[$field] ?? null, $field);
     }
     return $amounts;
+  }
+
+  /**
+   * Parse a monetary setting as exact eurocents.
+   */
+  private static function parseAmount(mixed $value, string $field): int
+  {
+    if (!is_string($value) || preg_match('/^([0-9]{1,5})(?:[.,]([0-9]{1,2}))?$/D', trim($value), $matches) !== 1) {
+      throw new InvalidArgumentException('Invalid price: ' . $field);
+    }
+
+    return (int) $matches[1] * 100 + (int) str_pad($matches[2] ?? '', 2, '0');
   }
 
   /** @param int $cents Nonnegative amount in eurocents. */

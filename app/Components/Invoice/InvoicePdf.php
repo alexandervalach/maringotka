@@ -76,8 +76,16 @@ final class InvoicePdf
         throw new DomainException('Neplatná cena položky faktúry.');
       }
 
+      $code = (string) ($line['code'] ?? '');
+      $guestCount = (int) ($document['guest_count'] ?? 2);
+      $isLodging = in_array($code, ['first_night', 'additional_night'], true);
+      $isTax = $code === 'local_tax';
+      $people = $isLodging || $isTax ? (string) $guestCount : '–';
+      $unitCount = $isTax ? (string) ($line['night_count'] ?? (int) ($quantity / max(1, $guestCount))) : (string) $quantity;
+
       $rows .= '<tr><td>' . self::e((string) ($line['label'] ?? '')) . '</td>'
-        . '<td class="number">' . $quantity . '</td>'
+        . '<td class="number">' . $people . '</td>'
+        . '<td class="number">' . $unitCount . '</td>'
         . '<td class="number">' . self::money($unit) . '</td>'
         . '<td class="number">' . self::money($total) . '</td></tr>';
     }

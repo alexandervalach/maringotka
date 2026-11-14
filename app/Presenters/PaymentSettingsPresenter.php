@@ -6,6 +6,7 @@ namespace App\Presenters;
 
 use App\Model\BookingPaymentRepository;
 use App\Model\BookingInvoiceRepository;
+use App\Model\PricingRepository;
 use App\Infrastructure\Database\ConnectionFactory;
 use App\Forms\BookingInvoiceFormFactory;
 use DomainException;
@@ -36,11 +37,12 @@ final class PaymentSettingsPresenter extends BasePresenter
     private readonly MailTemplateRepository $mailTemplates,
     private readonly MailTemplateFormFactory $mailForms,
     ConnectionFactory $connections,
+    PricingRepository $pricing,
   )
   {
     parent::__construct();
 
-    $this->invoices = new BookingInvoiceRepository($connections);
+    $this->invoices = new BookingInvoiceRepository($connections, $pricing);
     $this->invoiceForms = new BookingInvoiceFormFactory();
   }
 

@@ -20,7 +20,7 @@ final class BookingInvoiceRepository
 {
   private readonly Explorer $database;
 
-  public function __construct(ConnectionFactory $connections)
+  public function __construct(ConnectionFactory $connections, private readonly PricingRepository $pricing)
   {
     $this->database = $connections->createExplorer();
   }
@@ -196,6 +196,10 @@ final class BookingInvoiceRepository
         : (string) $row['departure_date'];
       $paidAt = $row['paid_at'];
 
+      $guestCount = 2;
+      $localTaxRate = $this->pricing->getPrices()['local_tax'];
+      $invoiceLines = self::splitIncludedLocalTax($quote['lines'], $quote['nights'], $localTaxRate, $guestCount);
+
       $document = [
         'number' => $number,
         'issued_date' => $now->format('Y-m-d'),
@@ -205,7 +209,9 @@ final class BookingInvoiceRepository
         'departure' => $departure,
         'supplier' => $supplier,
         'customer' => $customer,
-        'lines' => $quote['lines'],
+        'lines' => $invoiceLines,
+        'guest_count' => $guestCount,
+        'local_tax_cents_per_guest_night' => $localTaxRate,
         'nights' => $quote['nights'],
         'total_cents' => $quote['total_cents'],
       ];
@@ -230,6 +236,84 @@ final class BookingInvoiceRepository
       $this->database->rollBack();
       throw $error;
     }
+  }
+
+  /**
+   * Reclassify the included guest tax without changing the booking total.
+   * Accommodation rates already include this tax; extras remain unchanged.
+   * Uses the stored quote, never the current accommodation rate.
+   *
+   * @param list<array<string, mixed>> $lines
+   * @return list<array<string, mixed>>
+   */
+  public static function splitIncludedLocalTax(array $lines, int $nights, int $rateCents, int $guestCount = 2): array
+  {
+    if ($nights < 1 || $nights > 30 || $guestCount < 1 || $guestCount > 20 || $rateCents < 0) {
+      throw new InvalidArgumentException('Neplatné údaje miestnej dane.');
+    }
+
+    $perNightTax = $rateCents * $guestCount;
+    $accommodationNights = 0;
+    $result = [];
+    $originalTotal = 0;
+
+    foreach ($lines as $line) {
+      $code = $line['code'] ?? null;
+      $quantity = $line['quantity'] ?? null;
+      $unit = $line['unit_price_cents'] ?? null;
+      $total = $line['total_cents'] ?? null;
+
+      if (!is_int($quantity) || $quantity < 1 || !is_int($unit) || $unit < 0
+        || !is_int($total) || $total !== $quantity * $unit) {
+        throw new DomainException('Neplatná položka faktúry.');
+      }
+
+      $originalTotal += $total;
+      if (in_array($code, ['first_night', 'additional_night'], true)) {
+        if ($unit < $perNightTax) {
+          throw new DomainException('Miestna daň prevyšuje cenu ubytovania za noc.');
+        }
+
+        $accommodationNights += $quantity;
+        $line['unit_price_cents'] = $unit - $perNightTax;
+        $line['total_cents'] = $quantity * ($unit - $perNightTax);
+      }
+
+      $result[] = $line;
+    }
+
+    if ($accommodationNights !== $nights) {
+      throw new DomainException('Nesúlad počtu nocí v cenovom rozpise.');
+    }
+
+    if ($rateCents > 0) {
+      $taxLine = [
+        'code' => 'local_tax',
+        'label' => 'Miestny poplatok',
+        'quantity' => $nights * $guestCount,
+        'unit_price_cents' => $rateCents,
+        'total_cents' => $nights * $guestCount * $rateCents,
+        'unit' => 'guest_night',
+        'extra' => false,
+        'guest_count' => $guestCount,
+        'night_count' => $nights,
+      ];
+
+      $lastLodgingIndex = 0;
+      foreach ($result as $index => $line) {
+        if (in_array($line['code'] ?? null, ['first_night', 'additional_night'], true)) {
+          $lastLodgingIndex = $index;
+        }
+      }
+      array_splice($result, $lastLodgingIndex + 1, 0, [$taxLine]);
+    }
+
+    $newTotal = array_sum(array_column($result, 'total_cents'));
+    if ($newTotal !== $originalTotal) {
+      throw new DomainException('Rozpis miestnej dane zmenil celkovú cenu.');
+    }
+
+    return $result;
   }
 
   /**

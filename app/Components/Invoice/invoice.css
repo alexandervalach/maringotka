@@ -25,10 +25,11 @@ h2 { font-size: 12px; font-weight: bold; color: #485d48; margin: 0 0 7px; }
 .items { table-layout: fixed; }
 .items th { background: #485d48; color: #fff; padding: 9px 8px; font-size: 9px; text-align: left; }
 .items td { padding: 9px 8px; border-bottom: 1px solid #e1e1dd; vertical-align: top; }
-.items th:first-child { width: 39%; }
-.items th:nth-child(2) { width: 10%; }
-.items th:nth-child(3) { width: 20%; }
-.items th:last-child { width: 19%; }
+.items th:first-child { width: 35%; }
+.items th:nth-child(2) { width: 15%; }
+.items th:nth-child(3) { width: 17%; }
+.items th:nth-child(4) { width: 16%; }
+.items th:last-child { width: 17%; }
 .number { text-align: right; }
 .total-wrap { margin-top: 26px; width: 100%; }
 .total { background: #485d48; color: white; font-size: 13px; font-weight: bold; padding: 10px 12px; text-align: right; }

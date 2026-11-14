@@ -26,7 +26,7 @@
 <p>Typ ubytovania: Maringotka na Závadke{{guest_info}} · Počet nocí: {{nights}}</p>
 </section>
 <table class="items">
-<thead><tr><th>Popis</th><th class="number">Počet</th><th class="number">Cena (€)</th><th class="number">Spolu (€)</th></tr></thead>
+<thead><tr><th>Popis</th><th class="number">Počet osôb</th><th class="number">Počet nocí / ks</th><th class="number">Cena (€)</th><th class="number">Spolu (€)</th></tr></thead>
 <tbody>{{rows}}</tbody>
 </table>
 <div class="total-wrap"><div class="total">CELKOM (€): {{total}}</div></div>
