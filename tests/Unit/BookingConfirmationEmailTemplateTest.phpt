@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Helpers\BookingConfirmationEmailTemplate;
+use App\Components\Mail\BookingConfirmationEmailTemplate;
 use Tester\Assert;
 
 require dirname(__DIR__) . '/bootstrap.php';
@@ -34,6 +34,13 @@ Assert::contains('2099000042', $result['body']);
 Assert::notContains('<script>', $result['html']);
 Assert::contains('&lt;script&gt;', $result['html']);
 Assert::notContains('Žiadosť ešte neznamená', $result['body']);
+
+// Defaults are loaded from the external Markdown file; admin overrides remain effective.
+Assert::contains('vaša **rezervácia bola potvrdená**', BookingConfirmationEmailTemplate::defaults()['body']);
+$edited = BookingConfirmationEmailTemplate::defaults();
+$edited['body'] = str_replace('Ďakujeme.', 'Ďakujeme za rezerváciu.', $edited['body']);
+$custom = BookingConfirmationEmailTemplate::content($booking, $quote, 'kontakt@example.test', $payment, $edited);
+Assert::contains('Ďakujeme za rezerváciu.', $custom['body']);
 
 $missing = BookingConfirmationEmailTemplate::paymentInstructions(null, null, null);
 Assert::contains('Zatiaľ platbu neposielajte.', $missing);

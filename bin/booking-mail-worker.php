@@ -6,7 +6,7 @@ use Nette\Mail\Message;
 use Nette\Mail\SmtpMailer;
 use App\Model\SmtpTransportFactory;
 use App\Helpers\BookingRequestEmailTemplate;
-use App\Helpers\BookingConfirmationEmailTemplate;
+use App\Components\Mail\BookingConfirmationEmailTemplate;
 use App\Components\Mail\BookingPaymentReceivedEmailTemplate;
 use App\Components\Invoice\InvoicePdf;
 use App\Infrastructure\Database\ConnectionFactory;

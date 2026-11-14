@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Helpers;
+namespace App\Components\Mail;
 
+use App\Helpers\PaymentEmailTemplate;
 use InvalidArgumentException;
 
 /**
@@ -14,34 +15,29 @@ final class BookingConfirmationEmailTemplate
 {
   private const SUBJECT = 'R-{{booking_id}} – Rezervácia bola potvrdená';
 
-  private const BODY = <<<'MARKDOWN'
-Dobrý deň, {{guest_name}},
+  /**
+   * Reads the default body from the Markdown asset.
+   * Saved administrator templates remain the authoritative content.
+   *
+   * @return string
+   */
+  private static function defaultBody(): string
+  {
+    $body = @file_get_contents(__DIR__ . '/confirmed.md');
 
-vaša **rezervácia bola potvrdená**.
+    if ($body === false) {
+      throw new \RuntimeException('Chýba predvolená Markdown šablóna potvrdenia rezervácie.');
+    }
 
-**Číslo rezervácie:** R-{{booking_id}}
-
-**Príchod:** {{arrival}}
-
-**Odchod:** {{departure}}
-
-**Zhrnutie rezervácie:**
-
-{{quote}}
-
-{{payment_instructions}}
-
-Ak potrebujete dohodnúť zmenu rezervácie, kontaktujte prevádzkovateľa: {{contact}}. Zmeny vybavuje administrátor.
-
-Ďakujeme.
-MARKDOWN;
+    return rtrim($body, "\r\n");
+  }
 
   /**
    * @return array{subject: string, body: string, show_logo: bool}
    */
   public static function defaults(): array
   {
-    return ['subject' => self::SUBJECT, 'body' => self::BODY, 'show_logo' => true];
+    return ['subject' => self::SUBJECT, 'body' => self::defaultBody(), 'show_logo' => true];
   }
 
   /**
@@ -52,17 +48,14 @@ MARKDOWN;
     if (trim($subject) === '' || strlen($subject) > 180 || strpbrk($subject, "\r\n") !== false) {
       throw new InvalidArgumentException('Predmet musí byť jeden riadok s najviac 180 znakmi.');
     }
-
     if (trim($body) === '' || strlen($body) > 10000) {
       throw new InvalidArgumentException('Text musí mať najviac 10 000 znakov.');
     }
-
     foreach (['{{booking_id}}', '{{arrival}}', '{{departure}}', '{{quote}}', '{{payment_instructions}}'] as $required) {
       if (!str_contains($body, $required)) {
         throw new InvalidArgumentException('Chýba povinná značka ' . $required . '.');
       }
     }
-
     foreach ([$subject, $body] as $value) {
       preg_match_all('/\{\{([^{}]*)\}\}/u', $value, $matches);
       foreach ($matches[1] as $name) {
@@ -87,20 +80,16 @@ MARKDOWN;
       || $amountCents === null || $amountCents <= 0 || $variableSymbol === null) {
       return 'Platobné údaje vám zašleme samostatne. Zatiaľ platbu neposielajte.';
     }
-
     $lines = [
       'Rezervácia je potvrdená. Platbu môžete vykonať bankovým prevodom:',
       'Príjemca: ' . trim($settings['account_holder']),
       'IBAN: ' . trim($settings['iban']),
     ];
-
     if (trim((string) ($settings['bic'] ?? '')) !== '') {
       $lines[] = 'BIC: ' . trim((string) $settings['bic']);
     }
-
     $lines[] = 'Suma: ' . intdiv($amountCents, 100) . '.' . str_pad((string) ($amountCents % 100), 2, '0', STR_PAD_LEFT) . ' EUR';
     $lines[] = 'Variabilný symbol: ' . $variableSymbol;
-
     return implode("\n", $lines);
   }
 
@@ -128,10 +117,8 @@ MARKDOWN;
       '{{payment_instructions}}' => $paymentInstructions,
       '{{contact}}' => trim($contact) === '' ? 'prevádzkovateľa' : trim($contact),
     ];
-    
     $body = strtr($template['body'], $values);
     $subject = strtr($template['subject'], $values);
-
     return [
       'subject' => $subject,
       'body' => PaymentEmailTemplate::plainText($body),

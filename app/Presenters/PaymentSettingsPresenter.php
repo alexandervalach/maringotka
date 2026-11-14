@@ -13,7 +13,7 @@ use DomainException;
 use App\Model\MailTemplateRepository;
 use App\Forms\MailTemplateFormFactory;
 use App\Helpers\BookingRequestEmailTemplate;
-use App\Helpers\BookingConfirmationEmailTemplate;
+use App\Components\Mail\BookingConfirmationEmailTemplate;
 use App\Components\Mail\BookingPaymentReceivedEmailTemplate;
 use App\Forms\PaymentSettingsFormFactory;
 use App\Helpers\PaymentEmailTemplate;

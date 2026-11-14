@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Model;
 
 use App\Helpers\BookingRequestEmailTemplate;
-use App\Helpers\BookingConfirmationEmailTemplate;
+use App\Components\Mail\BookingConfirmationEmailTemplate;
 use App\Components\Mail\BookingPaymentReceivedEmailTemplate;
 use App\Infrastructure\Database\ConnectionFactory;
 use Nette\Database\Explorer;
