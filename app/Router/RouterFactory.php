@@ -21,19 +21,17 @@ final class RouterFactory
     $router->addRoute('admin/bookings/<id \d+>', ['presenter' => 'BookingManagement', 'action' => 'edit']);
     $router->addRoute('admin/bookings', ['presenter' => 'BookingManagement', 'action' => 'default']);
     $router->addRoute('admin/payment-settings', 'PaymentSettings:default');
-   
-    $router->addRoute('admin/mail-templates/payment', [
-      'presenter' => 'PaymentSettings',
-      'action' => 'paymentEmail',
-    ]);
+
     $router->addRoute('admin/mail-templates/confirmed', [
       'presenter' => 'PaymentSettings',
       'action' => 'confirmed',
     ]);
+
     $router->addRoute('admin/mail-templates/received', [
       'presenter' => 'PaymentSettings',
       'action' => 'received',
     ]);
+
     $router->addRoute('admin/mail-templates', [
       'presenter' => 'PaymentSettings',
       'action' => 'received',
@@ -47,6 +45,11 @@ final class RouterFactory
     $router->addRoute('admin/booking-overview', [
       'presenter' => 'BookingOverview',
       'action' => 'default',
+    ]);
+
+    $router->addRoute('admin/mail-templates/paid', [
+      'presenter' => 'PaymentSettings',
+      'action' => 'paid',
     ]);
 
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);

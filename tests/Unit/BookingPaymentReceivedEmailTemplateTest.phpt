@@ -28,4 +28,7 @@ Assert::exception(static function (): void {
 $defaults = BookingPaymentReceivedEmailTemplate::defaults();
 Assert::contains('potvrdzujeme prijatie platby', $defaults['body']);
 Assert::contains('{{invoice_number}}', $defaults['body']);
+Assert::contains('Pokyny k pobytu', $defaults['body']);
+Assert::contains('{{arrival}}', $defaults['body']);
+Assert::contains('{{departure}}', $defaults['body']);
 Assert::same('R-{{booking_id}} – Potvrdenie prijatia platby', $defaults['subject']);
