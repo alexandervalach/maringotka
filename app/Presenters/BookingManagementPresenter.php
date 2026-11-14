@@ -10,7 +10,6 @@ use App\Model\BookingManagementRepository;
 use App\Model\BookingPaymentRepository;
 use App\Model\BookingPaymentDetails;
 use App\Model\BookingPaymentInstructionMailer;
-use App\Helpers\PaymentEmailTemplate;
 use App\Model\BookingPaymentQr;
 use DomainException;
 use InvalidArgumentException;
@@ -120,7 +119,6 @@ final class BookingManagementPresenter extends BasePresenter
     $this->template->paymentQrDataUri = null;
     $this->template->paymentQrConfigured = trim((string) getenv('BYSQUARE_API_KEY')) !== '';
     $this->template->paymentQrAvailable = false;
-    $this->template->paymentEmailUrl = null;
     $this->template->paymentEmailConfigured = BookingPaymentInstructionMailer::configured();
     $this->template->paymentEmailHistory = $this->payments->instructionMailHistory($id);
     if ($payment !== null
@@ -139,20 +137,7 @@ final class BookingManagementPresenter extends BasePresenter
       if ($cachedPng !== null) {
         $this->template->paymentQrDataUri = 'data:image/png;base64,' . base64_encode($cachedPng);
       }
-      $email = (string) $request['guest_email'];
-      if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
-        $content = PaymentEmailTemplate::content(
-          $id,
-          (string) $account['account_holder'],
-          (string) $account['iban'],
-          $account['bic'],
-          (int) $payment['total_cents'],
-          (string) $payment['variable_symbol'],
-          $this->payments->emailTemplate(),
-        );
-        $this->template->paymentEmailUrl = 'mailto:' . rawurlencode($email)
-          . '?subject=' . rawurlencode($content['subject']) . '&body=' . rawurlencode($content['body']);
-      }
+
     }
     $view = $this->getSession('booking-admin-view');
     $month = $view->get('month');
@@ -235,12 +220,10 @@ final class BookingManagementPresenter extends BasePresenter
     $form->addProtection('Platnosť formulára vypršala. Obnovte stránku.');
     $form->addSubmit('generate', 'Vygenerovať PAY by square QR')
       ->setHtmlAttribute('class', 'admin-save-button');
-
     $form->onSuccess[] = function (Form $form): void {
       $booking = $this->bookings->requestById($this->editingId);
       $payment = $this->payments->forBooking($this->editingId);
       $account = $this->payments->settings();
-
       if ($booking === null || $payment === null
         || !$this->hasPaymentInstructions(
           $booking['status'],
@@ -251,7 +234,6 @@ final class BookingManagementPresenter extends BasePresenter
         $form->addError('Pre túto rezerváciu nemožno vygenerovať platobný QR kód.');
         return;
       }
-
       try {
         $document = $this->paymentQrDocument($account, $payment);
         $qr = $this->paymentQr();
@@ -266,7 +248,6 @@ final class BookingManagementPresenter extends BasePresenter
         $form->addError($error->getMessage());
         return;
       }
-
       $this->flashMessage('PAY by square QR kód bol pripravený.', 'success');
       $this->redirect('this');
     };
@@ -337,27 +318,39 @@ final class BookingManagementPresenter extends BasePresenter
    */
   protected function createComponentPaymentForm(): Form
   {
-    $form = new Form();
-    $form->addProtection('Platnosť formulára vypršala. Obnovte stránku.');
-    $form->addRadioList('status', 'Stav úhrady', [
-      'unpaid' => 'Nezaplatená',
-      'paid' => 'Zaplatená',
-    ])->setRequired('Vyberte stav úhrady.');
-    $form->addSubmit('save', 'Uložiť stav úhrady')
-      ->setHtmlAttribute('class', 'admin-save-button');
+    $form = $this->forms->createPaymentStatus();
+
     $form->onSuccess[] = function (Form $form): void {
-      $values = $form->getValues('array');
-      
+      $markPaid = $form->getComponent('markPaid');
+      $markUnpaid = $form->getComponent('markUnpaid');
+
+      if (!$markPaid instanceof \Nette\Forms\Controls\SubmitButton
+        || !$markUnpaid instanceof \Nette\Forms\Controls\SubmitButton) {
+        throw new \LogicException('Chýbajú akcie formulára úhrady.');
+      }
+
+      if (!$markPaid->isSubmittedBy() && !$markUnpaid->isSubmittedBy()) {
+        $form->addError('Vyberte požadovanú zmenu úhrady.');
+        return;
+      }
+
       try {
-        $this->payments->setPaid($this->editingId, $values['status'] === 'paid');
+        $this->payments->setPaid($this->editingId, $markPaid->isSubmittedBy());
       } catch (DomainException | InvalidArgumentException $error) {
         $form->addError($error->getMessage());
         return;
       }
 
-      $this->flashMessage('Stav úhrady bol uložený.', 'success');
+      $this->flashMessage(
+        $markPaid->isSubmittedBy()
+          ? 'Rezervácia bola označená ako zaplatená.'
+          : 'Rezervácia bola označená ako nezaplatená.',
+        'success',
+      );
+
       $this->redirect('this');
     };
+
     return $form;
   }
 

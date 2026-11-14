@@ -868,6 +868,15 @@
 .booking-payment__overview > div { display: grid; gap: .35rem; padding: 1rem; background: #f6f5f0; border: 1px solid #e4e2da; border-radius: .65rem; min-width: 0; }
 .booking-payment__overview span, .booking-payment__bank dt { color: #5e6c62; font-size: .83rem; }
 .booking-payment__overview strong { overflow-wrap: anywhere; font-size: 1.08rem; }
+/* Payment overview: color the complete status tile, not just its text. */
+.booking-payment__overview > .booking-payment__overview-status--paid {
+  background: #e7f0e8;
+  border-color: #aecab5;
+}
+.booking-payment__overview > .booking-payment__overview-status--unpaid {
+  background: #e8f1f7;
+  border-color: #b6cfe0;
+}
 .booking-payment__status--paid { color: #276747; }
 .booking-payment__status--unpaid { color: #446c88; }
 .booking-payment__bank { display: grid; gap: .65rem; margin: 1rem 0; }

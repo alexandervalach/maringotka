@@ -34,4 +34,22 @@ final class BookingDecisionFormFactory extends FormFactory
       ->setHtmlAttribute('class', 'button');
     return $form;
   }
+
+  /**
+   * Creates a form for an immediate manual payment-status change.
+   *
+   * @return Form Form with two explicit administrator actions.
+   */
+  public function createPaymentStatus(): Form
+  {
+    $form = parent::create();
+
+    $form->addSubmit('markPaid', 'Označiť ako zaplatenú')
+      ->setHtmlAttribute('class', 'admin-save-button');
+    $form->addSubmit('markUnpaid', 'Označiť ako nezaplatenú')
+      ->setHtmlAttribute('class', 'button');
+
+    return $form;
+  }
+
 }
