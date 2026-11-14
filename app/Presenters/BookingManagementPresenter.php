@@ -381,23 +381,32 @@ final class BookingManagementPresenter extends BasePresenter
     $request = $this->editingId > 0 ? $this->bookings->requestById($this->editingId) : null;
     $form = $this->forms->create($request !== null && $request['status'] === 'confirmed' ? 'confirmed' : 'pending');
     $form->onSuccess[] = function (Form $form): void {
-      $values = $form->getValues('array');
+      $confirm = $form->getComponent('confirm', false);
+      $isConfirmation = $confirm instanceof \Nette\Forms\Controls\SubmitButton
+        && $confirm->isSubmittedBy();
+
+      if ($isConfirmation) {
+        $decision = 'confirmed';
+        $reason = '';
+      } else {
+        $values = $form->getValues('array');
+        $decision = (string) $values['decision'];
+        $reason = (string) $values['reason'];
+      }
+
       try {
-        $this->bookings->decide(
-          $this->editingId,
-          (string) $values['decision'],
-          (string) $values['reason'],
-        );
+        $this->bookings->decide($this->editingId, $decision, $reason);
       } catch (InvalidArgumentException | DomainException $error) {
         $form->addError($error->getMessage());
         return;
       }
-      $this->flashMessage('Rozhodnutie bolo uložené.', 'success');
-      $view = $this->getSession('booking-admin-view');
-      $month = $view->get('month');
-      $this->redirectUrl($view->get('mode') === 'calendar'
-        ? '/admin/booking-calendar' . (is_string($month) && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $month) ? '?month=' . $month : '')
-        : '/admin/bookings');
+
+      $this->flashMessage(
+        $isConfirmation ? 'Rezervácia bola potvrdená.' : 'Rozhodnutie bolo uložené.',
+        'success',
+      );
+
+      $this->redirect('this');
     };
     return $form;
   }

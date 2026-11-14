@@ -21,12 +21,19 @@ final class BookingDecisionFormFactory extends FormFactory
     $decisions = $status === 'confirmed'
       ? ['cancelled' => 'Zrušiť rezerváciu']
       : [
-        'confirmed' => 'Potvrdiť',
         'rejected' => 'Zamietnuť',
         'cancelled' => 'Zrušiť rezerváciu',
       ];
-    $form->addRadioList('decision', 'Rozhodnutie', $decisions)
-      ->setRequired('Vyberte rozhodnutie.');
+
+    if ($status === 'pending') {
+      $form->addSubmit('confirm', 'Potvrdiť rezerváciu')
+        ->setHtmlAttribute('class', 'admin-save-button')
+        ->setValidationScope([]);
+    }
+
+    $form->addRadioList('decision', 'Zamietnutie alebo zrušenie', $decisions)
+      ->setRequired('Vyberte zamietnutie alebo zrušenie.');
+
     $form->addTextArea('reason', 'Dôvod zamietnutia alebo zrušenia')
       ->setMaxLength(2000)
       ->setHtmlAttribute('rows', 4);
@@ -46,6 +53,7 @@ final class BookingDecisionFormFactory extends FormFactory
 
     $form->addSubmit('markPaid', 'Označiť ako zaplatenú')
       ->setHtmlAttribute('class', 'admin-save-button');
+
     $form->addSubmit('markUnpaid', 'Označiť ako nezaplatenú')
       ->setHtmlAttribute('class', 'button');
 
