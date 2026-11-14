@@ -23,7 +23,7 @@
 </tr></table>
 <section class="stay">
 ## INFORMÁCIE O POBYTE
-<p>Typ ubytovania: Maringotka na Závadke{{guest_info}} · Počet nocí: {{nights}}</p>
+<p>Maringotka na Závadke{{guest_info}} · Počet nocí: {{nights}}</p>
 </section>
 <table class="items">
 <thead><tr><th>Popis</th><th class="number">Počet osôb</th><th class="number">Počet nocí / ks</th><th class="number">Cena (€)</th><th class="number">Spolu (€)</th></tr></thead>
