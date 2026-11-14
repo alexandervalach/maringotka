@@ -1162,6 +1162,11 @@
 
 }
 
+/* Keep mail template sections visually separate. */
+.booking-payment-settings > .info-card + .info-card {
+  margin-top: var(--s5);
+}
+
 /* Unified mail template picker. */
 .mail-template-picker {
   display: grid;
