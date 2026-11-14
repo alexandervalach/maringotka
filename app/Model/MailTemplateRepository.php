@@ -6,6 +6,7 @@ namespace App\Model;
 
 use App\Helpers\BookingRequestEmailTemplate;
 use App\Helpers\BookingConfirmationEmailTemplate;
+use App\Components\Mail\BookingPaymentReceivedEmailTemplate;
 use App\Infrastructure\Database\ConnectionFactory;
 use Nette\Database\Explorer;
 
@@ -31,7 +32,6 @@ final class MailTemplateRepository
       'SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = ?',
       'received',
     )->fetch();
-    
     return $row === null ? BookingRequestEmailTemplate::defaults() : [
       'subject' => (string) $row['subject'],
       'body' => (string) $row['body'],
@@ -65,7 +65,6 @@ final class MailTemplateRepository
       'SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = ?',
       'confirmed',
     )->fetch();
-
     return $row === null ? BookingConfirmationEmailTemplate::defaults() : [
       'subject' => (string) $row['subject'],
       'body' => (string) $row['body'],
@@ -89,4 +88,37 @@ final class MailTemplateRepository
   {
     $this->database->query('DELETE FROM booking_mail_templates WHERE template_key = ?', 'confirmed');
   }
+  /**
+   * @return array{subject: string, body: string, show_logo: bool}
+   */
+  public function paid(): array
+  {
+    $row = $this->database->query(
+      'SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = ?',
+      'paid',
+    )->fetch();
+    return $row === null ? BookingPaymentReceivedEmailTemplate::defaults() : [
+      'subject' => (string) $row['subject'],
+      'body' => (string) $row['body'],
+      'show_logo' => (bool) $row['show_logo'],
+    ];
+  }
+
+  public function savePaid(string $subject, string $body, bool $showLogo): void
+  {
+    BookingPaymentReceivedEmailTemplate::validate($subject, $body);
+    $this->database->query(
+      'INSERT INTO booking_mail_templates (template_key, subject, body, show_logo, updated_at)'
+      . ' VALUES (?, ?, ?, ?, now()) ON CONFLICT (template_key) DO UPDATE SET'
+      . ' subject = EXCLUDED.subject, body = EXCLUDED.body,'
+      . ' show_logo = EXCLUDED.show_logo, updated_at = now()',
+      'paid', $subject, $body, $showLogo,
+    );
+  }
+
+  public function resetPaid(): void
+  {
+    $this->database->query('DELETE FROM booking_mail_templates WHERE template_key = ?', 'paid');
+  }
+
 }

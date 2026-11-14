@@ -7,6 +7,11 @@ use Nette\Mail\SmtpMailer;
 use App\Model\SmtpTransportFactory;
 use App\Helpers\BookingRequestEmailTemplate;
 use App\Helpers\BookingConfirmationEmailTemplate;
+use App\Components\Mail\BookingPaymentReceivedEmailTemplate;
+use App\Components\Invoice\InvoicePdf;
+use App\Infrastructure\Database\ConnectionFactory;
+use App\Model\PricingRepository;
+use App\Model\BookingInvoiceRepository;
 use App\Model\BookingPaymentDetails;
 use App\Model\BookingPaymentQr;
 use App\Helpers\PaymentEmailTemplate;
@@ -290,6 +295,27 @@ SQL);
           ];
         }
       }
+      $paidGuest = $event['event_type'] === 'paid' && $event['recipient_type'] === 'guest';
+      $paidInvoice = null;
+      $paidTemplate = null;
+      if ($paidGuest) {
+        // The first actual payment confirmation creates the immutable invoice.
+        // If supplier settings or PDF rendering are unavailable, retry the
+        // outbox event rather than send an email without its PDF attachment.
+        $connections = new ConnectionFactory();
+        $invoices = new BookingInvoiceRepository($connections, new PricingRepository($connections));
+        $paidInvoice = $invoices->issue((int) $event['booking_id'], []);
+        $templateRow = $pdo->query(
+          "SELECT subject, body, show_logo FROM booking_mail_templates WHERE template_key = 'paid'"
+        )->fetch(PDO::FETCH_ASSOC);
+        if (is_array($templateRow)) {
+          $paidTemplate = [
+            'subject' => (string) $templateRow['subject'],
+            'body' => (string) $templateRow['body'],
+            'show_logo' => (bool) $templateRow['show_logo'],
+          ];
+        }
+      }
       $confirmedGuest = $event['event_type'] === 'confirmed' && $event['recipient_type'] === 'guest';
       $confirmedTemplate = null;
       $paymentInstructions = null;
@@ -334,21 +360,28 @@ SQL);
           error_log('PAY by square unavailable for booking confirmation (' . get_class($error) . ').');
         }
       }
-      $content = bookingMailContent(
-        $event,
-        $adminAddress,
-        is_string($contactPhone) ? trim($contactPhone) : '',
-        $receivedTemplate,
-        $confirmedTemplate,
-        $paymentInstructions,
-      );
+      $content = $paidGuest && $paidInvoice !== null
+        ? BookingPaymentReceivedEmailTemplate::content(
+          $event,
+          $paidInvoice['number'],
+          (int) $event['price_total_cents'],
+          $paidTemplate,
+        )
+        : bookingMailContent(
+          $event,
+          $adminAddress,
+          is_string($contactPhone) ? trim($contactPhone) : '',
+          $receivedTemplate,
+          $confirmedTemplate,
+          $paymentInstructions,
+        );
       $recipient = $event['recipient_type'] === 'admin' ? $adminAddress : (string) $event['guest_email'];
       $message = new Message();
       $message->setFrom($from)
         ->addTo($recipient)
         ->setSubject($content['subject'])
         ->setBody($content['body']);
-      if (($receivedGuest || $confirmedGuest) && isset($content['html'], $content['show_logo'])) {
+      if (($receivedGuest || $confirmedGuest || $paidGuest) && isset($content['html'], $content['show_logo'])) {
         $logoPath = dirname(__DIR__) . '/www/assets/images/logo.png';
         $message->setHtmlBody(
           PaymentEmailTemplate::htmlDocument($content['html'], $content['show_logo'], is_file($logoPath)),
@@ -364,6 +397,14 @@ SQL);
         );
       }
 
+      if ($paidGuest && $paidInvoice !== null) {
+        $message->addAttachment(
+          'faktura-' . $paidInvoice['number'] . '.pdf',
+          (new InvoicePdf())->render($paidInvoice['document']),
+          'application/pdf',
+        );
+      }
+
       $mailer->send($message);
       $stmt = $pdo->prepare('UPDATE booking_mail_outbox SET sent_at = now(), attempts = attempts + 1 WHERE id = ?');
       $stmt->execute([(int) $event['outbox_id']]);
@@ -371,6 +412,7 @@ SQL);
       $mailKind = match ((string) $event['event_type']) {
         'received' => 'Potvrdenie prijatia žiadosti',
         'confirmed' => 'Potvrdenie rezervácie',
+        'paid' => 'Potvrdenie prijatia platby s PDF faktúrou',
         'rejected' => 'Oznámenie o zamietnutí',
         'cancelled' => 'Oznámenie o zrušení',
         default => 'Oznámenie o rezervácii',

@@ -99,7 +99,7 @@ final class InvoicePdf
       '{{logo}}' => 'data:image/jpeg;base64,' . base64_encode($logo),
       '{{number}}' => self::e((string) ($document['number'] ?? '')),
       '{{issued_date}}' => self::date((string) ($document['issued_date'] ?? '')),
-      '{{due_date}}' => self::date((string) ($document['issued_date'] ?? '')),
+      '{{due_date}}' => self::date((string) ($document['due_date'] ?? $document['arrival'] ?? '')),
       '{{stay_dates}}' => self::date((string) $document['arrival']) . ' – ' . self::date((string) $document['departure']),
       '{{supplier}}' => self::party($supplier) . '<br><strong>Miesto pobytu:</strong><br>č. p. 39/3 Závadka<br>053 33 Závadka',
       '{{customer}}' => self::party($customer),
