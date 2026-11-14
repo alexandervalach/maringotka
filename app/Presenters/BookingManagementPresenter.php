@@ -8,7 +8,7 @@ use App\Forms\BookingDecisionFormFactory;
 use App\Forms\BookingInvoiceFormFactory;
 use App\Infrastructure\Database\ConnectionFactory;
 use App\Model\BookingInvoiceRepository;
-use App\Helpers\BookingInvoicePdf;
+use App\Components\Invoice\InvoicePdf;
 use Nette\Application\Responses\CallbackResponse;
 use App\Components\BookingQuoteControl;
 use App\Model\BookingManagementRepository;
@@ -442,7 +442,7 @@ final class BookingManagementPresenter extends BasePresenter
       $this->error('Faktúra ešte nebola vystavená.', 404);
     }
 
-    $bytes = (new BookingInvoicePdf())->render($invoice['document']);
+    $bytes = (new InvoicePdf())->render($invoice['document']);
     $fileName = 'faktura-' . $invoice['number'] . '.pdf';
 
     $this->sendResponse(new CallbackResponse(
