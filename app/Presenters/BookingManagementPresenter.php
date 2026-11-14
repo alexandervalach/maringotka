@@ -255,8 +255,8 @@ final class BookingManagementPresenter extends BasePresenter
   }
 
   /**
-   * Sends payment instructions only after an explicit, CSRF-protected admin action.
-   * An existing QR may be attached; this never spends an API credit.
+   * Sends payment instructions with the QR for the current payment details.
+   * The QR is cached and reused on subsequent sends without another API call.
    *
    * @return Form Protected payment-email form.
    */
@@ -266,10 +266,12 @@ final class BookingManagementPresenter extends BasePresenter
     $form->addProtection('Platnosť formulára vypršala. Obnovte stránku.');
     $form->addSubmit('send', 'Odoslať platobné údaje hosťovi')
       ->setHtmlAttribute('class', 'admin-save-button');
+
     $form->onSuccess[] = function (Form $form): void {
       $request = $this->bookings->requestById($this->editingId);
       $payment = $this->payments->forBooking($this->editingId);
       $account = $this->payments->settings();
+
       if ($request === null || $payment === null
         || !$this->hasPaymentInstructions(
           $request['status'],
@@ -281,10 +283,21 @@ final class BookingManagementPresenter extends BasePresenter
         $form->addError('Platobné údaje nie je možné odoslať pre túto rezerváciu.');
         return;
       }
+
       try {
-        $document = $this->paymentQrDocument($account, $payment);
-        $png = $this->paymentQr()->cached($document);
-        $this->payments->sendInstructions($this->editingId, function () use ($request, $account, $payment, $png): void {
+        $this->payments->sendInstructions($this->editingId, function () use ($request, $account, $payment): void {
+          $document = $this->paymentQrDocument($account, $payment);
+          $qr = $this->paymentQr();
+          $png = $qr->cached($document);
+          $newQr = false;
+
+          if ($png === null) {
+            // generate() uses a filesystem lock and checks the cache again.
+            // This avoids a second API request even with concurrent actions.
+            $png = $qr->generate($document, (string) getenv('BYSQUARE_API_KEY'));
+            $newQr = true;
+          }
+
           (new BookingPaymentInstructionMailer())->send(
             $this->editingId,
             (string) $request['guest_email'],
@@ -296,18 +309,24 @@ final class BookingManagementPresenter extends BasePresenter
             $png,
             $this->payments->emailTemplate(),
           );
+
+          if ($newQr) {
+            $this->bookings->recordQrGenerated($this->editingId);
+          }
         });
       } catch (DomainException $error) {
         $form->addError($error->getMessage());
         return;
       } catch (\Throwable $error) {
-        error_log('Payment instruction mail failed (' . get_class($error) . ').');
-        $form->addError('Nepodarilo sa odoslať e-mail. Skontrolujte SMTP a skúste to znovu.');
+        error_log('Payment instruction mail/QR failed (' . get_class($error) . ').');
+        $form->addError('Nepodarilo sa pripraviť QR kód alebo odoslať e-mail. Skontrolujte PAY by square a SMTP.');
         return;
       }
-      $this->flashMessage('Platobné údaje boli odoslané SMTP serveru.', 'success');
+
+      $this->flashMessage('Platobné údaje s PAY by square QR boli odoslané SMTP serveru.', 'success');
       $this->redirect('this');
     };
+
     return $form;
   }
 
