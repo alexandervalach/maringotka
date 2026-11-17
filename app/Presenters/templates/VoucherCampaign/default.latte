@@ -1,0 +1,58 @@
+{layout '../@admin.latte'}
+
+{block pageTitle}Kampane darčekových poukazov{/block}
+
+{block content}
+<main id="main" class="container inner-page cms-editor voucher-campaigns">
+  <nav aria-label="Administrácia"><a class="back-link" href="/admin">← Administrácia</a></nav>
+  <section class="info-card booking-admin-page">
+    <h1>Darčekové poukazy – kampane</h1>
+    {include '../_adminFlashes.latte'}
+    <p class="voucher-campaigns-create"><a class="button" href="/admin/voucher-campaigns/new">Vytvoriť kampaň</a></p>
+    {if count($campaigns) === 0}
+      <p>Žiadne kampane zatiaľ neexistujú.</p>
+    {else}
+      <div class="booking-admin-table-scroll" role="region" aria-label="Prehľad kampaní" tabindex="0">
+        <table class="booking-admin-table">
+          <thead>
+            <tr><th scope="col">Názov</th><th scope="col">Cena</th><th scope="col">Noci</th><th scope="col">Platnosť</th><th scope="col">V cene</th><th scope="col">Stav</th><th scope="col">Akcia</th></tr>
+          </thead>
+          <tbody>
+            <tr n:foreach="$campaigns as $campaign">
+              {var $toggleForm = 'toggleCampaignForm-' . $campaign['id']}
+              <th scope="row"><a href="/admin/voucher-campaigns/{$campaign['id']}">{$campaign['name']}</a></th>
+              <td>{$campaign['price_display']} €</td>
+              <td>{$campaign['nights']}</td>
+              <td>{$campaign['validity_months']} mes.</td>
+              <td>
+                <div class="voucher-campaign-inclusions">
+                  {if $campaign['includes_wellness']}
+                    <span class="voucher-campaign-inclusion"><span class="voucher-campaign-inclusion__icon" aria-hidden="true">♨</span> Wellness</span>
+                  {/if}
+                  {if $campaign['includes_wine']}
+                    <span class="voucher-campaign-inclusion"><span class="voucher-campaign-inclusion__icon" aria-hidden="true">🍷</span> Víno</span>
+                  {/if}
+                  {if !$campaign['includes_wellness'] && !$campaign['includes_wine']}—{/if}
+                </div>
+              </td>
+              <td>{if $campaign['is_active']}Aktívna{else}Vypnutá{/if}</td>
+              <td class="booking-admin-action">
+                {form $toggleForm}
+                  <button n:name="toggle" class="voucher-campaign-toggle {if $campaign['is_active']}voucher-campaign-toggle--active{/if}" type="submit" title="{if $campaign['is_active']}Skryť kampaň{else}Zobraziť kampaň{/if}" aria-label="{if $campaign['is_active']}Skryť kampaň {$campaign['name']}{else}Zobraziť kampaň {$campaign['name']}{/if}">
+                    {if $campaign['is_active']}
+                      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    {else}
+                      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A12 12 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.1 4.1"/><path d="M6.5 6.5C3.6 8.6 2 12 2 12s3.5 7 10 7a10.6 10.6 0 0 0 4.5-1"/><path d="M10 10a3 3 0 0 0 4 4"/></svg>
+                    {/if}
+                  </button>
+                {/form}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    {/if}
+
+  </section>
+</main>
+{/block}

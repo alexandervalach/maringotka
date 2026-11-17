@@ -1,0 +1,27 @@
+{layout '../@admin.latte'}
+
+{block pageTitle}Úprava kampane{/block}
+
+{block content}
+<main id="main" class="container inner-page cms-editor">
+  <nav aria-label="Administrácia"><a class="back-link" href="/admin/voucher-campaigns">← Kampane poukazov</a></nav>
+  <section class="info-card">
+    <h1>{if $presenter->getParameter('id') === null}Nová kampaň{else}Úprava kampane{/if}</h1>
+    {include '../_adminFlashes.latte'}
+    <div class="cms-form">
+      {form campaignForm}
+        <ul class="cms-form-errors" n:if="$form->hasErrors()"><li n:foreach="$form->getErrors() as $error">{$error}</li></ul>
+        {label name /}{input name}
+        {label name_en /}{input name_en}
+        {label price /}{input price}
+        {label nights /}{input nights}
+        {label validity_months /}{input validity_months}
+        {input includes_wellness}{label includes_wellness /}
+        {input includes_wine}{label includes_wine /}
+        {input is_active}{label is_active /}
+        {input save}
+      {/form}
+    </div>
+  </section>
+</main>
+{/block}

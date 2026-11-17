@@ -1162,11 +1162,6 @@
 
 }
 
-/* Keep mail template sections visually separate. */
-.booking-payment-settings > .info-card + .info-card {
-  margin-top: var(--s5);
-}
-
 /* Unified mail template picker. */
 .mail-template-picker {
   display: grid;
@@ -1223,3 +1218,19 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Voucher campaign management */
+.voucher-campaigns > .info-card + .info-card { margin-top: var(--s5); }
+.voucher-campaigns .voucher-campaigns-create { margin: var(--s4) 0 var(--s5); }
+.voucher-campaigns .voucher-campaigns-note { margin-top: var(--s5); }
+.voucher-campaigns .booking-admin-table { min-width: 780px; }
+.voucher-campaigns .booking-admin-action { min-width: 5rem; width: 5rem; text-align: center; }
+.voucher-campaign-toggle { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border: 1px solid var(--line); border-radius: 0.6rem; background: #fff; color: #74746e; cursor: pointer; }
+.voucher-campaign-toggle--active { color: var(--forest); background: #eaf4eb; }
+.voucher-campaign-toggle:hover { border-color: var(--forest); background: #f3f0e9; }
+.voucher-campaign-toggle:focus-visible { outline: 3px solid var(--sand); outline-offset: 2px; }
+.voucher-campaign-toggle svg { width: 1.3rem; height: 1.3rem; }
+
+.voucher-campaign-inclusions { display: grid; justify-items: start; gap: 0.4rem; }
+.voucher-campaign-inclusion { display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
+.voucher-campaign-inclusion__icon { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 0.45rem; background: #f1e8d9; color: #805b3c; font-size: 1rem; line-height: 1; }

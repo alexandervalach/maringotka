@@ -1,0 +1,28 @@
+{block content}
+<main id="main" class="inner-page container">
+  <a class="back-link" href="{$paths['default']}">← {_'messages.navigation.home'}</a>
+  <p class="eyebrow inner-eyebrow">Maringotka na Závadke</p>
+  <h1>{_'messages.navigation.voucher'}</h1>
+  <p class="page-lead">{_'messages.sections.voucher.text'}</p>
+  {if count($voucherCampaigns) === 0}
+    <div class="info-card voucher-card">
+      <p>{_'messages.voucher.unavailable'}</p>
+      <p>{_'messages.voucher.bookInstead'}</p>
+      <a class="button" href="{$paths['booking']}">{_'messages.voucher.bookStay'}</a>
+    </div>
+  {else}
+    {foreach $voucherCampaigns as $campaign}
+      <div class="info-card voucher-card">
+        <p class="price-value">{$campaign['price_display']} €</p>
+        <h2>{$campaign['display_name']}</h2>
+        <ul class="feature-list">
+          <li>{$campaign['stay_text']}</li>
+          {if $campaign['includes_wellness']}<li>{_'messages.voucher.wellness'}</li>{/if}
+          {if $campaign['includes_wine']}<li>{_'messages.voucher.wine'}</li>{/if}
+          <li>{$campaign['validity_text']}</li>
+        </ul>
+      </div>
+    {/foreach}
+  {/if}
+</main>
+{/block}

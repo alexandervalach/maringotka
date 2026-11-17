@@ -15,6 +15,9 @@ services:
   - App\Presenters\PricingPresenter
   - App\Model\PricingRepository
   - App\Forms\PricingFormFactory
+  - App\Presenters\VoucherCampaignPresenter
+  - App\Model\VoucherCampaignRepository
+  - App\Forms\VoucherCampaignFormFactory
   - App\Presenters\GalleryPresenter
   - App\Model\GalleryRepository
   - App\Forms\GalleryFormFactory

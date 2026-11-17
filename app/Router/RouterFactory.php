@@ -16,26 +16,22 @@ final class RouterFactory
     $router->addRoute('admin/home/<locale>', ['presenter' => 'Homepage', 'action' => 'edit']);
     $router->addRoute('admin/contact', ['presenter' => 'Contact', 'action' => 'edit']);
     $router->addRoute('admin/pricing', ['presenter' => 'Pricing', 'action' => 'edit']);
+    $router->addRoute('admin/voucher-campaigns/new', ['presenter' => 'VoucherCampaign', 'action' => 'edit']);
+    $router->addRoute('admin/voucher-campaigns/<id \d+>', ['presenter' => 'VoucherCampaign', 'action' => 'edit']);
+    $router->addRoute('admin/voucher-campaigns', ['presenter' => 'VoucherCampaign', 'action' => 'default']);
     $router->addRoute('admin/gallery/<id \d+>', ['presenter' => 'Gallery', 'action' => 'edit']);
     $router->addRoute('admin/gallery', ['presenter' => 'Gallery', 'action' => 'manage']);
     $router->addRoute('admin/bookings/<id \d+>', ['presenter' => 'BookingManagement', 'action' => 'edit']);
     $router->addRoute('admin/bookings', ['presenter' => 'BookingManagement', 'action' => 'default']);
     $router->addRoute('admin/payment-settings', 'PaymentSettings:default');
-
-    $router->addRoute('admin/mail-templates/confirmed', [
+    $router->addRoute('admin/mail-templates/payment', 'PaymentSettings:paymentEmail');
+    $router->addRoute('admin/mail-templates/confirmed', 'PaymentSettings:confirmed');
+    $router->addRoute('admin/mail-templates/paid', [
       'presenter' => 'PaymentSettings',
-      'action' => 'confirmed',
+      'action' => 'paid',
     ]);
-
-    $router->addRoute('admin/mail-templates/received', [
-      'presenter' => 'PaymentSettings',
-      'action' => 'received',
-    ]);
-
-    $router->addRoute('admin/mail-templates', [
-      'presenter' => 'PaymentSettings',
-      'action' => 'received',
-    ]);
+    $router->addRoute('admin/mail-templates/received', 'PaymentSettings:received');
+    $router->addRoute('admin/mail-templates', 'PaymentSettings:received');
     
     $router->addRoute('admin/booking-calendar', [
       'presenter' => 'BookingCalendar',
@@ -45,11 +41,6 @@ final class RouterFactory
     $router->addRoute('admin/booking-overview', [
       'presenter' => 'BookingOverview',
       'action' => 'default',
-    ]);
-
-    $router->addRoute('admin/mail-templates/paid', [
-      'presenter' => 'PaymentSettings',
-      'action' => 'paid',
     ]);
 
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);
@@ -62,9 +53,10 @@ final class RouterFactory
             'gallery' => 'Gallery',
             'booking' => 'Booking',
             'surroundings' => 'Surroundings',
+            'voucher' => 'Voucher',
             default => 'Homepage',
           },
-          'action' => in_array($action, ['contact', 'pricing', 'gallery', 'booking', 'surroundings'], true) ? 'default' : $action,
+          'action' => in_array($action, ['contact', 'pricing', 'gallery', 'booking', 'surroundings', 'voucher'], true) ? 'default' : $action,
           'locale' => $locale,
         ]);
       }
