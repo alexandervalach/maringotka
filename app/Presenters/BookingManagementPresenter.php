@@ -15,7 +15,6 @@ use App\Components\BookingQuoteControl;
 use App\Model\BookingManagementRepository;
 use App\Model\BookingPaymentRepository;
 use App\Model\BookingPaymentDetails;
-use App\Model\BookingPaymentInstructionMailer;
 use App\Model\BookingPaymentQr;
 use DomainException;
 use InvalidArgumentException;
@@ -135,10 +134,7 @@ final class BookingManagementPresenter extends BasePresenter
       ? number_format($payment['total_cents'] / 100, 2, ',', ' ') . ' €'
       : null;
     $this->template->paymentQrDataUri = null;
-    $this->template->paymentQrConfigured = trim((string) getenv('BYSQUARE_API_KEY')) !== '';
     $this->template->paymentQrAvailable = false;
-    $this->template->paymentEmailConfigured = BookingPaymentInstructionMailer::configured();
-    $this->template->paymentEmailHistory = $this->payments->instructionMailHistory($id);
     if ($payment !== null
       && $account['account_holder'] !== null
       && $this->hasPaymentInstructions(
@@ -225,128 +221,6 @@ final class BookingManagementPresenter extends BasePresenter
     return new BookingQuoteControl();
   }
 
-
-  /**
-   * Creates a QR only after an authenticated administrator explicitly requests it.
-   * Repeated requests reuse the private cached image without consuming credit.
-   *
-   * @return Form CSRF-protected QR generation form.
-   */
-  protected function createComponentQrForm(): Form
-  {
-    $form = new Form();
-    $form->addProtection('Platnosť formulára vypršala. Obnovte stránku.');
-    $form->addSubmit('generate', 'Vygenerovať PAY by square QR')
-      ->setHtmlAttribute('class', 'admin-save-button');
-    $form->onSuccess[] = function (Form $form): void {
-      $booking = $this->bookings->requestById($this->editingId);
-      $payment = $this->payments->forBooking($this->editingId);
-      $account = $this->payments->settings();
-      if ($booking === null || $payment === null
-        || !$this->hasPaymentInstructions(
-          $booking['status'],
-          $payment['total_cents'],
-          $account['iban'],
-          $account['account_holder'],
-        )) {
-        $form->addError('Pre túto rezerváciu nemožno vygenerovať platobný QR kód.');
-        return;
-      }
-      try {
-        $document = $this->paymentQrDocument($account, $payment);
-        $qr = $this->paymentQr();
-        $alreadyCached = $qr->cached($document) !== null;
-
-        $qr->generate($document, (string) getenv('BYSQUARE_API_KEY'));
-
-        if (!$alreadyCached) {
-          $this->bookings->recordQrGenerated($this->editingId);
-        }
-      } catch (InvalidArgumentException | RuntimeException $error) {
-        $form->addError($error->getMessage());
-        return;
-      }
-      $this->flashMessage('PAY by square QR kód bol pripravený.', 'success');
-      $this->redirect('this');
-    };
-    return $form;
-  }
-
-  /**
-   * Sends payment instructions with the QR for the current payment details.
-   * The QR is cached and reused on subsequent sends without another API call.
-   *
-   * @return Form Protected payment-email form.
-   */
-  protected function createComponentPaymentEmailForm(): Form
-  {
-    $form = new Form();
-    $form->addProtection('Platnosť formulára vypršala. Obnovte stránku.');
-    $form->addSubmit('send', 'Odoslať platobné údaje hosťovi')
-      ->setHtmlAttribute('class', 'admin-save-button');
-
-    $form->onSuccess[] = function (Form $form): void {
-      $request = $this->bookings->requestById($this->editingId);
-      $payment = $this->payments->forBooking($this->editingId);
-      $account = $this->payments->settings();
-
-      if ($request === null || $payment === null
-        || !$this->hasPaymentInstructions(
-          $request['status'],
-          $payment['total_cents'],
-          $account['iban'],
-          $account['account_holder'],
-        )
-        || filter_var((string) $request['guest_email'], FILTER_VALIDATE_EMAIL) === false) {
-        $form->addError('Platobné údaje nie je možné odoslať pre túto rezerváciu.');
-        return;
-      }
-
-      try {
-        $this->payments->sendInstructions($this->editingId, function () use ($request, $account, $payment): void {
-          $document = $this->paymentQrDocument($account, $payment);
-          $qr = $this->paymentQr();
-          $png = $qr->cached($document);
-          $newQr = false;
-
-          if ($png === null) {
-            // generate() uses a filesystem lock and checks the cache again.
-            // This avoids a second API request even with concurrent actions.
-            $png = $qr->generate($document, (string) getenv('BYSQUARE_API_KEY'));
-            $newQr = true;
-          }
-
-          (new BookingPaymentInstructionMailer())->send(
-            $this->editingId,
-            (string) $request['guest_email'],
-            (string) $account['account_holder'],
-            (string) $account['iban'],
-            $account['bic'],
-            (int) $payment['total_cents'],
-            (string) $payment['variable_symbol'],
-            $png,
-            $this->payments->emailTemplate(),
-          );
-
-          if ($newQr) {
-            $this->bookings->recordQrGenerated($this->editingId);
-          }
-        });
-      } catch (DomainException $error) {
-        $form->addError($error->getMessage());
-        return;
-      } catch (\Throwable $error) {
-        error_log('Payment instruction mail/QR failed (' . get_class($error) . ').');
-        $form->addError('Nepodarilo sa pripraviť QR kód alebo odoslať e-mail. Skontrolujte PAY by square a SMTP.');
-        return;
-      }
-
-      $this->flashMessage('Platobné údaje s PAY by square QR boli odoslané SMTP serveru.', 'success');
-      $this->redirect('this');
-    };
-
-    return $form;
-  }
 
   /**
    * Creates the CSRF-protected manual-payment form for an existing booking.

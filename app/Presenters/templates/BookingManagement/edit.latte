@@ -120,25 +120,6 @@
         <p class="booking-payment__warning">Bankový účet ešte nie je nastavený. Platobné pokyny zatiaľ neposielajte.</p>
       {/if}
 
-      {if $paymentQrAvailable && $paymentQrDataUri === null}
-        <div class="booking-payment__qr">
-          {if $paymentQrConfigured}
-            <div class="cms-form">
-              <h3>PAY by square</h3>
-              <p class="booking-payment__hint">QR zatiaľ nie je uložený. Môžete ho pripraviť aj samostatne.</p>
-              {form qrForm}
-                <ul class="cms-form-errors" n:if="$form->hasErrors()">
-                  <li n:foreach="$form->getErrors() as $error">{$error}</li>
-                </ul>
-                {input generate}
-              {/form}
-            </div>
-          {else}
-            <p class="booking-payment__hint">PAY by square nie je nakonfigurovaný. Bankový prevod funguje aj bez QR kódu.</p>
-          {/if}
-        </div>
-      {/if}
-
       {if $paymentQrDataUri !== null}
         <div class="booking-payment__qr">
           <div>
@@ -150,20 +131,6 @@
         </div>
       {/if}
 
-      {if $paymentQrAvailable && $paymentEmailConfigured && $payment['status'] === 'unpaid'}
-        <div class="booking-payment__form cms-form">
-          <h3>Platobné pokyny hosťovi</h3>
-          {if $paymentEmailHistory['sent_at'] !== null}
-            <p class="booking-payment__hint">Posledné odoslanie: {$paymentEmailHistory['sent_at']} · Odoslané {$paymentEmailHistory['count']}×.</p>
-          {/if}
-          {form paymentEmailForm}
-            <ul class="cms-form-errors" n:if="$form->hasErrors()">
-              <li n:foreach="$form->getErrors() as $error">{$error}</li>
-            </ul>
-            {input send}
-          {/form}
-        </div>
-      {/if}
     {/if}
   </section>
 
