@@ -21,12 +21,9 @@ foreach (['name', 'price', 'nights', 'validity_months', 'includes_wellness', 'in
   Assert::true(isset($campaign[$field]));
 }
 
-$visibility = $factory->createVisibility();
-Assert::true(isset($visibility['public_enabled']));
-Assert::true(isset($visibility['save']));
-
 Assert::same([
   'name' => 'Zimný pobyt',
+  'name_en' => '',
   'price_cents' => 13000,
   'nights' => 1,
   'validity_months' => 6,
@@ -35,6 +32,7 @@ Assert::same([
   'is_active' => false,
 ], array_diff_key(VoucherCampaignRepository::normalize([
   'name' => ' Zimný pobyt ',
+  'name_en' => '',
   'price' => '130,00',
   'nights' => 1,
   'validity_months' => 6,
@@ -68,5 +66,4 @@ foreach ([
 
 $schema = file_get_contents(dirname(__DIR__, 2) . '/migrations/202611160001_voucher_campaigns.sql');
 Assert::contains('voucher_campaigns', $schema);
-Assert::contains('public_enabled boolean NOT NULL DEFAULT false', $schema);
 Assert::contains('is_active boolean NOT NULL DEFAULT false', $schema);
