@@ -1,0 +1,12 @@
+{block content}
+<main id="main" class="inner-page container">
+  <a class="back-link" href="{$paths['voucher']}">← {if $locale === 'en'}Gift vouchers{else}Darčekové poukazy{/if}</a>
+  <p class="eyebrow inner-eyebrow">Maringotka na Závadke</p>
+  <h1>{if $locale === 'en'}Order received{else}Objednávka prijatá{/if}</h1>
+  <section class="info-card voucher-card">
+    <p>{if $locale === 'en'}Your gift voucher order has been received.{else}Objednávku darčekového poukazu sme prijali.{/if}</p>
+    <p><strong>{if $locale === 'en'}Order reference{else}Číslo objednávky{/if}:</strong> <code>{$orderConfirmation['reference']}</code></p>
+    <p>{if $locale === 'en'}The voucher is not yet paid or active.{else}Poukaz zatiaľ nie je zaplatený ani aktívny.{/if}</p>
+  </section>
+</main>
+{/block}

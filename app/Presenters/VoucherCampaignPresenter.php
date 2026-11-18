@@ -8,6 +8,7 @@ use App\Forms\VoucherCampaignFormFactory;
 use App\Forms\GiftVoucherFormFactory;
 use App\Infrastructure\Database\ConnectionFactory;
 use App\Model\GiftVoucherRepository;
+use App\Model\GiftVoucherOrderRepository;
 use App\Components\Voucher\VoucherPdf;
 use App\Model\VoucherCampaignRepository;
 use InvalidArgumentException;
@@ -20,6 +21,7 @@ use Nette\Application\UI\Multiplier;
 final class VoucherCampaignPresenter extends BasePresenter
 {
   private readonly GiftVoucherRepository $vouchers;
+  private readonly GiftVoucherOrderRepository $voucherOrders;
   private readonly GiftVoucherFormFactory $voucherForms;
   private readonly VoucherPdf $voucherPdf;
 
@@ -30,6 +32,7 @@ final class VoucherCampaignPresenter extends BasePresenter
   ) {
     parent::__construct();
     $this->vouchers = new GiftVoucherRepository($connections);
+    $this->voucherOrders = new GiftVoucherOrderRepository($connections);
     $this->voucherForms = new GiftVoucherFormFactory();
     $this->voucherPdf = new VoucherPdf();
   }
@@ -103,6 +106,7 @@ final class VoucherCampaignPresenter extends BasePresenter
   public function renderEdit(?int $id = null): void
   {
     $this->template->add('issuedVouchers', $id === null ? [] : $this->vouchers->forCampaign($id));
+    $this->template->add('voucherOrders', $id === null ? [] : $this->voucherOrders->forCampaign($id));
   }
 
   /**

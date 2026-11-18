@@ -46,6 +46,20 @@ final class RouterFactory
     ]);
 
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);
+    // Voucher order URLs precede the general localized public routes.
+    $router->addRoute('darcekovy-poukaz/objednat/<id \d+>', [
+      'presenter' => 'Voucher', 'action' => 'order', 'locale' => 'sk',
+    ]);
+    $router->addRoute('en/gift-voucher/order/<id \d+>', [
+      'presenter' => 'Voucher', 'action' => 'order', 'locale' => 'en',
+    ]);
+    $router->addRoute('darcekovy-poukaz/objednavka/<reference [A-F0-9]{24}>', [
+      'presenter' => 'Voucher', 'action' => 'ordered', 'locale' => 'sk',
+    ]);
+    $router->addRoute('en/gift-voucher/ordered/<reference [A-F0-9]{24}>', [
+      'presenter' => 'Voucher', 'action' => 'ordered', 'locale' => 'en',
+    ]);
+
     foreach (PublicRoutes::PATHS as $action => $_) {
       foreach (SupportedLocales::CODES as $locale) {
         $router->addRoute(PublicRoutes::pathFor($action, $locale), [

@@ -21,6 +21,7 @@
           {if $campaign['includes_wine']}<li>{_'messages.voucher.wine'}</li>{/if}
           <li>{$campaign['validity_text']}</li>
         </ul>
+        <p><a class="button" href="{link order, id => $campaign['id']}">{if $locale === 'en'}Order a gift voucher{else}Objednať darčekový poukaz{/if}</a></p>
       </div>
     {/foreach}
   {/if}

@@ -1,0 +1,20 @@
+{block content}
+<main id="main" class="inner-page container">
+  <a class="back-link" href="{$paths['voucher']}">← {if $locale === 'en'}Gift vouchers{else}Darčekové poukazy{/if}</a>
+  <p class="eyebrow inner-eyebrow">Maringotka na Závadke</p>
+  <h1>{if $locale === 'en'}Order a gift voucher{else}Objednávka darčekového poukazu{/if}</h1>
+  <section class="info-card voucher-card">
+    <h2>{if $locale === 'en' && $selectedCampaign['name_en']}{$selectedCampaign['name_en']}{else}{$selectedCampaign['name']}{/if}</h2>
+    <p class="price-value">{$selectedPrice} €</p>
+    <p>{if $locale === 'en'}The voucher is activated after payment is confirmed.{else}Poukaz sa aktivuje po potvrdení úhrady.{/if}</p>
+    <div class="cms-form">
+      {form orderForm}
+        <ul class="cms-form-errors" n:if="$form->hasErrors()"><li n:foreach="$form->getErrors() as $error">{$error}</li></ul>
+        {label customer_name /}{input customer_name}
+        {label customer_email /}{input customer_email}
+        {input send}
+      {/form}
+    </div>
+  </section>
+</main>
+{/block}

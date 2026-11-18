@@ -25,6 +25,26 @@
         {input save}
       {/form}
     </div>
+    {if $presenter->getParameter('id') !== null && count($voucherOrders) > 0}
+      <div class="booking-history">
+        <h2>Objednávky poukazov</h2>
+        <div class="booking-history-scroll" role="region" aria-label="Objednávky poukazov" tabindex="0">
+          <table class="booking-history-table">
+            <thead><tr><th>Referencia</th><th>Zákazník</th><th>E-mail</th><th>Cena</th><th>Stav</th><th>Vytvorená</th></tr></thead>
+            <tbody>
+              <tr n:foreach="$voucherOrders as $order">
+                <td><code>{$order['reference']}</code></td>
+                <td>{$order['customer_name']}</td>
+                <td>{$order['customer_email']}</td>
+                <td>{=number_format((int) $order['price_cents'] / 100, 2, ',', ' ')} €</td>
+                <td>{if $order['status'] === 'pending'}Čaká na úhradu{elseif $order['status'] === 'paid'}Zaplatená{else}Zrušená{/if}</td>
+                <td>{$order['created_at']|date:'d. m. Y H:i'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {/if}
     {if $presenter->getParameter('id') !== null && count($issuedVouchers) > 0}
       <div class="booking-history">
       <h2>Vystavené poukazy</h2>
@@ -33,7 +53,7 @@
           <thead><tr><th>Kód</th><th>Platnosť do</th><th>Stav</th><th>PDF</th></tr></thead>
           <tbody>
             <tr n:foreach="$issuedVouchers as $voucher">
-              <td><code>{$voucher['code']}</code></td>
+              <td><code>{$voucher['short_code']}</code></td>
               <td>{$voucher['expires_at']|date:'d. m. Y'}</td>
               <td>{$voucher['status']}</td>
               <td><a href="/admin/voucher-campaigns/issued/{$voucher['id']}/pdf">Stiahnuť PDF</a></td>
