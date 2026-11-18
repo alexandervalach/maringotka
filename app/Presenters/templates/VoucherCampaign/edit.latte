@@ -30,7 +30,7 @@
         <h2>Objednávky poukazov</h2>
         <div class="booking-history-scroll" role="region" aria-label="Objednávky poukazov" tabindex="0">
           <table class="booking-history-table">
-            <thead><tr><th>Referencia</th><th>Zákazník</th><th>E-mail</th><th>Cena</th><th>Stav</th><th>Vytvorená</th></tr></thead>
+            <thead><tr><th>Referencia</th><th>Zákazník</th><th>E-mail</th><th>Cena</th><th>Stav</th><th>Vytvorená</th><th>Akcia</th></tr></thead>
             <tbody>
               <tr n:foreach="$voucherOrders as $order">
                 <td><code>{$order['reference']}</code></td>
@@ -39,6 +39,17 @@
                 <td>{=number_format((int) $order['price_cents'] / 100, 2, ',', ' ')} €</td>
                 <td>{if $order['status'] === 'pending'}Čaká na úhradu{elseif $order['status'] === 'paid'}Zaplatená{else}Zrušená{/if}</td>
                 <td>{$order['created_at']|date:'d. m. Y H:i'}</td>
+                <td>
+                  {if $order['status'] === 'pending'}
+                    {var $formName = 'confirmVoucherPaymentForm-' . $order['id']}
+
+                    {form $formName}
+                      {input confirm}
+                    {/form}
+                  {else}
+                    –
+                  {/if}
+                </td>
               </tr>
             </tbody>
           </table>

@@ -14,6 +14,15 @@ final class VoucherCampaignFormFactory extends FormFactory
   /**
    * @return Form Campaign definition editor.
    */
+  public function createConfirmVoucherPayment(): Form
+  {
+    $form = parent::create();
+    $form->addSubmit('confirm', 'Označiť ako zaplatenú')
+      ->setHtmlAttribute('class', 'admin-save-button');
+
+    return $form;
+  }
+
   public function createCampaign(): Form
   {
     $form = parent::create();

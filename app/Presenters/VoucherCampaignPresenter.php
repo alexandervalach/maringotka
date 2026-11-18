@@ -12,6 +12,7 @@ use App\Model\GiftVoucherOrderRepository;
 use App\Components\Voucher\VoucherPdf;
 use App\Model\VoucherCampaignRepository;
 use InvalidArgumentException;
+use DomainException;
 use Nette\Application\UI\Form;
 use Nette\Application\UI\Multiplier;
 
@@ -206,6 +207,32 @@ final class VoucherCampaignPresenter extends BasePresenter
     };
 
     return $form;
+  }
+
+  /**
+   * Payment confirmation is explicit, CSRF protected and idempotent.
+   *
+   * @return Multiplier<Form>
+   */
+  protected function createComponentConfirmVoucherPaymentForm(): Multiplier
+  {
+    return new Multiplier(function (string $id): Form {
+      $form = $this->forms->createConfirmVoucherPayment();
+
+      $form->onSuccess[] = function () use ($id): void {
+        try {
+          $this->voucherOrders->confirmPayment((int) $id);
+        } catch (DomainException $error) {
+          $this->flashMessage($error->getMessage(), 'error');
+          $this->redirect('edit', ['id' => $this->getParameter('id')]);
+        }
+
+        $this->flashMessage('Platba za poukaz bola potvrdená.', 'success');
+        $this->redirect('edit', ['id' => $this->getParameter('id')]);
+      };
+
+      return $form;
+    });
   }
 
   /**
