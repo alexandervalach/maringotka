@@ -10,6 +10,7 @@ use DateTimeZone;
 use DomainException;
 use InvalidArgumentException;
 use Nette\Database\Explorer;
+use Nette\Database\UniqueConstraintViolationException;
 
 /**
  * Issues and retains immutable administrator-created gift vouchers.
@@ -18,6 +19,10 @@ use Nette\Database\Explorer;
 final class GiftVoucherRepository
 {
   private readonly Explorer $database;
+
+  private const ALIAS_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+
+  private const ALIAS_LENGTH = 8;
 
   public function __construct(ConnectionFactory $connections)
   {
@@ -34,7 +39,9 @@ final class GiftVoucherRepository
     foreach ($this->database->table('gift_vouchers')
       ->where('campaign_id', $campaignId)
       ->order('id DESC') as $row) {
-      $vouchers[] = $row->toArray();
+      $voucher = $row->toArray();
+      $voucher['short_code'] = $this->ensureShortCode((int) $voucher['id'], $voucher['short_code'] ?? null);
+      $vouchers[] = $voucher;
     }
 
     return $vouchers;
@@ -54,6 +61,7 @@ final class GiftVoucherRepository
     }
 
     $record = $row->toArray();
+    $record['short_code'] = $this->ensureShortCode((int) $record['id'], $record['short_code'] ?? null);
     $document = $record['document'];
 
     if (is_string($document)) {
@@ -64,6 +72,7 @@ final class GiftVoucherRepository
       throw new DomainException('Uložený poukaz má neplatný formát.');
     }
 
+    $document['short_code'] = $record['short_code'];
     $record['document'] = $document;
 
     return $record;
@@ -117,14 +126,77 @@ final class GiftVoucherRepository
       'expires_date' => $expiresAt->format('Y-m-d'),
     ];
 
-    $row = $this->database->table('gift_vouchers')->insert([
-      'campaign_id' => $campaignId,
-      'code' => $code,
-      'document' => json_encode($document, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-      'expires_at' => $expiresAt->format('Y-m-d'),
-      'status' => 'active',
-    ]);
+    // Alias collisions are handled by the database UNIQUE constraint.
+    // The 128-bit internal code is retained for future voucher verification.
+    for ($attempt = 0; $attempt < 12; $attempt++) {
+      try {
+        $row = $this->database->table('gift_vouchers')->insert([
+          'campaign_id' => $campaignId,
+          'code' => $code,
+          'short_code' => self::randomShortCode(),
+          'document' => json_encode($document, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+          'expires_at' => $expiresAt->format('Y-m-d'),
+          'status' => 'active',
+        ]);
 
-    return (int) $row['id'];
+        return (int) $row['id'];
+      } catch (UniqueConstraintViolationException $exception) {
+        if ($attempt === 11) {
+          throw $exception;
+        }
+      }
+    }
+
+    throw new DomainException('Nepodarilo sa prideliť kód poukazu.');
+  }
+
+  /**
+   * Assigns a human-friendly alias to vouchers issued before this change.
+   * The original identifier and document snapshot stay unchanged.
+   */
+  private function ensureShortCode(int $id, mixed $existing): string
+  {
+    if (is_string($existing) && $existing !== '') {
+      return $existing;
+    }
+
+    for ($attempt = 0; $attempt < 12; $attempt++) {
+      try {
+        $this->database->query(
+          'UPDATE gift_vouchers SET short_code = ? WHERE id = ? AND short_code IS NULL',
+          self::randomShortCode(),
+          $id,
+        );
+      } catch (UniqueConstraintViolationException $exception) {
+        if ($attempt === 11) {
+          throw $exception;
+        }
+
+        continue;
+      }
+
+      $row = $this->database->table('gift_vouchers')->get($id);
+
+      if ($row !== null && is_string($row['short_code']) && $row['short_code'] !== '') {
+        return $row['short_code'];
+      }
+    }
+
+    throw new DomainException('Nepodarilo sa prideliť krátky kód poukazu.');
+  }
+
+  /**
+   * Eight characters from a 32-symbol alphabet (~40 random bits).
+   * Rate limiting will also be required at the future redemption endpoint.
+   */
+  private static function randomShortCode(): string
+  {
+    $code = '';
+
+    for ($i = 0; $i < self::ALIAS_LENGTH; $i++) {
+      $code .= self::ALIAS_ALPHABET[random_int(0, strlen(self::ALIAS_ALPHABET) - 1)];
+    }
+
+    return $code;
   }
 }

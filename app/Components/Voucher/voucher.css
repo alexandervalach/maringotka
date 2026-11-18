@@ -5,107 +5,86 @@
 
 body {
   margin: 0;
-  background: #fff;
   color: #223b2d;
+  background: #fff;
   font-family: 'DejaVu Sans', sans-serif;
   font-size: 10pt;
 }
 
 .voucher {
-  border: 2px solid #dcd5c5;
-  padding: 13mm 13mm 11mm;
+  padding: 11mm 11mm 10mm;
+  border: 1.5px solid #dcd5c5;
   page-break-inside: avoid;
 }
 
-.eyebrow {
-  color: #805a38;
+.voucher-header {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 5mm;
+}
+
+.voucher-header td {
+  vertical-align: middle;
+}
+
+.voucher-brand { width: 26mm; }
+.voucher-brand img { display: block; width: 23mm; height: auto; }
+.voucher-kicker {
+  padding-left: 3mm;
+  color: #805b3c;
   font-size: 8pt;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.7px;
+  font-weight: bold;
 }
 
 h1 {
-  margin: 8mm 0 3mm;
-  font-size: 28pt;
-  line-height: 1.15;
+  margin: 0 0 2mm;
+  font-size: 27pt;
+  line-height: 1.2;
 }
 
 .lead {
   margin: 0 0 8mm;
+  font-size: 10pt;
   color: #5f7064;
-  font-size: 11pt;
 }
 
-.offer {
-  padding: 8mm;
+.experience {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
   border: 1px solid #e4dccd;
   background: #f5f1e8;
-  page-break-inside: avoid;
 }
 
-h2 {
-  margin: 0 0 5mm;
-  font-size: 16pt;
-}
+.experience td { vertical-align: top; }
+.experience-details { width: 56%; padding: 7mm 4mm 6mm 7mm; }
+.experience-photo { width: 44%; padding: 0; }
+.experience-photo img { display: block; width: 100%; height: auto; }
 
-.offer ul {
-  margin: 0;
-  padding-left: 6mm;
-  line-height: 1.7;
-}
-
-.offer li + li {
-  margin-top: 1mm;
-}
+h2 { margin: 0 0 5mm; font-size: 15pt; line-height: 1.2; }
+.experience ul { margin: 0; padding-left: 5mm; font-size: 8.7pt; line-height: 1.65; }
+.experience li { padding-bottom: 1.5mm; }
 
 .code {
-  margin: 8mm 0 6mm;
+  margin: 9mm 0 6mm;
   padding: 6mm 0;
   border-top: 2px solid #4a6150;
   border-bottom: 2px solid #4a6150;
   text-align: center;
   page-break-inside: avoid;
 }
+.code span { display: block; color: #647266; font-size: 8pt; letter-spacing: 1px; }
+.code strong { display: block; margin: 3mm 0; font-size: 25pt; letter-spacing: 3px; }
+.code p { margin: 0; color: #647266; font-size: 9pt; }
 
-.code span {
-  display: block;
-  color: #647266;
-  font-size: 8pt;
-  letter-spacing: 1px;
-}
-
-.code strong {
-  display: block;
-  margin-top: 3mm;
-  font-size: 12pt;
-  letter-spacing: .5px;
-  overflow-wrap: anywhere;
-}
-
-.code p {
-  margin: 3mm 0 0;
-  color: #647266;
-  font-size: 9pt;
-}
-
-.dates {
-  width: 100%;
-  border-collapse: collapse;
-  color: #526656;
-  font-size: 9pt;
-}
-
-.dates td {
-  width: 50%;
-}
-
-.dates td:last-child {
-  text-align: right;
-}
+.dates { width: 100%; border-collapse: collapse; color: #526656; font-size: 9pt; }
+.dates td { width: 50%; }
+.dates td:last-child { text-align: right; }
 
 footer {
   margin-top: 8mm;
-  padding-top: 5mm;
+  padding-top: 4mm;
   border-top: 1px solid #ddd7c9;
   color: #738276;
   font-size: 8pt;

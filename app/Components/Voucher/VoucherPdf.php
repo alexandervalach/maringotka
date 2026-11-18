@@ -49,10 +49,23 @@ final class VoucherPdf
       throw new DomainException('Chýba šablóna darčekového poukazu.');
     }
 
-    $code = (string) ($document['code'] ?? '');
+    $code = (string) ($document['short_code'] ?? '');
 
-    if (preg_match('/^[A-F0-9]{8}(?:-[A-F0-9]{8}){3}$/D', $code) !== 1) {
-      throw new DomainException('Neplatný kód darčekového poukazu.');
+    // Previously issued six-character aliases remain valid. New ones have eight characters.
+    if (preg_match('/^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}(?:[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{2})?$/D', $code) !== 1) {
+      throw new DomainException('Chýba platný krátky kód darčekového poukazu.');
+    }
+
+    $logo = file_get_contents(__DIR__ . '/assets/voucher-logo.jpg');
+
+    if ($logo === false) {
+      throw new DomainException('Chýba logo darčekového poukazu.');
+    }
+
+    $photo = file_get_contents(__DIR__ . '/assets/voucher-photo.jpg');
+
+    if ($photo === false) {
+      throw new DomainException('Chýba fotografia darčekového poukazu.');
     }
 
     $nights = (int) ($document['nights'] ?? 0);
@@ -76,6 +89,8 @@ final class VoucherPdf
     $benefits .= '<li>Platnosť ' . $months . ' ' . ($months === 1 ? 'mesiac' : ($months < 5 ? 'mesiace' : 'mesiacov')) . '</li>';
 
     $values = [
+      '{{logo}}' => 'data:image/jpeg;base64,' . base64_encode($logo),
+      '{{photo}}' => 'data:image/jpeg;base64,' . base64_encode($photo),
       '{{campaign}}' => self::escape((string) ($document['name'] ?? '')),
       '{{price}}' => number_format($cents / 100, 2, ',', ' ') . ' €',
       '{{code}}' => $code,

@@ -1,13 +1,19 @@
 <div class="voucher">
-  <div class="eyebrow">MARINGOTKA NA ZÁVADKE</div>
+  <table class="voucher-header"><tr>
+    <td class="voucher-brand"><img src="{{logo}}" alt="Maringotka na Závadke"></td>
+    <td class="voucher-kicker">MARINGOTKA NA ZÁVADKE</td>
+  </tr></table>
   # Darčekový poukaz
   <p class="lead">Darujte pobyt a chvíle, na ktoré sa nezabúda.</p>
-  <section class="offer">
-    ## {{campaign}}
-    <ul>{{benefits}}</ul>
-  </section>
+  <table class="experience"><tr>
+    <td class="experience-details">
+      ## {{campaign}}
+      <ul>{{benefits}}</ul>
+    </td>
+    <td class="experience-photo"><img src="{{photo}}" alt="Maringotka na Závadke"></td>
+  </tr></table>
   <section class="code">
-    <span>VÁŠ UNIKÁTNY KÓD</span>
+    <span>VÁŠ DARČEKOVÝ KÓD</span>
     <strong>{{code}}</strong>
     <p>Kód zadajte pri rezervácii pobytu.</p>
   </section>
