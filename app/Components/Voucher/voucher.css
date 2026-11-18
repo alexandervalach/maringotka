@@ -1,0 +1,112 @@
+@page {
+  size: A4 portrait;
+  margin: 15mm 17mm;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #223b2d;
+  font-family: 'DejaVu Sans', sans-serif;
+  font-size: 10pt;
+}
+
+.voucher {
+  border: 2px solid #dcd5c5;
+  padding: 13mm 13mm 11mm;
+  page-break-inside: avoid;
+}
+
+.eyebrow {
+  color: #805a38;
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+h1 {
+  margin: 8mm 0 3mm;
+  font-size: 28pt;
+  line-height: 1.15;
+}
+
+.lead {
+  margin: 0 0 8mm;
+  color: #5f7064;
+  font-size: 11pt;
+}
+
+.offer {
+  padding: 8mm;
+  border: 1px solid #e4dccd;
+  background: #f5f1e8;
+  page-break-inside: avoid;
+}
+
+h2 {
+  margin: 0 0 5mm;
+  font-size: 16pt;
+}
+
+.offer ul {
+  margin: 0;
+  padding-left: 6mm;
+  line-height: 1.7;
+}
+
+.offer li + li {
+  margin-top: 1mm;
+}
+
+.code {
+  margin: 8mm 0 6mm;
+  padding: 6mm 0;
+  border-top: 2px solid #4a6150;
+  border-bottom: 2px solid #4a6150;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+.code span {
+  display: block;
+  color: #647266;
+  font-size: 8pt;
+  letter-spacing: 1px;
+}
+
+.code strong {
+  display: block;
+  margin-top: 3mm;
+  font-size: 12pt;
+  letter-spacing: .5px;
+  overflow-wrap: anywhere;
+}
+
+.code p {
+  margin: 3mm 0 0;
+  color: #647266;
+  font-size: 9pt;
+}
+
+.dates {
+  width: 100%;
+  border-collapse: collapse;
+  color: #526656;
+  font-size: 9pt;
+}
+
+.dates td {
+  width: 50%;
+}
+
+.dates td:last-child {
+  text-align: right;
+}
+
+footer {
+  margin-top: 8mm;
+  padding-top: 5mm;
+  border-top: 1px solid #ddd7c9;
+  color: #738276;
+  font-size: 8pt;
+}

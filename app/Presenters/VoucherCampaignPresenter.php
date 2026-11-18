@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Forms\VoucherCampaignFormFactory;
+use App\Forms\GiftVoucherFormFactory;
+use App\Infrastructure\Database\ConnectionFactory;
+use App\Model\GiftVoucherRepository;
+use App\Components\Voucher\VoucherPdf;
 use App\Model\VoucherCampaignRepository;
 use InvalidArgumentException;
 use Nette\Application\UI\Form;
@@ -15,11 +19,19 @@ use Nette\Application\UI\Multiplier;
  */
 final class VoucherCampaignPresenter extends BasePresenter
 {
+  private readonly GiftVoucherRepository $vouchers;
+  private readonly GiftVoucherFormFactory $voucherForms;
+  private readonly VoucherPdf $voucherPdf;
+
   public function __construct(
     private readonly VoucherCampaignRepository $campaigns,
     private readonly VoucherCampaignFormFactory $forms,
+    ConnectionFactory $connections,
   ) {
     parent::__construct();
+    $this->vouchers = new GiftVoucherRepository($connections);
+    $this->voucherForms = new GiftVoucherFormFactory();
+    $this->voucherPdf = new VoucherPdf();
   }
 
   protected function startup(): void
@@ -83,6 +95,90 @@ final class VoucherCampaignPresenter extends BasePresenter
         'is_active' => $campaign['is_active'],
       ]);
     }
+  }
+
+  /**
+   * Load immutable vouchers issued from this campaign.
+   */
+  public function renderEdit(?int $id = null): void
+  {
+    $this->template->add('issuedVouchers', $id === null ? [] : $this->vouchers->forCampaign($id));
+  }
+
+  /**
+   * Prefill issuance with the campaign's current commercial parameters.
+   */
+  public function actionIssue(int $id): void
+  {
+    $campaign = $this->campaigns->find($id);
+
+    if ($campaign === null) {
+      $this->error('Kampaň neexistuje.', 404);
+    }
+
+    $this->template->add('campaign', $campaign);
+
+    if ($this->getHttpRequest()->isMethod('GET')) {
+      /** @var Form $form */
+      $form = $this->getComponent('issueVoucherForm');
+      $form->setDefaults([
+        'price' => VoucherCampaignRepository::euros((int) $campaign['price_cents']),
+        'nights' => (int) $campaign['nights'],
+        'validity_months' => (int) $campaign['validity_months'],
+        'includes_wellness' => $campaign['includes_wellness'],
+        'includes_wine' => $campaign['includes_wine'],
+      ]);
+    }
+  }
+
+  /**
+   * Return the same voucher PDF on every subsequent download.
+   */
+  public function actionDownload(int $id): void
+  {
+    $voucher = $this->vouchers->find($id);
+
+    if ($voucher === null) {
+      $this->error('Poukaz neexistuje.', 404);
+    }
+
+    /** @var array<string, mixed> $document */
+    $document = $voucher['document'];
+    $bytes = $this->voucherPdf->render($document);
+    $this->getHttpResponse()->setContentType('application/pdf');
+    $this->getHttpResponse()->setHeader('Content-Disposition', 'attachment; filename="poukaz-' . $id . '.pdf"');
+    $this->getHttpResponse()->setHeader('Cache-Control', 'no-store, private');
+    echo $bytes;
+    $this->terminate();
+  }
+
+  /**
+   * @return Form Admin voucher issuance form.
+   */
+  protected function createComponentIssueVoucherForm(): Form
+  {
+    $form = $this->voucherForms->createIssue();
+
+    $form->onSuccess[] = function (Form $form): void {
+      $id = (int) $this->getParameter('id');
+      $campaign = $this->campaigns->find($id);
+
+      if ($campaign === null) {
+        $this->error('Kampaň neexistuje.', 404);
+      }
+
+      try {
+        $voucherId = $this->vouchers->issue($campaign, $form->getValues('array'));
+      } catch (InvalidArgumentException $error) {
+        $form->addError($error->getMessage());
+
+        return;
+      }
+
+      $this->redirect('download', ['id' => $voucherId]);
+    };
+
+    return $form;
   }
 
   /**

@@ -1,0 +1,25 @@
+{layout '../@admin.latte'}
+
+{block pageTitle}Vystavenie darčekového poukazu{/block}
+
+{block content}
+<main id="main" class="container inner-page cms-editor">
+  <nav aria-label="Administrácia"><a class="back-link" href="/admin/voucher-campaigns/{$campaign['id']}">← {$campaign['name']}</a></nav>
+  <section class="info-card">
+    <h1>Vystaviť darčekový poukaz</h1>
+    <p class="page-lead">{$campaign['name']}</p>
+    {include '../_adminFlashes.latte'}
+    <div class="cms-form">
+      {form issueVoucherForm}
+        <ul class="cms-form-errors" n:if="$form->hasErrors()"><li n:foreach="$form->getErrors() as $error">{$error}</li></ul>
+        {label price /}{input price}
+        {label nights /}{input nights}
+        {label validity_months /}{input validity_months}
+        {input includes_wellness}{label includes_wellness /}
+        {input includes_wine}{label includes_wine /}
+        {input issue}
+      {/form}
+    </div>
+  </section>
+</main>
+{/block}

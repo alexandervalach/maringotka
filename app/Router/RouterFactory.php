@@ -16,6 +16,8 @@ final class RouterFactory
     $router->addRoute('admin/home/<locale>', ['presenter' => 'Homepage', 'action' => 'edit']);
     $router->addRoute('admin/contact', ['presenter' => 'Contact', 'action' => 'edit']);
     $router->addRoute('admin/pricing', ['presenter' => 'Pricing', 'action' => 'edit']);
+    $router->addRoute('admin/voucher-campaigns/issued/<id \d+>/pdf', ['presenter' => 'VoucherCampaign', 'action' => 'download']);
+    $router->addRoute('admin/voucher-campaigns/<id \d+>/issue', ['presenter' => 'VoucherCampaign', 'action' => 'issue']);
     $router->addRoute('admin/voucher-campaigns/new', ['presenter' => 'VoucherCampaign', 'action' => 'edit']);
     $router->addRoute('admin/voucher-campaigns/<id \d+>', ['presenter' => 'VoucherCampaign', 'action' => 'edit']);
     $router->addRoute('admin/voucher-campaigns', ['presenter' => 'VoucherCampaign', 'action' => 'default']);

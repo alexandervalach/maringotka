@@ -8,6 +8,9 @@
   <section class="info-card">
     <h1>{if $presenter->getParameter('id') === null}Nová kampaň{else}Úprava kampane{/if}</h1>
     {include '../_adminFlashes.latte'}
+    {if $presenter->getParameter('id') !== null}
+      <p><a class="button" href="/admin/voucher-campaigns/{$presenter->getParameter('id')}/issue">Vystaviť poukaz</a></p>
+    {/if}
     <div class="cms-form">
       {form campaignForm}
         <ul class="cms-form-errors" n:if="$form->hasErrors()"><li n:foreach="$form->getErrors() as $error">{$error}</li></ul>
@@ -22,6 +25,24 @@
         {input save}
       {/form}
     </div>
+    {if $presenter->getParameter('id') !== null && count($issuedVouchers) > 0}
+      <div class="booking-history">
+      <h2>Vystavené poukazy</h2>
+      <div class="booking-history-scroll" role="region" aria-label="Vystavené poukazy" tabindex="0">
+        <table class="booking-history-table">
+          <thead><tr><th>Kód</th><th>Platnosť do</th><th>Stav</th><th>PDF</th></tr></thead>
+          <tbody>
+            <tr n:foreach="$issuedVouchers as $voucher">
+              <td><code>{$voucher['code']}</code></td>
+              <td>{$voucher['expires_at']|date:'d. m. Y'}</td>
+              <td>{$voucher['status']}</td>
+              <td><a href="/admin/voucher-campaigns/issued/{$voucher['id']}/pdf">Stiahnuť PDF</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </div>
+    {/if}
   </section>
 </main>
 {/block}
