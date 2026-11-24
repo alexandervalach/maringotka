@@ -17,15 +17,12 @@ final class BookingFormFactory extends FormFactory
    */
   public function create(string $locale = 'sk'): Form
   {
-    $form = new Form();
-
+    $form = parent::create();
     $en = $locale === 'en';
-    $form->addText('arrival_date', ($en ? 'Arrival' : 'Príchod'))
-      ->setRequired('Vyberte dátum príchodu.')
-      ->setHtmlType('date');
-    $form->addText('departure_date', ($en ? 'Departure' : 'Odchod'))
-      ->setRequired('Vyberte dátum odchodu.')
-      ->setHtmlType('date');
+    $form->addHidden('arrival_date')
+      ->setRequired($en ? 'Select an arrival date in the calendar.' : 'Vyberte dátum príchodu v kalendári.');
+    $form->addHidden('departure_date')
+      ->setRequired($en ? 'Select a departure date in the calendar.' : 'Vyberte dátum odchodu v kalendári.');
     // Extras are optional. Prices are always recalculated on the server.
     $form->addCheckbox('wellness', $en ? 'Wellness (per night)' : 'Wellness (za noc)');
     $form->addCheckbox('breakfast', $en ? 'Breakfast basket (per night)' : 'Raňajkový kôš (za noc)');
@@ -40,6 +37,9 @@ final class BookingFormFactory extends FormFactory
       ->addRule(Form::Range, $en ? 'Choose 0 to 20 bags.' : 'Zvoľte 0 až 20 tašiek.', [0, 20])
       ->setHtmlAttribute('min', 0)
       ->setHtmlAttribute('max', 20);
+    $form->addText('voucher_code', $en ? 'Gift voucher code (optional)' : 'Kód darčekového poukazu (nepovinné)')
+      ->setMaxLength(8)
+      ->setHtmlAttribute('autocomplete', 'off');
     $form->addText('guest_name', ($en ? 'Full name' : 'Meno a priezvisko'))
       ->setRequired('Zadajte meno.')
       ->setMaxLength(200);

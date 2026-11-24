@@ -9,6 +9,10 @@
   const departure = form.elements.namedItem('departure_date');
   if (!(arrival instanceof HTMLInputElement) || !(departure instanceof HTMLInputElement)) return;
 
+  const voucherCode = form.elements.namedItem('voucher_code');
+  const options = quote.querySelector('.booking-quote__options');
+  const summary = quote.querySelector('.booking-quote__summary');
+  const notice = quote.querySelector('.booking-quote__notice');
   const isEnglish = quote.dataset.locale === 'en';
   const locale = isEnglish ? 'en-IE' : 'sk-SK';
   const formatter = new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' });
@@ -31,6 +35,14 @@
   };
 
   function render() {
+    const usingVoucher = voucherCode instanceof HTMLInputElement && voucherCode.value.trim() !== '';
+    if (options) { options.hidden = usingVoucher; options.style.display = usingVoucher ? 'none' : ''; }
+    if (summary) { summary.hidden = usingVoucher; summary.style.display = usingVoucher ? 'none' : ''; }
+    if (notice) notice.textContent = usingVoucher
+      ? (isEnglish ? 'Voucher code and stay dates will be verified when you submit.' : 'Kód a termín poukazu overíme pri odoslaní.')
+      : (isEnglish ? 'The amount is indicative. The request is not a confirmed reservation.' : 'Cena je orientačná. Žiadosť nie je potvrdená rezervácia.');
+    if (usingVoucher) return;
+
     const start = dayNumber(arrival.value);
     const end = dayNumber(departure.value);
     const nights = start === null || end === null ? null : end - start;

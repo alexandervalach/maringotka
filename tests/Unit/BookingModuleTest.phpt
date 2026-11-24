@@ -25,6 +25,8 @@ Assert::type(Form::class, $form);
 foreach (['arrival_date', 'departure_date', 'guest_name', 'guest_email', 'guest_phone', 'guest_note', 'send'] as $field) {
   Assert::true(isset($form[$field]));
 }
+Assert::type(Nette\Forms\Controls\HiddenField::class, $form['arrival_date']);
+Assert::type(Nette\Forms\Controls\HiddenField::class, $form['departure_date']);
 Assert::same('button', (string) $form['send']->getControlPrototype()->class);
 $future = (new DateTimeImmutable('today'))->modify('+30 days');
 $arrival = $future->format('Y-m-d');

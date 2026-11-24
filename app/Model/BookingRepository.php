@@ -6,12 +6,8 @@ namespace App\Model;
 
 use App\Infrastructure\Database\ConnectionFactory;
 use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
 use InvalidArgumentException;
 use Nette\Database\DriverException;
-use Nette\Database\Table\ActiveRow;
-use RuntimeException;
 
 /**
  * Creates reservation requests for the single accommodation.
@@ -113,9 +109,9 @@ final class BookingRepository extends Repository
    * @param array{arrival_date: string, departure_date: string, guest_name: string, guest_email: string, guest_phone: string, guest_note: string} $values Validated guest input.
    * @param int $minimumNights Minimum stay from current prices.
    * @param array{arrival: string, departure: string, nights: int, items: list<array{code: string, quantity: int, unit_price_cents: int, total_cents: int, unit: string}>, accommodation_cents: int, extras_cents: int, total_cents: int} $quote Price snapshot calculated on the server from current rates.
-   * @return array{id: int, created_year: int} Public receipt details from the saved request.
+   * @return string One-time cancellation token; only its hash is persisted.
    */
-  public function request(array $values, int $minimumNights, array $quote): array
+  public function request(array $values, int $minimumNights, array $quote): string
   {
     self::validateStay($values['arrival_date'], $values['departure_date'], $minimumNights);
    
@@ -146,15 +142,14 @@ final class BookingRepository extends Repository
     $note = trim($values['guest_note']);
 
     if ($name === '' || strlen($name) > 200 || !filter_var($email, FILTER_VALIDATE_EMAIL)
-      || strlen($email) > 254
-      || strlen($phone) > 60 || strlen($note) > 5000) {
+      || strlen($email) > 254 || strlen($phone) > 60 || strlen($note) > 5000) {
       throw new InvalidArgumentException('Skontrolujte kontaktné údaje.');
     }
 
     $token = bin2hex(random_bytes(32));
     
     try {
-      $inserted = $this->getTable()->insert([
+      $this->getTable()->insert([
         'arrival_date' => $values['arrival_date'],
         'departure_date' => $values['departure_date'],
         'guest_name' => $name,
@@ -173,26 +168,129 @@ final class BookingRepository extends Repository
       }
       throw $error;
     }
-
-    if (!$inserted instanceof ActiveRow) {
-      throw new RuntimeException('Nepodarilo sa získať číslo uloženej rezervácie.');
-    }
-
-    $bookingId = (int) $inserted['id'];
-    $saved = $this->getTable()->get($bookingId);
-
-    if ($saved === null) {
-      throw new RuntimeException('Uloženú rezerváciu nie je možné načítať.');
-    }
-
-    $createdAt = $saved['created_at'];
-    $created = $createdAt instanceof DateTimeInterface
-      ? DateTimeImmutable::createFromInterface($createdAt)
-      : new DateTimeImmutable((string) $createdAt);
-
-    return [
-      'id' => $bookingId,
-      'created_year' => (int) $created->setTimezone(new DateTimeZone('Europe/Bratislava'))->format('Y'),
-    ];
+    return $token;
   }
+
+  /**
+   * Reserve a prepaid gift voucher and its stay atomically.
+   * A voucher covers only the snapshotted nights and included services.
+   * The database booking exclusion constraint remains authoritative.
+   *
+   * @param array{arrival_date: string, departure_date: string, guest_name: string, guest_email: string, guest_phone: string, guest_note: string} $values Guest details.
+   * @param string $alias Public redemption code.
+   * @return string Cancellation token; never disclose it on the page.
+   */
+  public function requestWithVoucher(array $values, string $alias): string
+  {
+    $alias = strtoupper(trim($alias));
+
+    if (preg_match('/^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}([23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{2})?$/D', $alias) !== 1) {
+      throw new InvalidArgumentException('Neplatný formát darčekového kódu.');
+    }
+
+    $this->database->beginTransaction();
+
+    try {
+      // Lock by unique short_code before reading or updating usage state.
+      $voucher = $this->database->query(
+        'SELECT id, status, document, expires_at FROM gift_vouchers WHERE short_code = ? FOR UPDATE',
+        $alias,
+      )->fetch();
+
+      if ($voucher === null || (string) $voucher['status'] !== 'active') {
+        throw new InvalidArgumentException('Poukaz neexistuje alebo už bol použitý.');
+      }
+
+      $document = $voucher['document'];
+      $document = is_string($document) ? json_decode($document, true, 512, JSON_THROW_ON_ERROR) : $document;
+
+      if (!is_array($document)) {
+        throw new InvalidArgumentException('Údaje poukazu sú neplatné.');
+      }
+
+      $nights = (int) ($document['nights'] ?? 0);
+
+      if ($nights < 1 || $nights > BookingPriceCalculator::MAX_NIGHTS) {
+        throw new InvalidArgumentException('Poukaz má neplatný počet nocí.');
+      }
+
+      self::validateStay($values['arrival_date'], $values['departure_date'], $nights);
+      $start = new DateTimeImmutable($values['arrival_date']);
+      $end = new DateTimeImmutable($values['departure_date']);
+
+      if ((int) $start->diff($end)->format('%r%a') !== $nights) {
+        throw new InvalidArgumentException('Zvolený termín nezodpovedá počtu nocí poukazu.');
+      }
+
+      $expiry = $voucher['expires_at'];
+      $expiryDate = $expiry instanceof \DateTimeInterface ? $expiry->format('Y-m-d') : (string) $expiry;
+
+      if ($values['arrival_date'] > $expiryDate) {
+        throw new InvalidArgumentException('Poukaz nemôže byť použitý na pobyt po uplynutí platnosti.');
+      }
+
+      // Keep the ordinary quote format understood by the existing admin and e-mail views.
+      $items = [[
+        'code' => 'first_night', 'quantity' => 1,
+        'unit_price_cents' => 0, 'total_cents' => 0, 'unit' => 'night',
+      ]];
+
+      if ($nights > 1) {
+        $items[] = [
+          'code' => 'additional_night', 'quantity' => $nights - 1,
+          'unit_price_cents' => 0, 'total_cents' => 0, 'unit' => 'night',
+        ];
+      }
+
+      if (($document['includes_wellness'] ?? false) === true) {
+        $items[] = [
+          'code' => 'wellness', 'quantity' => $nights,
+          'unit_price_cents' => 0, 'total_cents' => 0, 'unit' => 'night',
+        ];
+      }
+
+      if (($document['includes_wine'] ?? false) === true) {
+        $items[] = [
+          'code' => 'frizzante', 'quantity' => 1,
+          'unit_price_cents' => 0, 'total_cents' => 0, 'unit' => 'item',
+        ];
+      }
+
+      $quote = [
+        'arrival' => $values['arrival_date'],
+        'departure' => $values['departure_date'],
+        'nights' => $nights,
+        'items' => $items,
+        'accommodation_cents' => 0,
+        'extras_cents' => 0,
+        'total_cents' => 0,
+        'gift_voucher_id' => (int) $voucher['id'],
+      ];
+
+      $token = $this->request($values, $nights, $quote);
+      $booking = $this->database->query(
+        'SELECT id FROM booking_requests WHERE cancellation_token_hash = ?',
+        hash('sha256', $token),
+      )->fetch();
+
+      if ($booking === null) {
+        throw new \RuntimeException('Rezerváciu sa nepodarilo načítať.');
+      }
+
+      $this->database->query(
+        'UPDATE gift_vouchers SET status = ?, redeemed_booking_id = ? WHERE id = ?',
+        'redeemed',
+        (int) $booking['id'],
+        (int) $voucher['id'],
+      );
+
+      $this->database->commit();
+
+      return $token;
+    } catch (\Throwable $error) {
+      $this->database->rollBack();
+      throw $error;
+    }
+  }
+
 }

@@ -55,6 +55,12 @@
     {/if}
   </section>
 
+  {if $payment !== null && $payment['total_cents'] === 0}
+    <section class="info-card booking-payment">
+      <h2>Rezervácia uhradená darčekovým poukazom</h2>
+      <p>Za pobyt sa už neplatí. Zahrnuté služby sú uvedené v cenovom rozpise.</p>
+    </section>
+  {else}
   <section class="info-card booking-payment" aria-labelledby="booking-payment-heading">
     <div class="booking-payment__heading">
       <div>
@@ -178,6 +184,8 @@
         <p>Pre túto rezerváciu nie je možné vystaviť faktúru.</p>
       {/if}
     </section>
+  {/if}
+
   {/if}
 
   {control bookingQuote, $request}
