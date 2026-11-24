@@ -255,6 +255,29 @@ final class BookingManagementRepository extends Repository
         in_array($decision, ['rejected', 'cancelled'], true) ? $reason : null,
         $id,
       );
+
+      if ($decision === 'confirmed') {
+        $this->database->query(
+          <<<'SQL'
+          INSERT INTO booking_payments (booking_id, status, paid_at, updated_at)
+          SELECT ?, 'paid', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+          WHERE EXISTS (
+            SELECT 1
+            FROM gift_vouchers
+            WHERE redeemed_booking_id = ?
+              AND status = 'redeemed'
+          )
+          ON CONFLICT (booking_id) DO UPDATE
+          SET status = 'paid',
+              paid_at = CURRENT_TIMESTAMP,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE booking_payments.status <> 'paid'
+          SQL,
+          $id,
+          $id,
+        );
+      }
+
       $this->database->commit();
     } catch (\Throwable $error) {
       $this->database->rollBack();
