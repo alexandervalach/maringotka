@@ -7,6 +7,7 @@ namespace App\Presenters;
 use App\Forms\BookingFormFactory;
 use App\Localization\SupportedLocales;
 use App\Model\BookingRepository;
+use App\Model\GiftVoucherRepository;
 use App\Model\BookingPriceCalculator;
 use App\Model\BookingUnavailableException;
 use App\Model\PricingRepository;
@@ -32,6 +33,7 @@ final class BookingPresenter extends BasePresenter
     private readonly BookingRepository $bookings,
     private readonly PricingRepository $pricing,
     private readonly BookingFormFactory $forms,
+    private readonly GiftVoucherRepository $vouchers,
   ) {
     parent::__construct();
   }
@@ -45,6 +47,29 @@ final class BookingPresenter extends BasePresenter
     if (!SupportedLocales::isSupported($locale)) {
       $this->error('Unknown language.', 404);
     }
+  }
+
+  /**
+   * Checks voucher entitlements for the interactive public booking form.
+   * Availability and redemption are rechecked when the request is submitted.
+   */
+  public function actionCheckVoucher(string $locale): void
+  {
+    if (!SupportedLocales::isSupported($locale)) {
+      $this->error('Unknown language.', 404);
+    }
+
+    $this->getHttpResponse()->setHeader('Cache-Control', 'no-store, private');
+    $queryCode = $this->getHttpRequest()->getQuery('code');
+    $code = is_string($queryCode) ? $queryCode : '';
+    $voucher = $this->vouchers->previewForBooking($code);
+
+    if ($voucher === null) {
+      $this->sendJson(['valid' => false]);
+    }
+
+    $this->sendJson(['valid' => true, 'nights' => $voucher['nights'],
+      'wellness' => $voucher['wellness'], 'wine' => $voucher['wine'], 'expires' => $voucher['expires']]);
   }
 
   /**

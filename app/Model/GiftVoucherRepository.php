@@ -79,6 +79,57 @@ final class GiftVoucherRepository
   }
 
   /**
+   * Publicly readable booking entitlements, without internal voucher identifiers.
+   * The booking transaction independently revalidates the code under a lock.
+   *
+   * @return array{nights: int, wellness: bool, wine: bool, expires: string}|null
+   */
+  public function previewForBooking(string $alias): ?array
+  {
+    $alias = strtoupper(trim($alias));
+
+    if (preg_match('/^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}([23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{2})?$/D', $alias) !== 1) {
+      return null;
+    }
+
+    $voucher = $this->database->table('gift_vouchers')
+      ->where('short_code', $alias)
+      ->where('status', 'active')
+      ->fetch();
+
+    if ($voucher === null) {
+      return null;
+    }
+
+    $expiresAt = $voucher['expires_at'];
+    $expiryDate = $expiresAt instanceof \DateTimeInterface ? $expiresAt->format('Y-m-d') : (string) $expiresAt;
+
+    if ($expiryDate < (new DateTimeImmutable('today', new DateTimeZone('Europe/Bratislava')))->format('Y-m-d')) {
+      return null;
+    }
+
+    $document = $voucher['document'];
+    $document = is_string($document) ? json_decode($document, true) : $document;
+
+    if (!is_array($document)) {
+      return null;
+    }
+
+    $nights = filter_var($document['nights'] ?? null, FILTER_VALIDATE_INT);
+
+    if ($nights === false || $nights < 1 || $nights > BookingPriceCalculator::MAX_NIGHTS) {
+      return null;
+    }
+
+    return [
+      'nights' => $nights,
+      'expires' => $expiryDate,
+      'wellness' => ($document['includes_wellness'] ?? false) === true,
+      'wine' => ($document['includes_wine'] ?? false) === true,
+    ];
+  }
+
+  /**
    * Creates one activated voucher with an unpredictable 128-bit code.
    * All editable parameters are snapshotted, so later campaign edits are safe.
    *

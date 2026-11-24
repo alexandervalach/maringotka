@@ -13,11 +13,13 @@
   const days = calendar.querySelector('.booking-calendar-days');
   const heading = calendar.querySelector('.booking-calendar-month');
   const message = calendar.querySelector('.booking-calendar-message');
+  const datesSummary = calendar.querySelector('[data-booking-dates]');
   const previous = calendar.querySelector('.booking-calendar-prev');
   const next = calendar.querySelector('.booking-calendar-next');
   const isEnglish = calendar.dataset.locale === 'en';
-  const voucherCode = form.querySelector('[name="voucher_code"]');
-  const minimum = () => voucherCode?.value.trim() ? 1 : (Number(calendar.dataset.minNights) || 1);
+  const voucherNights = () => Number(form.dataset.voucherNights) || 0;
+  const minimum = () => voucherNights() || (Number(calendar.dataset.minNights) || 1);
+  const voucherExpiry = () => form.dataset.voucherExpires || ''; 
   const today = calendar.dataset.today;
   const until = calendar.dataset.until;
   const intervals = Array.from(calendar.querySelectorAll('[data-start][data-end]'))
@@ -28,14 +30,16 @@
 
   const dayMs = 86400000;
   const dateUtc = (iso) => Date.parse(`${iso}T00:00:00Z`);
+  const addDays = (iso, count) => new Date(dateUtc(iso) + count * dayMs).toISOString().slice(0, 10);
   const nightsBetween = (start, end) => Math.round((dateUtc(end) - dateUtc(start)) / dayMs);
   const occupied = (iso) => intervals.some(({ start, end }) => start <= iso && iso < end);
   const crossesOccupied = (start, end) => intervals.some((interval) => start < interval.end && end > interval.start);
   const inRange = (iso) => iso >= today && iso < until;
 
   function validStay(start, end) {
-    return inRange(start) && end > start && end <= until &&
+    return inRange(start) && (!voucherNights() || start <= voucherExpiry()) && end > start && end <= until &&
       nightsBetween(start, end) >= minimum() && nightsBetween(start, end) <= 30 &&
+      (!voucherNights() || nightsBetween(start, end) === voucherNights()) &&
       !crossesOccupied(start, end);
   }
 
@@ -44,10 +48,48 @@
   }
 
   function updateDates() {
+    if (datesSummary) {
+      if (arrival.value && departure.value) {
+        const displayDate = (iso) => {
+          const [year, month, day] = iso.split('-');
+          return `${day}.${month}.${year}`;
+        };
+        datesSummary.textContent = isEnglish
+          ? `Arrival: ${displayDate(arrival.value)} · Departure: ${displayDate(departure.value)}`
+          : `Príchod: ${displayDate(arrival.value)} · Odchod: ${displayDate(departure.value)}`;
+        datesSummary.hidden = false;
+      } else {
+        datesSummary.textContent = '';
+        datesSummary.hidden = true;
+      }
+    }
     render();
   }
 
-  voucherCode?.addEventListener('input', updateDates);
+  form.addEventListener('voucher:change', () => {
+    // A voucher fixes the stay length: check-out is never chosen independently.
+    if (arrival.value && voucherNights() && arrival.value > voucherExpiry()) {
+      arrival.value = '';
+      departure.value = '';
+    }
+    if (arrival.value && voucherNights()) {
+      const checkout = addDays(arrival.value, voucherNights());
+      if (validStay(arrival.value, checkout)) {
+        departure.value = checkout;
+      } else {
+        arrival.value = '';
+        departure.value = '';
+      }
+    } else if (arrival.value && departure.value && !validStay(arrival.value, departure.value)) {
+      departure.value = '';
+    }
+    selectingDeparture = Boolean(arrival.value && !departure.value && !voucherNights());
+    notice(voucherNights()
+      ? (isEnglish ? `Select arrival for exactly ${voucherNights()} nights.` : `Vyberte príchod na presne ${voucherNights()} nocí.`)
+      : '');
+    arrival.dispatchEvent(new Event('change', { bubbles: true }));
+    updateDates();
+  });
 
   function selectDate(iso) {
     if (!selectingDeparture || !arrival.value || iso <= arrival.value) {
@@ -55,10 +97,15 @@
         notice(isEnglish ? 'This arrival date is unavailable.' : 'Tento deň príchodu je obsadený.');
         return;
       }
+      if (voucherNights() && !validStay(iso, addDays(iso, voucherNights()))) {
+        notice(isEnglish ? 'The entire voucher stay is unavailable.' : 'Celý pobyt podľa poukazu nie je dostupný.');
+        return;
+      }
       arrival.value = iso;
-      departure.value = '';
-      selectingDeparture = true;
-      notice(isEnglish ? 'Now select your check-out date.' : 'Teraz vyberte deň odchodu.');
+      departure.value = voucherNights() ? addDays(iso, voucherNights()) : '';
+      selectingDeparture = !voucherNights();
+      notice(voucherNights() ? (isEnglish ? 'Voucher stay selected.' : 'Termín podľa poukazu bol vybraný.')
+        : (isEnglish ? 'Now select your check-out date.' : 'Teraz vyberte deň odchodu.'));
     } else if (validStay(arrival.value, iso)) {
       departure.value = iso;
       selectingDeparture = false;
@@ -111,9 +158,10 @@
       if (arrival.value && departure.value && iso > arrival.value && iso < departure.value) {
         button.classList.add('is-selected');
       }
-      const selectableCheckout = selectingDeparture && arrival.value && iso > arrival.value &&
+      const selectableCheckout = !voucherNights() && selectingDeparture && arrival.value && iso > arrival.value &&
         validStay(arrival.value, iso);
-      button.disabled = (!inRange(iso) && !selectableCheckout) || (blocked && !selectableCheckout);
+      button.disabled = (!inRange(iso) && !selectableCheckout) || (blocked && !selectableCheckout) ||
+        Boolean(voucherNights() && !validStay(iso, addDays(iso, voucherNights())));
       if (blocked) button.title = isEnglish ? 'Occupied night' : 'Obsadená noc';
       if (!button.disabled) button.addEventListener('click', () => selectDate(iso));
       days.appendChild(button);
@@ -125,12 +173,12 @@
       notice(isEnglish ? 'This arrival date is occupied or unavailable.' : 'Tento deň príchodu je obsadený alebo nedostupný.');
     }
     if (departure.value && !validStay(arrival.value, departure.value)) departure.value = '';
-    selectingDeparture = Boolean(arrival.value && !departure.value);
+    selectingDeparture = Boolean(arrival.value && !departure.value && !voucherNights());
     updateDates();
   });
   departure.addEventListener('change', () => {
-    selectingDeparture = Boolean(arrival.value && !departure.value);
-    render();
+    selectingDeparture = Boolean(arrival.value && !departure.value && !voucherNights());
+    updateDates();
   });
   form.addEventListener('submit', (event) => {
     if (!arrival.value || !departure.value || !validStay(arrival.value, departure.value)) {

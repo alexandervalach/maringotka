@@ -50,14 +50,25 @@ final class RouterFactory
     $router->addRoute('darcekovy-poukaz/objednat/<id \d+>', [
       'presenter' => 'Voucher', 'action' => 'order', 'locale' => 'sk',
     ]);
+    
     $router->addRoute('en/gift-voucher/order/<id \d+>', [
       'presenter' => 'Voucher', 'action' => 'order', 'locale' => 'en',
     ]);
+
     $router->addRoute('darcekovy-poukaz/objednavka/<reference [A-F0-9]{24}>', [
       'presenter' => 'Voucher', 'action' => 'ordered', 'locale' => 'sk',
     ]);
+
     $router->addRoute('en/gift-voucher/ordered/<reference [A-F0-9]{24}>', [
       'presenter' => 'Voucher', 'action' => 'ordered', 'locale' => 'en',
+    ]);
+
+    $router->addRoute('rezervacia/overit-poukaz', [
+      'presenter' => 'Booking', 'action' => 'checkVoucher', 'locale' => 'sk',
+    ]);
+
+    $router->addRoute('en/booking/check-voucher', [
+      'presenter' => 'Booking', 'action' => 'checkVoucher', 'locale' => 'en',
     ]);
 
     foreach (PublicRoutes::PATHS as $action => $_) {

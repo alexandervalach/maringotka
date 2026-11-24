@@ -856,3 +856,12 @@ body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column;
 .booking-quote__summary > div { display: flex; justify-content: space-between; gap: 1rem; }
 .booking-quote__total { font-size: 1.15rem; font-weight: 800; color: var(--deep); }
 .booking-quote__notice { font-size: .85rem; margin-bottom: 0; }
+
+/* Voucher entitlements remain visible, but cannot be edited. */
+.booking-quote__options input:disabled { opacity: .65; cursor: not-allowed; }
+.booking-quote__option:has(input:disabled), .booking-quote__quantity:has(input:disabled) {
+  background: var(--surface, #f5f5f2);
+}
+.booking-voucher-status, .booking-voucher-details { margin: .5rem 0; }
+.booking-voucher-status[data-state="error"] { color: #9c3030; }
+.booking-voucher-details { font-weight: 650; }

@@ -24,6 +24,7 @@ services:
   - App\Infrastructure\Media\GalleryImageProcessor
   - App\Presenters\BookingPresenter
   - App\Model\BookingRepository
+  - App\Model\GiftVoucherRepository
   - App\Forms\BookingFormFactory
   - App\Presenters\BookingManagementPresenter
   - App\Model\BookingManagementRepository

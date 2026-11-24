@@ -5,11 +5,11 @@
   {if $locale === 'en'}
     <h1>Reservation request</h1>
     <p class="page-lead">Select arrival and departure dates. A request is not a confirmed booking.</p>
-    <p>Minimum stay: {$minimumNights} {if $minimumNights === 1}night{else}nights{/if}.</p>
+    <p data-booking-minimum>Minimum stay: {$minimumNights} {if $minimumNights === 1}night{else}nights{/if}.</p>
   {else}
     <h1>Žiadosť o rezerváciu</h1>
     <p class="page-lead">Vyberte termín pobytu. Žiadosť nie je automatickým potvrdením rezervácie.</p>
-    <p>Minimálny pobyt: {$minimumNights} {if $minimumNights === 1}noc{else}nocí{/if}.</p>
+    <p data-booking-minimum>Minimálny pobyt: {$minimumNights} {if $minimumNights === 1}noc{else}nocí{/if}.</p>
   {/if}
   {if $requestSubmitted}
     <div class="booking-feedback" role="status" aria-live="polite">
@@ -35,6 +35,7 @@
     data-today="{$calendarToday}"
     data-until="{$calendarUntil}"
     data-min-nights="{$minimumNights}"
+    data-voucher-check-url="{if $locale === 'en'}{link checkVoucher, locale => 'en'}{else}{link checkVoucher, locale => 'sk'}{/if}"
     data-locale="{$locale}"
     aria-label="{if $locale === 'en'}Availability calendar{else}Kalendár dostupnosti{/if}">
     <h2>{if $locale === 'en'}Available dates{else}Dostupné termíny{/if}</h2>
@@ -53,6 +54,7 @@
     </div>
     <div class="booking-calendar-days" hidden></div>
     <p class="booking-calendar-message" role="status" aria-live="polite"></p>
+    <p class="booking-calendar-selection" data-booking-dates hidden aria-live="polite"></p>
     <p class="booking-calendar-legend"><span class="booking-calendar-occupied-swatch"></span> {if $locale === 'en'}Occupied{else}Obsadené{/if}</p>
   </div>
   <div class="cms-form booking-form">
@@ -64,12 +66,11 @@
       </div>
       {input arrival_date}
       {input departure_date}
-
       <div class="booking-field">
         {label voucher_code /}
         {input voucher_code}
+        <p class="booking-voucher-status" data-voucher-status role="status" aria-live="polite"></p>
       </div>
-
       <section class="booking-quote" data-booking-quote
         data-first-night="{$bookingPrices['first_night']}"
         data-additional-night="{$bookingPrices['additional_night']}"
@@ -82,6 +83,7 @@
         data-max-nights="{$maxNights}"
         data-locale="{$locale}">
         <h2>{if $locale === 'en'}Your stay and extras{else}Pobyt a doplnkové služby{/if}</h2>
+        <p class="booking-voucher-details" data-voucher-details hidden></p>
         <p class="booking-quote__intro">{if $locale === 'en'}Basic stay. Optional services are added to the accommodation price.{else}Základný pobyt. Doplnkové služby sa pripočítajú k cene ubytovania.{/if}</p>
         <div class="booking-quote__options">
           <div class="booking-quote__option">{input wellness}{label wellness /}<span>{if $locale === 'en'}€{$bookingPrices['wellness'] / 100} / night{else}{$bookingPrices['wellness'] / 100} € / noc{/if}</span></div>
@@ -122,7 +124,7 @@
   </div>
   {/if}
 </main>
-  <link rel="stylesheet" href="/assets/css/booking-calendar.css">
-  <script src="/assets/js/booking-calendar.js" defer></script>
-  <script src="/assets/js/booking-quote.js" defer></script>
+  <script src="/assets/js/booking-calendar.js?v=20261124-2" defer></script>
+  <script src="/assets/js/booking-quote.js?v=20261124-2" defer></script>
+  <script src="/assets/js/booking-voucher.js?v=20261124-2" defer></script>
 {/block}

@@ -35,13 +35,17 @@
   };
 
   function render() {
-    const usingVoucher = voucherCode instanceof HTMLInputElement && voucherCode.value.trim() !== '';
-    if (options) { options.hidden = usingVoucher; options.style.display = usingVoucher ? 'none' : ''; }
-    if (summary) { summary.hidden = usingVoucher; summary.style.display = usingVoucher ? 'none' : ''; }
+    const usingVoucher = form.dataset.voucherValid === 'true';
     if (notice) notice.textContent = usingVoucher
-      ? (isEnglish ? 'Voucher code and stay dates will be verified when you submit.' : 'Kód a termín poukazu overíme pri odoslaní.')
+      ? (isEnglish ? 'Prepaid voucher: included services are shown above. Validity is checked again on submission.' : 'Predplatený poukaz: zahrnuté služby sú zobrazené vyššie. Platnosť znova overíme pri odoslaní.')
       : (isEnglish ? 'The amount is indicative. The request is not a confirmed reservation.' : 'Cena je orientačná. Žiadosť nie je potvrdená rezervácia.');
-    if (usingVoucher) return;
+    if (usingVoucher) {
+      output('nights', String(form.dataset.voucherNights));
+      output('accommodation', formatter.format(0));
+      output('extras', formatter.format(0));
+      output('total', formatter.format(0));
+      return;
+    }
 
     const start = dayNumber(arrival.value);
     const end = dayNumber(departure.value);
@@ -68,6 +72,7 @@
     output('total', formatter.format((accommodation + extras) / 100));
   }
 
+  form.addEventListener('voucher:change', render);
   form.addEventListener('input', render);
   form.addEventListener('change', render);
   render();
