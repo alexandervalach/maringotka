@@ -16,6 +16,15 @@ final class RouterFactory
     $router->addRoute('admin/home/<locale>', ['presenter' => 'Homepage', 'action' => 'edit']);
     $router->addRoute('admin/contact', ['presenter' => 'Contact', 'action' => 'edit']);
     $router->addRoute('admin/pricing', ['presenter' => 'Pricing', 'action' => 'edit']);
+    
+    $router->addRoute('admin/voucher-mail-templates/<event ordered|paid>/<locale sk|en>', [
+      'presenter' => 'VoucherMailTemplate', 'action' => 'edit',
+    ]);
+
+    $router->addRoute('admin/voucher-mail-templates', [
+      'presenter' => 'VoucherMailTemplate', 'action' => 'default',
+    ]);
+
     $router->addRoute('admin/voucher-campaigns/issued/<id \d+>/pdf', ['presenter' => 'VoucherCampaign', 'action' => 'download']);
     $router->addRoute('admin/voucher-campaigns/<id \d+>/issue', ['presenter' => 'VoucherCampaign', 'action' => 'issue']);
     $router->addRoute('admin/voucher-campaigns/new', ['presenter' => 'VoucherCampaign', 'action' => 'edit']);
@@ -46,11 +55,11 @@ final class RouterFactory
     ]);
 
     $router->addRoute('admin', ['presenter' => 'Admin', 'action' => 'default']);
-    // Voucher order URLs precede the general localized public routes.
+
     $router->addRoute('darcekovy-poukaz/objednat/<id \d+>', [
       'presenter' => 'Voucher', 'action' => 'order', 'locale' => 'sk',
     ]);
-    
+
     $router->addRoute('en/gift-voucher/order/<id \d+>', [
       'presenter' => 'Voucher', 'action' => 'order', 'locale' => 'en',
     ]);

@@ -7,6 +7,8 @@ use App\Components\Voucher\VoucherPdf;
 use App\Infrastructure\Database\ConnectionFactory;
 use App\Model\GiftVoucherOrderRepository;
 use App\Model\GiftVoucherRepository;
+use App\Model\VoucherMailTemplateRepository;
+use App\Helpers\PaymentEmailTemplate;
 use Nette\Mail\Message;
 use Nette\Mail\SmtpMailer;
 
@@ -36,6 +38,7 @@ function voucherDrain(PDO $pdo, SmtpMailer $mailer, string $from, int $limit = 2
   $sent = 0;
   $failed = 0;
   $templates = new VoucherOrderEmailTemplate();
+  $storedTemplates = new VoucherMailTemplateRepository(new ConnectionFactory());
   $vouchers = new GiftVoucherRepository(new ConnectionFactory());
   $pdf = new VoucherPdf();
 
@@ -104,12 +107,23 @@ SQL);
         throw new RuntimeException('Unknown voucher mail event.');
       }
 
-      $content = $templates->render((string) $event['event_type'], (string) $event['locale'], $vars);
+      $currentTemplate = $storedTemplates->get((string) $event['event_type'],
+        $event['locale'] === 'en' ? 'en' : 'sk');
+      $content = $templates->render((string) $event['event_type'], (string) $event['locale'], $vars, $currentTemplate);
       $message = new Message();
       $message->setFrom($from)
         ->addTo((string) $event['customer_email'])
         ->setSubject($content['subject'])
-        ->setBody($content['body']);
+        ->setBody(PaymentEmailTemplate::plainText($content['body']));
+
+      $logoPath = dirname(__DIR__) . '/www/assets/images/logo.png';
+      $message->setHtmlBody(
+        PaymentEmailTemplate::htmlDocument(
+          PaymentEmailTemplate::renderMarkdown($content['body']),
+          $currentTemplate['show_logo'], is_file($logoPath),
+        ),
+        dirname($logoPath),
+      );
 
       if ($event['event_type'] === 'paid') {
         $record = $vouchers->find((int) $event['voucher_id']);

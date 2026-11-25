@@ -1,0 +1,40 @@
+{layout '../@admin.latte'}
+{block pageTitle}E-mailové šablóny darčekových poukazov{/block}
+{block content}
+<main class="container inner-page cms-editor booking-payment-settings">
+  <nav><a class="back-link" href="/admin/voucher-campaigns">← Darčekové poukazy</a></nav>
+  <section class="info-card">
+    <h1>E-mailové šablóny darčekových poukazov</h1>
+    <p>Správy sú oddelené od e-mailov bežných rezervácií.</p>
+    <nav class="mail-template-picker" aria-label="Šablóny poukazov">
+      <a class="mail-template-picker__item" href="/admin/voucher-mail-templates/ordered/sk" {if $selectedEvent === 'ordered' && $selectedLocale === 'sk'}aria-current="page"{/if}>Platobné údaje – SK</a>
+      <a class="mail-template-picker__item" href="/admin/voucher-mail-templates/ordered/en" {if $selectedEvent === 'ordered' && $selectedLocale === 'en'}aria-current="page"{/if}>Platobné údaje – EN</a>
+      <a class="mail-template-picker__item" href="/admin/voucher-mail-templates/paid/sk" {if $selectedEvent === 'paid' && $selectedLocale === 'sk'}aria-current="page"{/if}>Uhradený poukaz – SK</a>
+      <a class="mail-template-picker__item" href="/admin/voucher-mail-templates/paid/en" {if $selectedEvent === 'paid' && $selectedLocale === 'en'}aria-current="page"{/if}>Uhradený poukaz – EN</a>
+      <a class="mail-template-picker__item" href="/admin/mail-templates/confirmed">Pokyny po potvrdení pobytu (existujúca šablóna)</a>
+    </nav>
+  </section>
+  <section class="info-card">
+    <h2>{if $selectedEvent === 'ordered'}Údaje na úhradu poukazu{else}Odoslanie zaplateného poukazu{/if} – {$selectedLocale|upper}</h2>
+    {if $selectedEvent === 'ordered'}
+      <p>Povinné značky: <code>{= '{{amount}}'}</code>, <code>{= '{{iban}}'}</code>, <code>{= '{{variable_symbol}}'}</code>.</p>
+    {else}
+      <p>PDF poukaz sa po potvrdení platby automaticky priloží k e-mailu. Nie je súčasťou textu šablóny.</p>
+    {/if}
+    <p>Ďalšie značky: <code>{= '{{customer_name}}'}</code>, <code>{= '{{campaign_name}}'}</code>, <code>{= '{{reference}}'}</code>, <code>{= '{{recipient}}'}</code>.</p>
+    {include '../_adminFlashes.latte'}
+    <div class="cms-form booking-payment-settings__form">
+      {form templateForm}
+        <ul class="cms-form-errors" n:if="$form->hasErrors()"><li n:foreach="$form->getErrors() as $error">{$error}</li></ul>
+        {label subject /}{input subject}
+        {label body /}{input body}
+        <div>{input show_logo}{label show_logo /}</div>
+        <div>{input save} {input restore}</div>
+      {/form}
+    </div>
+    <h3>Náhľad uloženej šablóny (fiktívne údaje)</h3>
+    <p><strong>Predmet:</strong> {$previewSubject}</p>
+    <iframe title="Náhľad e-mailu" sandbox="" srcdoc="{$previewHtml}" style="width:100%;min-height:490px;border:1px solid #ddd;border-radius:10px;background:#fff"></iframe>
+  </section>
+</main>
+{/block}

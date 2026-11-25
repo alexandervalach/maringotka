@@ -346,18 +346,26 @@ SQL);
           ? null
           : (int) $event['price_total_cents'];
 
-        $paymentInstructions = BookingConfirmationEmailTemplate::paymentInstructions(
-          $settings,
-          $amountCents,
-          $variableSymbol,
+        $voucherCheck = $pdo->prepare(
+          'SELECT 1 FROM gift_vouchers WHERE redeemed_booking_id = ? AND status = ? LIMIT 1',
         );
+        $voucherCheck->execute([(int) $event['booking_id'], 'redeemed']);
+        $redeemedVoucher = $voucherCheck->fetchColumn() !== false;
 
-        try {
-          $paymentQrPng = bookingMailConfirmedQr($settings, $amountCents, $variableSymbol);
-        } catch (Throwable $error) {
-          // A temporary API failure must not block a confirmed booking email.
-          // Do not log bank details, the API key, or the remote response.
-          error_log('PAY by square unavailable for booking confirmation (' . get_class($error) . ').');
+        if ($redeemedVoucher) {
+          $paymentInstructions = 'Pobyt je uhradený darčekovým poukazom. Ďalšiu platbu neposielajte.';
+        } else {
+          $paymentInstructions = BookingConfirmationEmailTemplate::paymentInstructions(
+            $settings,
+            $amountCents,
+            $variableSymbol,
+          );
+
+          try {
+            $paymentQrPng = bookingMailConfirmedQr($settings, $amountCents, $variableSymbol);
+          } catch (Throwable $error) {
+            error_log('PAY by square unavailable for booking confirmation (' . get_class($error) . ').');
+          }
         }
       }
       $content = $paidGuest && $paidInvoice !== null
